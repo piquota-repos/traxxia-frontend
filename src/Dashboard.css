@@ -4,7 +4,7 @@ body {
     font-family: Arial, sans-serif;
     background: linear-gradient(to bottom, #0f4a88, #293552); /* Business-style blue gradient */
     color: #000;
-    min-height: 100vh;
+    min-height: 110vh;
     display: flex;
     justify-content: center;
     align-items: center;

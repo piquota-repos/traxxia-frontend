@@ -1,32 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Card, Button, Modal, Form, Row, Col } from 'react-bootstrap';
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { Card, Button, Modal, Form, ProgressBar, Container, Row, Col } from 'react-bootstrap';
+import { ChevronLeft, ChevronRight, Star, LogOut, Eye, BarChart } from 'lucide-react';
 import './Dashboard.css';
- 
-const questions = [
-  "1. Do you have aggressive goals for growth, profitability and return on investment for the next three to five years?",
-  "2. Does the strategy provide leverage for the organization’s sources of competitive advantage?",
-  "3. Are new opportunities identified continuously in customers and spaces abandoned by the competition to leverage distinctive capacities?",
-  "4. Is the strategy sufficiently detailed, especially regarding the battlefields? ",
-  "5. Have you considered strategic planning for at least every two years?",
-  "6. Is there a forum open throughout the year to debate the strategic plan?",
-  "7. Does the strategy have clear action points and allocation of resources?",
-  "8. In conclusion, will the strategy allow you to beat the market?"
-];
 
 const Dashboard = () => {
+  const [questions, setQuestions] = useState([]);
   const [message, setMessage] = useState('');
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState(
-    questions.map(() => ({ rating: 0, description: '' }))
-  );
+  const [answers, setAnswers] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const res = await fetch('/questions.json');
+        const data = await res.json();
+        setQuestions(data);
+        setAnswers(data.map(() => ({ rating: 0, description: '' })));
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    };
+
     const fetchData = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -46,6 +45,7 @@ const Dashboard = () => {
       }
     };
 
+    fetchQuestions();
     fetchData();
   }, [navigate]);
 
@@ -57,10 +57,7 @@ const Dashboard = () => {
   const handleRatingClick = (rating) => {
     setAnswers(prev => {
       const newAnswers = [...prev];
-      newAnswers[currentQuestion] = {
-        ...newAnswers[currentQuestion],
-        rating
-      };
+      newAnswers[currentQuestion] = { ...newAnswers[currentQuestion], rating };
       return newAnswers;
     });
   };
@@ -68,10 +65,7 @@ const Dashboard = () => {
   const handleDescriptionChange = (e) => {
     setAnswers(prev => {
       const newAnswers = [...prev];
-      newAnswers[currentQuestion] = {
-        ...newAnswers[currentQuestion],
-        description: e.target.value
-      };
+      newAnswers[currentQuestion] = { ...newAnswers[currentQuestion], description: e.target.value };
       return newAnswers;
     });
   };
@@ -88,168 +82,80 @@ const Dashboard = () => {
     }
   };
 
-  const allQuestionsAnswered = () => {
-    return answers.every(answer => answer.rating > 0); 
-  };
+  const allQuestionsAnswered = () => answers.every(answer => answer.rating > 0);
 
-  const PreviewContent = () => {
-    const answeredQuestions = answers.map((answer, index) => ({
-      question: questions[index],
-      ...answer
-    }));
-
-    const unansweredQuestions = answeredQuestions.filter(q => q.rating === 0);
-    const answeredQuestionsFiltered = answeredQuestions.filter(q => q.rating > 0);
-
-    return (
-      <div className="preview-content">
-        <div className="answered-questions">
-          <h4 className="font-bold">Answered Questions</h4>
-          {answeredQuestionsFiltered.map((item, index) => (
-            <Card key={index} className="p-4 mb-3 shadow-sm">
-              <p className="font-medium">{item.question}</p>
-              <div className="flex mt-2 mb-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    size={20}
-                    fill={star <= item.rating ? "gold" : "none"}
-                    color={star <= item.rating ? "gold" : "gray"}
-                  />
-                ))}
-              </div>
-              {item.description && (
-                <p className="mt-2 text-gray-600">{item.description}</p>
-              )}
-            </Card>
-          ))}
-        </div>
-
-        {unansweredQuestions.length > 0 && (
-          <div className="unanswered-questions mt-4">
-            <h4 className="font-bold">Unanswered Questions</h4>
-            {unansweredQuestions.map((item, index) => (
-              <Card key={index} className="p-4 mb-3 shadow-sm">
-                <p className="text-gray-600">{item.question}</p>
-              </Card>
+  const PreviewContent = () => (
+    <div className="preview-content">
+      <h4 className="font-bold text-center mb-4">Your Responses</h4>
+      {answers.map((item, index) => (
+        <Card key={index} className="p-3 mb-3 shadow rounded">
+          <h5>{questions[index]}</h5>
+          <div className="d-flex gap-1">
+            {[1, 2, 3, 4, 5].map(star => (
+              <Star key={star} size={20} fill={star <= item.rating ? "#FFD700" : "none"} color={star <= item.rating ? "#FFD700" : "#ccc"} />
             ))}
           </div>
-        )}
-      </div>
-    );
-  };
+          {item.description && <p className="text-muted mt-2">{item.description}</p>}
+        </Card>
+      ))}
+    </div>
+  );
 
-  const handleAnalyzeClick = () => {
-    setShowAnalysis(true);
-  };
-
-  const AnalysisContent = () => {
-    const analyzedData = answers.map((answer, index) => ({
-      question: questions[index],
-      rating: answer.rating,
-      description: answer.description
-    }));
-
-    return (
-      <div className="analysis-content">
-        <div className="p-3">
-          <p><strong>Strategy Formulation Is Analysing</strong>  </p>
-
-        </div>
-      </div>
-    );
-  };
+  const AnalysisContent = () => (
+    <div className="analysis-content text-center p-4">
+      <h5 className="mb-3">Analyzing Your Responses...</h5>
+      <ProgressBar animated now={75} variant="info" />
+    </div>
+  );
 
   return (
-    <div className="container max-w-4xl mx-auto p-6">
-      <div className="  header-container">
-        <h4 className="dashboard-title">Strategy Formulation Survey</h4>
-        <Button variant="danger" onClick={handleLogout}>
-          Logout
-        </Button>
-      </div>
+    <Container className="dashboard-container py-4">
+      <Row className="align-items-center mb-4">
+        <Col><h3 className="fw-bold text-primary">Strategy Formulation Survey</h3></Col>
+        <Col className="text-end">
+          <Button variant="outline-danger" onClick={handleLogout}><LogOut size={18} className="me-2" />Logout</Button>
+        </Col>
+      </Row>
 
-      <Card className="question-card">
-        <Card.Body>
-          <p className="question-counter">Question {currentQuestion + 1} of {questions.length}</p>
-          <p className="question-text">{questions[currentQuestion]}</p>
+      {questions.length > 0 && (
+        <Card className="p-4 shadow-sm rounded">
+          <p className="text-muted">Question {currentQuestion + 1} of {questions.length}</p>
+          <h5 className="fw-semibold mb-3">{questions[currentQuestion]}</h5>
 
-          <div className="stars-container">
-            {[1, 2, 3, 4, 5].map((rating) => (
-              <Star
-                key={rating}
-                size={32}
-                className="cursor-pointer hover:scale-110 transition-transform"
-                fill={rating <= answers[currentQuestion].rating ? "gold" : "none"}
-                color={rating <= answers[currentQuestion].rating ? "gold" : "gray"}
-                onClick={() => handleRatingClick(rating)}
-              />
+          <div className="d-flex gap-2 mb-3 justify-content-start">
+            {[1, 2, 3, 4, 5].map(rating => (
+              <Star key={rating} size={32} fill={rating <= answers[currentQuestion].rating ? "#FFD700" : "none"} color={rating <= answers[currentQuestion].rating ? "#FFD700" : "#ccc"} onClick={() => handleRatingClick(rating)} className="star-hover" />
             ))}
           </div>
 
-          <Form.Control
-            className="comment-textarea"
-            as="textarea"
-            placeholder="Add your comments here..."
-            value={answers[currentQuestion].description}
-            onChange={handleDescriptionChange}
-          />
+          <Form.Control as="textarea" rows={3} placeholder="Add comments..." value={answers[currentQuestion].description} onChange={handleDescriptionChange} className="mb-3" />
 
-          <div className="nav-buttons">
-            <Button
-              onClick={prevQuestion}
-              disabled={currentQuestion === 0}
-              variant="outline"
-            >
-              <ChevronLeft className="mr-2" /> Previous
-            </Button>
-            <Button
-              onClick={nextQuestion}
-              disabled={currentQuestion === questions.length - 1}
-            >
-              Next <ChevronRight className="ml-2" />
-            </Button>
+          <div className="d-flex justify-content-between">
+            <Button variant="secondary" onClick={prevQuestion} disabled={currentQuestion === 0}><ChevronLeft size={20} /> Previous</Button>
+            <Button variant="primary" onClick={nextQuestion} disabled={currentQuestion === questions.length - 1}>Next <ChevronRight size={20} /></Button>
           </div>
-        </Card.Body>
-      </Card>
+        </Card>
+      )}
 
-      <div className="action-buttons">
-        <Button variant="outline" onClick={() => setShowPreview(true)}>
-          Preview Responses
-        </Button>
-
-        <Button
-          onClick={handleAnalyzeClick}
-          disabled={!allQuestionsAnswered()}  // Disable if any question is unanswered
-        >
-          Analyze Responses
-        </Button>
+      <div className="d-flex justify-content-center gap-3 mt-4">
+        <Button variant="outline-info" onClick={() => setShowPreview(true)}><Eye size={18} className="me-2" />Preview</Button>
+        <Button variant="success" onClick={() => setShowAnalysis(true)} disabled={!allQuestionsAnswered()}><BarChart size={18} className="me-2" />Analyze</Button>
       </div>
 
-
-      <Modal className="preview-modal" show={showPreview} onHide={() => setShowPreview(false)}>
+      <Modal show={showPreview} onHide={() => setShowPreview(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Response Summary</Modal.Title>
+          <Modal.Title className="w-100 text-center">Response Summary</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <PreviewContent />
-        </Modal.Body>
+        <Modal.Body><PreviewContent /></Modal.Body>
       </Modal>
 
-      <Modal className="analysis-modal" show={showAnalysis} onHide={() => setShowAnalysis(false)}>
-        {/* <Modal.Header closeButton>
-           
-        </Modal.Header> */}
-        <Modal.Body>
-          <AnalysisContent />
-        </Modal.Body>
+      <Modal show={showAnalysis} onHide={() => setShowAnalysis(false)} centered>
+        <Modal.Body><AnalysisContent /></Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAnalysis(false)}>
-            Close
-          </Button>
+          <Button variant="secondary" onClick={() => setShowAnalysis(false)}>Close</Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   );
 };
 
