@@ -5,12 +5,12 @@ body {
     background: linear-gradient(to bottom, #0f4a88, #293552); /* Business-style blue gradient */
     color: #000;
     min-height: 110vh;
-    display: flex;
+    display: block;
     justify-content: center;
     align-items: center;
   }
-  .container {
-    max-width: 800px !important;
+  .dashboard-container {
+    max-width: 80rem !important;
     padding: 2rem;
     margin: 0 auto;
     background-color: #f8f9fa;
@@ -201,4 +201,19 @@ body {
     .action-buttons {
       flex-direction: column;
     }
+  }
+
+  .accordion-item {
+    margin-bottom: 8px;
+    border-radius: 4px !important;
+    overflow: hidden;
+  }
+  
+  .accordion-button:not(.collapsed) {
+    background-color: inherit !important;
+  }
+  
+  .star-hover:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
   }
