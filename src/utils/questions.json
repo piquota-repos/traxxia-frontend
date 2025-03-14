@@ -1,0 +1,167 @@
+[
+  {
+    "id": 1,
+    "name": "Business Fundamentals",
+    "questions": [
+      {
+        "id": "1a",
+        "question": "What industry does your business operate in, and what specific market niche do you target?",
+        "type": "open-ended"
+      },
+      {
+        "id": "1b",
+        "question": "How would you describe your business model?",
+        "type": "options",
+        "options": ["B2B", "B2C", "Subscription-based", "Freemium", "Other"]
+      },
+      {
+        "id": "1c",
+        "question": "What is your company's mission, and how does it align with your vision?",
+        "type": "open-ended"
+      },
+      {
+        "id": "1d",
+        "question": "What are your company's core values, and how do they influence your operations?",
+        "type": "open-ended"
+      },
+      {
+        "id": "1e",
+        "question": "Provide a detailed description of your products or services.",
+        "type": "open-ended"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Market and Consumer Data",
+    "questions": [
+      {
+        "id": "2a",
+        "question": "Who are your target demographics?",
+        "type": "options",
+        "options": ["Age range", "Gender", "Income level", "Other"]
+      },
+      {
+        "id": "2b",
+        "question": "How do you segment your customer base?",
+        "type": "open-ended"
+      },
+      {
+        "id": "2c",
+        "question": "What are the main pain points or unmet needs of your customers?",
+        "type": "open-ended"
+      },
+      {
+        "id": "2d",
+        "question": "What influences your customers' purchasing decisions?",
+        "type": "options",
+        "options": ["Price", "Quality", "Brand loyalty", "Other"]
+      },
+      {
+        "id": "2e",
+        "question": "What current and emerging trends are impacting your industry?",
+        "type": "open-ended"
+      },
+      {
+        "id": "2f",
+        "question": "Who are your main competitors, and what are their market positions and strengths?",
+        "type": "open-ended"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Financial Metrics",
+    "questions": [
+      {
+        "id": "3a",
+        "question": "What are your main revenue streams?",
+        "type": "open-ended"
+      },
+      {
+        "id": "3b",
+        "question": "What are your profit margins, and how do they compare to industry standards?",
+        "type": "open-ended"
+      },
+      {
+        "id": "3c",
+        "question": "What are your major cost components, and how can they be optimized?",
+        "type": "open-ended"
+      },
+      {
+        "id": "3d",
+        "question": "How has your business performed financially over the past few years?",
+        "type": "open-ended"
+      },
+      {
+        "id": "3e",
+        "question": "What key financial ratios do you track, and what do they indicate about your business?",
+        "type": "open-ended"
+      },
+      {
+        "id": "3f",
+        "question": "What are your growth rates, and how do they compare to industry averages?",
+        "type": "open-ended"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Operational & Technological Insights",
+    "questions": [
+      {
+        "id": "4a",
+        "question": "How would you rate your current technology infrastructure?",
+        "type": "options",
+        "options": ["Advanced", "Moderate", "Early stages", "Other"]
+      },
+      {
+        "id": "4b",
+        "question": "Describe your production processes and how they contribute to your operations.",
+        "type": "open-ended"
+      },
+      {
+        "id": "4c",
+        "question": "How would you rate your company's ability to innovate, and what processes are in place to drive innovation?",
+        "type": "open-ended"
+      },
+      {
+        "id": "4d",
+        "question": "What operational challenges does your business face?",
+        "type": "options",
+        "options": ["Supply chain issues", "Regulatory compliance", "Skill gaps", "Other"]
+      },
+      {
+        "id": "4e",
+        "question": "Are there any skill gaps within your organization that could hinder your strategic goals?",
+        "type": "open-ended"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Strategic Goals & Challenges",
+    "questions": [
+      {
+        "id": "5a",
+        "question": "What are your short-term strategic goals?",
+        "type": "open-ended"
+      },
+      {
+        "id": "5b",
+        "question": "What are your long-term strategic goals?",
+        "type": "open-ended"
+      },
+      {
+        "id": "5c",
+        "question": "What areas require improvement or present new growth opportunities?",
+        "type": "open-ended"
+      },
+      {
+        "id": "5d",
+        "question": "What new growth opportunities are you considering?",
+        "type": "open-ended"
+      }
+    ]
+  }
+]
