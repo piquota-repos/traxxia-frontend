@@ -22,7 +22,7 @@ const Register = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [isError, setIsError] = useState(false);
-  
+  const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
@@ -92,7 +92,7 @@ const Register = () => {
     
     setIsSubmitting(true);
     try {
-      const res = await axios.post('http://localhost:5000/register', form);
+      const res = await axios.post(`${API_BASE_URL}/register`, form);
       setIsSubmitting(false);
       
       // Show success modal

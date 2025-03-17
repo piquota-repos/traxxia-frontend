@@ -47,7 +47,7 @@ const Dashboard = () => {
   const [showSearchBox, setShowSearchBox] = useState(false);
   const navigate = useNavigate();
   const { generateResponse, loading, error } = useGroqChat();
-
+  const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
   useEffect(() => {
     const setupQuestions = () => {
       try {
@@ -80,7 +80,7 @@ const Dashboard = () => {
       }
 
       try {
-        const response = await fetch("http://localhost:5000/dashboard", {
+        const response = await fetch(`${API_BASE_URL}/dashboard`, {
           headers: { Authorization: token },
         });
         if (!response.ok) throw new Error("Failed to fetch data");
