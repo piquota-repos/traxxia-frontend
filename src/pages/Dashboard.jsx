@@ -8,8 +8,7 @@ import {
   Container,
   Row,
   Col,
-  Accordion,
-  Alert,
+  Accordion, 
   Navbar,
   Nav,
   Dropdown,
@@ -46,7 +45,7 @@ const Dashboard = () => {
   const [activeSection, setActiveSection] = useState("survey");
   const [showSearchBox, setShowSearchBox] = useState(false);
   const navigate = useNavigate();
-  const { generateResponse, loading, error } = useGroqChat();
+  const { generateResponse, loading } = useGroqChat();
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
   useEffect(() => {
     const setupQuestions = () => {
