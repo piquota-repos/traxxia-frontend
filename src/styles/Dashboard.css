@@ -1,6 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
- 
+.flex-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Makes radio buttons stay left & input move right */
+  gap: 10px;
+}
+
+.options-wrapper {
+  flex: 1; /* Allows radio buttons to take available space */
+}
+
+.half-width {
+  width: 50%; /* Makes input box take only 50% width */
+  margin-bottom: 40px;
+}
+
+
 body {
   font-family: 'Poppins', sans-serif;
   background-color: var(--body-bg);

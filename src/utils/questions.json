@@ -5,27 +5,47 @@
     "questions": [
       {
         "id": "1a",
+        "nested": {
+          "id": "a) ",
+          "question": "Industry and Market Niche"
+        },
         "question": "What industry does your business operate in, and what specific market niche do you target?",
         "type": "open-ended"
       },
       {
         "id": "1b",
+        "nested": {
+          "id": "b) ",
+          "question": "Business Model"
+        },
         "question": "How would you describe your business model?",
         "type": "options",
         "options": ["B2B", "B2C", "Subscription-based", "Freemium", "Other"]
       },
       {
         "id": "1c",
+        "nested": {
+          "id": "c) ",
+          "question": "Mission/Vision"
+        },
         "question": "What is your company's mission, and how does it align with your vision?",
         "type": "open-ended"
       },
       {
         "id": "1d",
+        "nested": {
+          "id": "d) ",
+          "question": "Core Values"
+        },
         "question": "What are your company's core values, and how do they influence your operations?",
         "type": "open-ended"
       },
       {
         "id": "1e",
+        "nested": {
+          "id": "e) ",
+          "question": "Product/Service Description"
+        },
         "question": "Provide a detailed description of your products or services.",
         "type": "open-ended"
       }
@@ -37,33 +57,57 @@
     "questions": [
       {
         "id": "2a",
+        "nested": {
+          "id": "a) ",
+          "question": "Target Demographics"
+        },
         "question": "Who are your target demographics?",
         "type": "options",
         "options": ["Age range", "Gender", "Income level", "Other"]
       },
       {
         "id": "2b",
+        "nested": {
+          "id": "b) ",
+          "question": "Customer Segments"
+        },
         "question": "How do you segment your customer base?",
         "type": "open-ended"
       },
       {
         "id": "2c",
+        "nested": {
+          "id": "c) ",
+          "question": "Customer Pain Points"
+        },
         "question": "What are the main pain points or unmet needs of your customers?",
         "type": "open-ended"
       },
       {
         "id": "2d",
+        "nested": {
+          "id": "d) ",
+          "question": "Purchasing Behaviors"
+        },
         "question": "What influences your customers' purchasing decisions?",
         "type": "options",
         "options": ["Price", "Quality", "Brand loyalty", "Other"]
       },
       {
         "id": "2e",
+        "nested": {
+          "id": "e) ",
+          "question": "Market Trends"
+        },
         "question": "What current and emerging trends are impacting your industry?",
         "type": "open-ended"
       },
       {
         "id": "2f",
+        "nested": {
+          "id": "f) ",
+          "question": "Competitive Landscape"
+        },
         "question": "Who are your main competitors, and what are their market positions and strengths?",
         "type": "open-ended"
       }
@@ -75,31 +119,55 @@
     "questions": [
       {
         "id": "3a",
+        "nested": {
+          "id": "a) ",
+          "question": "Revenue Streams"
+        },
         "question": "What are your main revenue streams?",
         "type": "open-ended"
       },
       {
         "id": "3b",
+        "nested": {
+          "id": "b) ",
+          "question": "Profit Margins"
+        },
         "question": "What are your profit margins, and how do they compare to industry standards?",
         "type": "open-ended"
       },
       {
         "id": "3c",
+        "nested": {
+          "id": "c) ",
+          "question": "Cost Structure"
+        },
         "question": "What are your major cost components, and how can they be optimized?",
         "type": "open-ended"
       },
       {
         "id": "3d",
+        "nested": {
+          "id": "d) ",
+          "question": "Historical Performance"
+        },
         "question": "How has your business performed financially over the past few years?",
         "type": "open-ended"
       },
       {
         "id": "3e",
+        "nested": {
+          "id": "e) ",
+          "question": "Financial Ratios"
+        },
         "question": "What key financial ratios do you track, and what do they indicate about your business?",
         "type": "open-ended"
       },
       {
         "id": "3f",
+        "nested": {
+          "id": "f) ",
+          "question": "Growth Rates"
+        },
         "question": "What are your growth rates, and how do they compare to industry averages?",
         "type": "open-ended"
       }
@@ -111,28 +179,48 @@
     "questions": [
       {
         "id": "4a",
+        "nested": {
+          "id": "a) ",
+          "question": "Technology Infrastructure"
+        },
         "question": "How would you rate your current technology infrastructure?",
         "type": "options",
         "options": ["Advanced", "Moderate", "Early stages", "Other"]
       },
       {
         "id": "4b",
+        "nested": {
+          "id": "b) ",
+          "question": "Production Processe"
+        },
         "question": "Describe your production processes and how they contribute to your operations.",
         "type": "open-ended"
       },
       {
         "id": "4c",
+        "nested": {
+          "id": "c) ",
+          "question": "Innovation Capabilities"
+        },
         "question": "How would you rate your company's ability to innovate, and what processes are in place to drive innovation?",
         "type": "open-ended"
       },
       {
         "id": "4d",
+        "nested": {
+          "id": "d) ",
+          "question": "Operational Challenges"
+        },
         "question": "What operational challenges does your business face?",
         "type": "options",
         "options": ["Supply chain issues", "Regulatory compliance", "Skill gaps", "Other"]
       },
       {
         "id": "4e",
+        "nested": {
+          "id": "e) ",
+          "question": "Skill Gaps"
+        },
         "question": "Are there any skill gaps within your organization that could hinder your strategic goals?",
         "type": "open-ended"
       }
@@ -144,21 +232,37 @@
     "questions": [
       {
         "id": "5a",
+        "nested": {
+          "id": "a) ",
+          "question": "Short-Term Objectives"
+        },
         "question": "What are your short-term strategic goals?",
         "type": "open-ended"
       },
       {
         "id": "5b",
+        "nested": {
+          "id": "b) ",
+          "question": "Long-Term Objectives"
+        },
         "question": "What are your long-term strategic goals?",
         "type": "open-ended"
       },
       {
         "id": "5c",
+        "nested": {
+          "id": "c) ",
+          "question": "Areas for Improvement"
+        },
         "question": "What areas require improvement or present new growth opportunities?",
         "type": "open-ended"
       },
       {
         "id": "5d",
+        "nested": {
+          "id": "d) ",
+          "question": "Growth Opportunities"
+        },
         "question": "What new growth opportunities are you considering?",
         "type": "open-ended"
       }
