@@ -7,8 +7,10 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const API_BASE_URL = process.env.REACT_APP_BACKEND_URL; 
+  const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -25,6 +27,10 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -67,23 +73,30 @@ const Login = () => {
             <div className="form-group">
               <div className="password-header">
                 <label>Password</label>
-               
               </div>
               <div className="input-container">
                 <i className="input-icon password-icon"></i>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                /> 
+                />
+                <button 
+                  type="button"
+                  className="toggle-password"
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <i className={`eye-icon ${showPassword ? "eye-open" : "eye-closed"}`}></i>
+                </button>
               </div>
               <a href="/forgot-password" className="forgot-password">Forgot Password?</a>
             </div>
             
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className={`login-button ${isLoading ? 'loading' : ''}`}
               disabled={isLoading}
             >
