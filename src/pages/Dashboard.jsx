@@ -8,32 +8,33 @@ import {
   Container,
   Row,
   Col,
-  Accordion, 
+  Accordion,
   Navbar,
   Nav,
   Dropdown,
-  Badge,
+  Badge
 } from "react-bootstrap";
-import {
-  Star,
+import { 
   LogOut,
   Eye,
   BarChart,
   CheckCircle,
-  Home,
   FileText,
   PieChart,
   Settings,
-  User,
   Bell,
   Search,
   Zap,
   Briefcase,
   Activity,
+  ChevronRight,
+  CircleUserRound
 } from "lucide-react";
 import useGroqChat from "../components/GroqChat";
 import "../styles/Dashboard.css";
 import questionsData from "../utils/questions.json";
+import strategicPlanningBook from "../utils/strategicPlanningBook.js"; 
+import { Groq } from "groq-sdk";
 
 const Dashboard = () => {
   const [categories, setCategories] = useState([]);
@@ -44,9 +45,50 @@ const Dashboard = () => {
   const [username, setUsername] = useState("");
   const [activeSection, setActiveSection] = useState("survey");
   const [showSearchBox, setShowSearchBox] = useState(false);
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState(null);
+  const [showAnalysisSelection, setShowAnalysisSelection] = useState(false);
   const navigate = useNavigate();
-  const { generateResponse, loading } = useGroqChat();
+  const { loading } = useGroqChat();
+  const groqClient = new Groq({
+    apiKey: process.env.REACT_APP_GROQ_API_KEY,
+    dangerouslyAllowBrowser: true
+  });
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+
+  // Analysis types with descriptions
+  const analysisTypes = [
+    {
+      id: "swot",
+      name: "SWOT Analysis",
+      description: "Strengths, Weaknesses, Opportunities, and Threats analysis",
+      icon: <Activity size={24} />,
+    },
+    {
+      id: "pestle",
+      name: "PESTLE Analysis",
+      description: "Political, Economic, Social, Technological, Legal and Environmental factors",
+      icon: <Briefcase size={24} />,
+    },
+    {
+      id: "noise",
+      name: "NOISE Analysis",
+      description: "Needs, Opportunities, Improvements, Strengths, and Exceptions",
+      icon: <Bell size={24} />,
+    },
+    {
+      id: "vrio",
+      name: "VRIO Framework",
+      description: "Value, Rarity, Imitability, and Organization",
+      icon: <PieChart size={24} />,
+    },
+    {
+      id: "bsc",
+      name: "Balanced Scorecard",
+      description: "Financial, Customer, Internal Process, and Learning & Growth perspectives",
+      icon: <BarChart size={24} />,
+    },
+  ];
+
   useEffect(() => {
     const setupQuestions = () => {
       try {
@@ -82,11 +124,10 @@ const Dashboard = () => {
         const response = await fetch(`${API_BASE_URL}/dashboard`, {
           headers: { Authorization: token },
         });
-        if (!response.ok) throw new Error("Failed to fetch data");
-
-        // Assume we get user info from the backend
+        if (!response.ok) throw new Error("Failed to fetch data"); 
         const userData = await response.json();
-        setUsername(userData.username || "Carlos Felipe Niezen");
+        console.log(userData.user)
+        setUsername(userData.user?.name || "User");
       } catch (err) {
         alert("Error fetching data");
         navigate("/login");
@@ -100,17 +141,7 @@ const Dashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
-  };
-
-  const handleRatingClick = (questionId, rating) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: {
-        ...prev[questionId],
-        rating: prev[questionId].rating === rating ? 0 : rating,
-      },
-    }));
-  };
+  }; 
 
   const handleDescriptionChange = (questionId, e) => {
     setAnswers((prev) => ({
@@ -128,6 +159,7 @@ const Dashboard = () => {
       [questionId]: {
         ...prev[questionId],
         selectedOption: option,
+        description: "", 
       },
     }));
   };
@@ -158,47 +190,96 @@ const Dashboard = () => {
     return Math.round((completedCount / Object.keys(answers).length) * 100);
   };
 
-  const getAccordionStyles = (questionId) => {
-    return {
-      backgroundColor: isQuestionCompleted(questionId)
-        ? "var(--completed-bg)"
-        : "white",
-      borderLeft: isQuestionCompleted(questionId)
-        ? "4px solid var(--accent-color)"
-        : "none",
-      transition: "all 0.3s ease",
-      borderRadius: "12px",
-      margin: "12px 0",
-      overflow: "hidden",
-    };
-  };
-
   const handleAnalyzeResponses = async () => {
+    setShowAnalysisSelection(false);
+    setShowAnalysis(true);
     let promptText = `Please analyze the following survey responses and provide insights:\n`;
-
+  
     categories.forEach((category) => {
       promptText += `\n## ${category.name}\n`;
-
+  
       category.questions.forEach((question) => {
         const answer = answers[question.id];
         promptText += `Question: ${question.question}\n`;
-        promptText += `Rating: ${answer.rating}/5\n`;
-
+        
         if (question.type === "options" && answer.selectedOption) {
           promptText += `Selected Option: ${answer.selectedOption}\n`;
         }
-
+  
         promptText += `Comments: ${answer.description}\n\n`;
       });
     });
-
-    promptText += `Please provide a structured analysis focusing on key business insights, areas of strength, areas for improvement, and strategic recommendations based on these responses.`;
-
-    const analysis = await generateResponse(promptText);
-    if (analysis) {
-      setAnalysisResult(analysis);
-      setShowAnalysis(true);
+  
+    try {
+      setAnalysisResult(`Analyzing responses with ${getAnalysisTypeName(selectedAnalysisType)} framework...`);
+      console.log(promptText); 
+      let systemContent = "";
+      
+      switch(selectedAnalysisType) {
+        case "swot":
+          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items";
+          break;
+        case "pestle":
+          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed PESTLE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items.\nBe as detailed as possible";
+          break;
+        case "noise":
+          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed NOISE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible";
+          break;
+        case "vrio":
+          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed VRIO analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible";
+          break;
+        case "bsc":
+          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed Balanced Scorecard analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible";
+          break;
+        default:
+          systemContent = "You are a strategic analyst. Analyze the provided survey responses and deliver a comprehensive business analysis. Identify key strengths, weaknesses, opportunities for growth, and potential threats. Conclude with practical, actionable recommendations prioritized by impact and feasibility.";
+      }
+      
+      const messages = [
+        {
+          "role": "system",
+          "content": systemContent
+        },
+        {
+          "role": "user",
+          "content": promptText
+        }
+      ];
+      // "content": strategicPlanningBook + promptText
+       
+      setAnalysisResult("");
+       
+      const chatCompletion = await groqClient.chat.completions.create({
+        messages: messages,
+        model: "llama-3.3-70b-versatile",
+        temperature: 1,
+        max_tokens: 31980,   
+        top_p: 1,
+        stream: true,
+        stop: null
+      }); 
+      for await (const chunk of chatCompletion) {
+        const content = chunk.choices[0]?.delta?.content || '';
+        setAnalysisResult(prevResult => prevResult + content);
+      }
+      
+    } catch (error) {
+      console.error(`Error generating ${selectedAnalysisType} analysis:`, error);
+      setAnalysisResult(`Error generating analysis: ${error.message}`);
     }
+  };
+  
+  const getAnalysisTypeName = (type) => {
+    const analysisName = analysisTypes.find(a => a.id === type)?.name || "comprehensive";
+    return analysisName;
+  };
+
+  const isCategoryCompleted = (category) => {
+    return category.questions.every((question) => isQuestionCompleted(question.id));
+  };
+
+  const handleShowAnalysisSelection = () => {
+    setShowAnalysisSelection(true);
   };
 
   const PreviewContent = () => (
@@ -213,17 +294,6 @@ const Dashboard = () => {
             <Card key={question.id} className="mb-3 preview-card">
               <Card.Body>
                 <h6>{question.question}</h6>
-                {/* <div className="d-flex gap-1 mb-2">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <Star
-                      key={star}
-                      size={20}
-                      fill={star <= answers[question.id]?.rating ? "var(--star-color)" : "none"}
-                      color={star <= answers[question.id]?.rating ? "var(--star-color)" : "#ccc"}
-                    />
-                  ))}
-                </div> */}
-
                 {question.type === "options" &&
                   answers[question.id]?.selectedOption && (
                     <p className="text-primary">
@@ -259,7 +329,16 @@ const Dashboard = () => {
         </div>
       ) : (
         <div>
-          <h5 className="mb-3">Analysis Results</h5>
+          <h5 className="mb-3">
+            {selectedAnalysisType && (
+              <>
+                <Badge bg="primary" className="me-2">
+                  {analysisTypes.find(type => type.id === selectedAnalysisType).name}
+                </Badge>
+                Analysis Results
+              </>
+            )}
+          </h5>
           <div className="analysis-content" style={{ whiteSpace: "pre-line" }}>
             {analysisResult}
           </div>
@@ -306,9 +385,6 @@ const Dashboard = () => {
   };
 
   // Main content based on active section
-  // Add this to your Dashboard component to implement the new styling
-
-  // Update the renderMainContent function's survey section
   const renderMainContent = () => {
     switch (activeSection) {
       case "survey":
@@ -336,10 +412,19 @@ const Dashboard = () => {
             {categories.map((category) => (
               <Accordion key={category.id} className="mb-4 modern-accordion">
                 <Accordion.Item eventKey={category.id}>
-                  <Accordion.Header>
-                    <h4 className="category-heading">
-                      {category.id}. {category.name}
-                    </h4>
+                  <Accordion.Header className={isCategoryCompleted(category) ? "category-completed" : ""}>
+                    <div className="d-flex align-items-center justify-content-between w-100">
+                      <span>
+                        {category.id}. {category.name}
+                      </span>
+                      {isCategoryCompleted(category) && (
+                        <CheckCircle
+                          size={20}
+                          className="ms-2 text-success"
+                          style={{ marginRight: "10px" }}
+                        />
+                      )}
+                    </div>
                   </Accordion.Header>
                   <Accordion.Body>
                     <Accordion className="nested-accordion">
@@ -434,50 +519,27 @@ const Dashboard = () => {
               </Button>
               <Button
                 variant="success"
-                onClick={handleAnalyzeResponses}
-                disabled={loading || !allQuestionsAnswered()}
+                onClick={handleShowAnalysisSelection}
+                disabled={!allQuestionsAnswered()}
                 className="btn-analyze"
               >
                 <BarChart size={18} className="me-2" />
-                {loading ? "Analyzing..." : "Analyze"}
+                Analyze
               </Button>
             </div>
           </div>
         );
-      // other cases remain the same
+      case "reports":
+        return renderPlaceholderContent("reports");
+      case "analytics":
+        return renderPlaceholderContent("analytics");
+      case "settings":
+        return renderPlaceholderContent("settings");
+      default:
+        return renderPlaceholderContent("survey");
     }
   };
-
-  // Update the StarRating component for more visual appeal
-  const StarRating = ({ currentRating, onRatingChange }) => {
-    return (
-      <div className="d-flex gap-2 justify-content-center">
-        {[1, 2, 3, 4, 5].map((rating) => (
-          <div key={rating} className="text-center">
-            <Star
-              key={rating}
-              size={32}
-              fill={rating <= currentRating ? "var(--star-color)" : "none"}
-              color={rating <= currentRating ? "var(--star-color)" : "#ccc"}
-              onClick={() => onRatingChange(rating)}
-              className="star-hover"
-            />
-            <div
-              className="rating-label"
-              style={{
-                fontSize: "10px",
-                marginTop: "4px",
-                color: rating <= currentRating ? "var(--star-color)" : "#aaa",
-              }}
-            >
-              {rating}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
+ 
   const QuestionOptions = ({ question, value, onChange }) => {
     if (question.type !== "options") return null;
 
@@ -521,7 +583,7 @@ const Dashboard = () => {
                 id="dropdown-user"
                 className="nav-profile-toggle"
               >
-                <div className="avatar-circle">{username.toUpperCase()}</div>
+                <div className="avatar-circle"> <CircleUserRound size={25} style={{ marginRight: "5px",marginBottom:"3px" }} />{username.toUpperCase()}</div>
               </Dropdown.Toggle>
               <Dropdown.Menu align="end" className="modern-dropdown">
                 <Dropdown.Item
@@ -580,6 +642,68 @@ const Dashboard = () => {
           <Col>{renderMainContent()}</Col>
         </Row>
       </Container>
+
+      {/* Analysis Type Selection Modal */}
+      <Modal
+        show={showAnalysisSelection}
+        onHide={() => setShowAnalysisSelection(false)}
+        centered
+        className="modern-modal"
+        size="lg"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title className="w-100 text-center">
+            Choose Analysis Type
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="analysis-type-container">
+            <Row>
+              {analysisTypes.map((type) => (
+                <Col md={6} key={type.id} className="mb-3">
+                  <Card 
+                    className={`analysis-type-card p-3 h-100 ${selectedAnalysisType === type.id ? 'selected-analysis' : ''}`}
+                    onClick={() => setSelectedAnalysisType(type.id)}
+                  >
+                    <Card.Body className="d-flex flex-column">
+                      <div className="d-flex align-items-center mb-2">
+                        <div className="analysis-icon me-3">
+                          {type.icon}
+                        </div>
+                        <h5 className="mb-0">{type.name}</h5>
+                      </div>
+                      <p className="text-muted mb-0 mt-2">{type.description}</p>
+                      {selectedAnalysisType === type.id && (
+                        <div className="selected-indicator mt-2">
+                          <Badge bg="success" pill>Selected</Badge>
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowAnalysisSelection(false)}
+            className="btn-modern"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleAnalyzeResponses}
+            disabled={!selectedAnalysisType || loading}
+            className="btn-modern"
+          >
+            {loading ? "Analyzing..." : "Generate Analysis"}
+            <ChevronRight size={16} className="ms-1" />
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Modals */}
       <Modal
