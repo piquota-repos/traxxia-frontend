@@ -133,7 +133,7 @@ body {
   color: var(--text-dark);
 }
 
-.form-group input[type="text"],
+.register-container .form-group input[type="text"],
 .register-group input[type="email"],
 .register-group input[type="password"],
 .form-group textarea {

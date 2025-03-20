@@ -22,6 +22,35 @@
   --password-border: #d8b3ff;
   
   --card-border-radius: 24px;
+
+
+  --card-border-radius: 30px;
+  --question-success: #329c47;
+  --question-success-light:#96e3a5;
+}
+:root {
+  /* Color palette */ 
+  --primary-light: #9D96E8;
+  --secondary: #7E57C2;
+  --accent-color: #7C4DFF;
+  --star-color: #FFA000;
+  --completed-bg: rgba(220, 237, 255, 0.6);
+  
+  /* Common colors */
+  --white: #ffffff;
+  --light-blue: #F0F8FF;
+  --dark: #2c3e50;
+  --body-bg: #f8f9fa;
+  --border: rgba(0, 0, 0, 0.08);
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #6A5ACD, #7E57C2);
+  --gradient-secondary: linear-gradient(135deg, #FF9800, #FF5722);
+
+  /* Other variables */
+  --transition: all 0.3s ease;
+  --card-border-radius: 16px;
+  --email-border: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
 * {
@@ -427,8 +456,8 @@ body {
     font-size: 0.85rem;
   }
   
-  .form-group input {
-    padding: 0.8rem 1rem 0.8rem 2.5rem;
+  .form-group .input-container input[type="text"] {
+    padding: 0px !important;
   }
   
   .login-button {
@@ -489,10 +518,6 @@ body {
 
 .eye-closed {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%237209b7'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21'%3E%3C/path%3E%3C/svg%3E");
-}
- 
-.form-group .password-header input[type="text"] {
-  padding-right: 0px;
 }
  
 .input-container {

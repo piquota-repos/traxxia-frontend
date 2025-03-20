@@ -14,7 +14,7 @@ import {
   Dropdown,
   Badge
 } from "react-bootstrap";
-import { 
+import {
   LogOut,
   Eye,
   BarChart,
@@ -33,7 +33,7 @@ import {
 import useGroqChat from "../components/GroqChat";
 import "../styles/Dashboard.css";
 import questionsData from "../utils/questions.json";
-import strategicPlanningBook from "../utils/strategicPlanningBook.js"; 
+import strategicPlanningBook from "../utils/strategicPlanningBook.js";
 import { Groq } from "groq-sdk";
 
 const Dashboard = () => {
@@ -124,7 +124,7 @@ const Dashboard = () => {
         const response = await fetch(`${API_BASE_URL}/dashboard`, {
           headers: { Authorization: token },
         });
-        if (!response.ok) throw new Error("Failed to fetch data"); 
+        if (!response.ok) throw new Error("Failed to fetch data");
         const userData = await response.json();
         console.log(userData.user)
         setUsername(userData.user?.name || "User");
@@ -141,7 +141,7 @@ const Dashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
-  }; 
+  };
 
   const handleDescriptionChange = (questionId, e) => {
     setAnswers((prev) => ({
@@ -159,7 +159,7 @@ const Dashboard = () => {
       [questionId]: {
         ...prev[questionId],
         selectedOption: option,
-        description: "", 
+        description: "",
       },
     }));
   };
@@ -194,28 +194,28 @@ const Dashboard = () => {
     setShowAnalysisSelection(false);
     setShowAnalysis(true);
     let promptText = `Please analyze the following survey responses and provide insights:\n`;
-  
+
     categories.forEach((category) => {
       promptText += `\n## ${category.name}\n`;
-  
+
       category.questions.forEach((question) => {
         const answer = answers[question.id];
         promptText += `Question: ${question.question}\n`;
-        
+
         if (question.type === "options" && answer.selectedOption) {
           promptText += `Selected Option: ${answer.selectedOption}\n`;
         }
-  
+
         promptText += `Comments: ${answer.description}\n\n`;
       });
     });
-  
+
     try {
       setAnalysisResult(`Analyzing responses with ${getAnalysisTypeName(selectedAnalysisType)} framework...`);
-      console.log(promptText); 
+      console.log(promptText);
       let systemContent = "";
-      
-      switch(selectedAnalysisType) {
+
+      switch (selectedAnalysisType) {
         case "swot":
           systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items";
           break;
@@ -234,7 +234,7 @@ const Dashboard = () => {
         default:
           systemContent = "You are a strategic analyst. Analyze the provided survey responses and deliver a comprehensive business analysis. Identify key strengths, weaknesses, opportunities for growth, and potential threats. Conclude with practical, actionable recommendations prioritized by impact and feasibility.";
       }
-      
+
       const messages = [
         {
           "role": "system",
@@ -246,29 +246,29 @@ const Dashboard = () => {
         }
       ];
       // "content": strategicPlanningBook + promptText
-       
+
       setAnalysisResult("");
-       
+
       const chatCompletion = await groqClient.chat.completions.create({
         messages: messages,
         model: "llama-3.3-70b-versatile",
         temperature: 1,
-        max_tokens: 31980,   
+        max_tokens: 31980,
         top_p: 1,
         stream: true,
         stop: null
-      }); 
+      });
       for await (const chunk of chatCompletion) {
         const content = chunk.choices[0]?.delta?.content || '';
         setAnalysisResult(prevResult => prevResult + content);
       }
-      
+
     } catch (error) {
       console.error(`Error generating ${selectedAnalysisType} analysis:`, error);
       setAnalysisResult(`Error generating analysis: ${error.message}`);
     }
   };
-  
+
   const getAnalysisTypeName = (type) => {
     const analysisName = analysisTypes.find(a => a.id === type)?.name || "comprehensive";
     return analysisName;
@@ -284,7 +284,6 @@ const Dashboard = () => {
 
   const PreviewContent = () => (
     <div className="preview-content">
-      <h4 className="text-center mb-4 fw-bold">Your Responses</h4>
 
       {categories.map((category) => (
         <div key={category.id} className="mb-4">
@@ -539,7 +538,7 @@ const Dashboard = () => {
         return renderPlaceholderContent("survey");
     }
   };
- 
+
   const QuestionOptions = ({ question, value, onChange }) => {
     if (question.type !== "options") return null;
 
@@ -583,7 +582,7 @@ const Dashboard = () => {
                 id="dropdown-user"
                 className="nav-profile-toggle"
               >
-                <div className="avatar-circle"> <CircleUserRound size={25} style={{ marginRight: "5px",marginBottom:"3px" }} />{username.toUpperCase()}</div>
+                <div className="avatar-circle"> <CircleUserRound size={25} style={{ marginRight: "5px", marginBottom: "3px" }} />{username.toUpperCase()}</div>
               </Dropdown.Toggle>
               <Dropdown.Menu align="end" className="modern-dropdown">
                 <Dropdown.Item
@@ -623,14 +622,16 @@ const Dashboard = () => {
 
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto me-auto">
-              <Nav.Link
-                href="#survey"
-                active={activeSection === "survey"}
-                onClick={() => setActiveSection("survey")}
-                className="nav-link-modern"
-              >
-                <FileText size={16} className="me-1" /> Survey
-              </Nav.Link>
+            <Nav.Link
+  onClick={() => {
+    setActiveSection("survey");
+    window.location.reload();
+  }}
+  active={activeSection === "survey"}
+  className="nav-link-modern"
+>
+  <FileText size={16} className="me-1" /> Survey
+</Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Container>
@@ -661,7 +662,7 @@ const Dashboard = () => {
             <Row>
               {analysisTypes.map((type) => (
                 <Col md={6} key={type.id} className="mb-3">
-                  <Card 
+                  <Card
                     className={`analysis-type-card p-3 h-100 ${selectedAnalysisType === type.id ? 'selected-analysis' : ''}`}
                     onClick={() => setSelectedAnalysisType(type.id)}
                   >

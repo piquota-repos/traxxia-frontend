@@ -92,7 +92,7 @@ const Login = () => {
                   <i className={`eye-icon ${showPassword ? "eye-open" : "eye-closed"}`}></i>
                 </button>
               </div>
-              <a href="/forgot-password" className="forgot-password">Forgot Password?</a>
+              {/* <a href="/forgot-password" className="forgot-password">Forgot Password?</a> */}
             </div>
             
             <button
