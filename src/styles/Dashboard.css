@@ -1,19 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-.flex-container {
-  display: flex;
+.flex-container { 
   align-items: center;
-  justify-content: space-between; /* Makes radio buttons stay left & input move right */
+  justify-content: space-between;
   gap: 10px;
 }
 
 .options-wrapper {
-  flex: 1; /* Allows radio buttons to take available space */
+  display: flex;
+  justify-content: space-between;
+  margin-left: 1rem;
+  margin-top: 1rem;
+}
+
+.form-check {
+  display: inline-block;
+  min-height: 1.5rem;
+  padding-left: 0.5em;
+  margin-bottom: .125rem;
+  padding-right: 3rem;
 }
 
 .half-width {
-  width: 50%; /* Makes input box take only 50% width */
-  margin-bottom: 40px;
+  width: 50%;  
 }
 
 
@@ -728,6 +737,7 @@ body {
   border: 2px solid transparent;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   height: 100%;
+  align-items: center;
 }
 
 .analysis-type-card:hover {
@@ -770,4 +780,16 @@ body {
   --primary-rgb: 13, 110, 253;  /* RGB values for your primary color */
   --primary-color: #0d6efd;     /* Your bootstrap primary color */
   --secondary-color: #6610f2;   /* Your bootstrap secondary color */
+}
+.p-3{
+  padding:10px 1rem !important
+}
+.card-body{
+  padding: 0px !important
+}
+.row{
+  font-size: 14px !important;
+}
+.row h6{
+  font-weight: bold;
 }

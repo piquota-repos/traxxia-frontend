@@ -59,32 +59,32 @@ const Dashboard = () => {
   const analysisTypes = [
     {
       id: "swot",
-      name: "SWOT Analysis",
-      description: "Strengths, Weaknesses, Opportunities, and Threats analysis",
+      name: "SWOT",
+      // description: "Strengths, Weaknesses, Opportunities, and Threats analysis",
       icon: <Activity size={24} />,
     },
     {
       id: "pestle",
-      name: "PESTLE Analysis",
-      description: "Political, Economic, Social, Technological, Legal and Environmental factors",
+      name: "PESTLE",
+      // description: "Political, Economic, Social, Technological, Legal and Environmental factors",
       icon: <Briefcase size={24} />,
     },
     {
       id: "noise",
-      name: "NOISE Analysis",
-      description: "Needs, Opportunities, Improvements, Strengths, and Exceptions",
+      name: "NOISE",
+      // description: "Needs, Opportunities, Improvements, Strengths, and Exceptions",
       icon: <Bell size={24} />,
     },
     {
       id: "vrio",
-      name: "VRIO Framework",
-      description: "Value, Rarity, Imitability, and Organization",
+      name: "VRIO",
+      // description: "Value, Rarity, Imitability, and Organization",
       icon: <PieChart size={24} />,
     },
     {
       id: "bsc",
       name: "Balanced Scorecard",
-      description: "Financial, Customer, Internal Process, and Learning & Growth perspectives",
+      // description: "Financial, Customer, Internal Process, and Learning & Growth perspectives",
       icon: <BarChart size={24} />,
     },
   ];
@@ -217,20 +217,49 @@ const Dashboard = () => {
 
       switch (selectedAnalysisType) {
         case "swot":
-          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items";
+          systemContent = `You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers. Provide a detailed SWOT analysis based on the book and the question answers.      
+      - Identify **Strengths, Weaknesses, Opportunities, and Threats**. 
+      - Conclude with **specific, actionable recommendations** based on the STRATEGIC framework:  
+        **S (Scaling), T (Talent), R (Revenue), A (Agility), T (Technology), E (Execution), G (Governance), I (Innovation), C (Customer-Centricity).**
+      `;
           break;
         case "pestle":
-          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed PESTLE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items.\nBe as detailed as possible";
-          break;
+          systemContent = `You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers. Provide a detailed **PESTLE (Political, Economic, Social, Technological, Legal, Environmental)** analysis based on the book and the question answers.
+          - Identify **key external factors** that impact the business.
+          - Provide insights under **each PESTLE category** with real-world business implications.
+          - Conclude with **specific, actionable recommendations** using the STRATEGIC framework:
+            **S (Scaling), T (Talent), R (Revenue), A (Agility), T (Technology), E (Execution), G (Governance), I (Innovation), C (Customer-Centricity).**
+          `; break;
         case "noise":
-          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed NOISE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible";
-          break;
+          systemContent = `You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers. Provide a detailed **NOISE (Needs, Opportunities, Improvements, Strengths, Exceptions)** analysis based on the book and the question answers.     
+      - Identify **current and unmet needs** within the business.  
+      - Highlight **opportunities for growth**.  
+      - Suggest **improvements** to optimize business functions.  
+      - Reinforce **strengths** that can drive success.  
+      - Define **exceptions** (external/internal factors that could limit change).  
+      - Conclude with **specific, actionable recommendations** using the STRATEGIC framework:
+        **S (Scaling), T (Talent), R (Revenue), A (Agility), T (Technology), E (Execution), G (Governance), I (Innovation), C (Customer-Centricity).**
+      `; break;
         case "vrio":
-          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed VRIO analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible";
-          break;
+          systemContent = `You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers. Provide a detailed **VRIO (Value, Rarity, Imitability, Organization)** analysis based on the book and the question answers.      
+      - Identify **valuable** resources or capabilities that give the business a competitive advantage.
+      - Determine how **rare** these resources are in the market.
+      - Evaluate the **imitability** of these resources by competitors.
+      - Assess whether the company is **organized** to exploit these advantages.
+      - Conclude with **specific, actionable recommendations** using the STRATEGIC framework:
+        **S (Scaling), T (Talent), R (Revenue), A (Agility), T (Technology), E (Execution), G (Governance), I (Innovation), C (Customer-Centricity).**
+      `; break;
         case "bsc":
-          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed Balanced Scorecard analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible";
-          break;
+          systemContent = `You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers. Provide a detailed **Balanced Scorecard (BSC) Analysis** based on the book and the question answers.     
+      - Assess the **four key Balanced Scorecard perspectives**:
+        1. **Financial Perspective:** How does the business create and sustain value?  
+        2. **Customer Perspective:** How does the business serve and retain customers?  
+        3. **Internal Processes Perspective:** What operational processes drive efficiency and performance?  
+        4. **Learning & Growth Perspective:** How does the business foster innovation and continuous improvement?  
+      - Provide strategic recommendations for each category.
+      - Conclude with **specific, actionable recommendations** using the STRATEGIC framework:
+        **S (Scaling), T (Talent), R (Revenue), A (Agility), T (Technology), E (Execution), G (Governance), I (Innovation), C (Customer-Centricity).**
+      `; break;
         default:
           systemContent = "You are a strategic analyst. Analyze the provided survey responses and deliver a comprehensive business analysis. Identify key strengths, weaknesses, opportunities for growth, and potential threats. Conclude with practical, actionable recommendations prioritized by impact and feasibility.";
       }
@@ -622,16 +651,16 @@ const Dashboard = () => {
 
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto me-auto">
-            <Nav.Link
-  onClick={() => {
-    setActiveSection("survey");
-    window.location.reload();
-  }}
-  active={activeSection === "survey"}
-  className="nav-link-modern"
->
-  <FileText size={16} className="me-1" /> Survey
-</Nav.Link>
+              <Nav.Link
+                onClick={() => {
+                  setActiveSection("survey");
+                  window.location.reload();
+                }}
+                active={activeSection === "survey"}
+                className="nav-link-modern"
+              >
+                <FileText size={16} className="me-1" /> Survey
+              </Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Container>
@@ -659,9 +688,10 @@ const Dashboard = () => {
         </Modal.Header>
         <Modal.Body>
           <div className="analysis-type-container">
+            {/* Replace the Row and Col components in the Analysis Type Selection Modal */}
             <Row>
               {analysisTypes.map((type) => (
-                <Col md={6} key={type.id} className="mb-3">
+                <Col md={4} key={type.id} className="mb-3">
                   <Card
                     className={`analysis-type-card p-3 h-100 ${selectedAnalysisType === type.id ? 'selected-analysis' : ''}`}
                     onClick={() => setSelectedAnalysisType(type.id)}
@@ -671,7 +701,7 @@ const Dashboard = () => {
                         <div className="analysis-icon me-3">
                           {type.icon}
                         </div>
-                        <h5 className="mb-0">{type.name}</h5>
+                        <h6 className="mb-0">{type.name}</h6>
                       </div>
                       <p className="text-muted mb-0 mt-2">{type.description}</p>
                       {selectedAnalysisType === type.id && (
