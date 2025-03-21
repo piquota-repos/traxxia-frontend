@@ -126,7 +126,6 @@ const Dashboard = () => {
         });
         if (!response.ok) throw new Error("Failed to fetch data");
         const userData = await response.json();
-        console.log(userData.user)
         setUsername(userData.user?.name || "User");
       } catch (err) {
         alert("Error fetching data");
@@ -196,17 +195,26 @@ const Dashboard = () => {
     let promptText = `Please analyze the following survey responses and provide insights:\n`;
 
     categories.forEach((category) => {
-      promptText += `\n## ${category.name}\n`;
-
       category.questions.forEach((question) => {
+        promptText += `\n<Question>\nMain Category: ${category.name}\n`;
+        promptText += `Sub Category: ${question.nested.question}\n`;
         const answer = answers[question.id];
-        promptText += `Question: ${question.question}\n`;
-
+        promptText += `${question.question}\n`;
         if (question.type === "options" && answer.selectedOption) {
-          promptText += `Selected Option: ${answer.selectedOption}\n`;
+          promptText += `(Choices given below)\n`;
+          question.options.forEach((option) => {
+            promptText += `-${option}\n`;
+          })
+          promptText += `</Question>\n<Answer>\nChoice:${answer.selectedOption}`;
+          if(answer.description) {
+            promptText += `\nAdditional information:${answer.description}</Answer>`;
+          }else {
+            promptText += `\n</Answer>`;
+          }
+        } else {
+          promptText += `</Question>`;
+          promptText += `\n<Answer>\n${answer.description}\n</Answer>`;
         }
-
-        promptText += `Comments: ${answer.description}\n\n`;
       });
     });
 
@@ -217,51 +225,18 @@ const Dashboard = () => {
 
       switch (selectedAnalysisType) {
         case "swot":
-          systemContent = `You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers. Provide a detailed SWOT analysis based on the book and the question answers.      
-      - Identify **Strengths, Weaknesses, Opportunities, and Threats**. 
-      - Conclude with **specific, actionable recommendations** based on the STRATEGIC framework:  
-        **S (Scaling), T (Talent), R (Revenue), A (Agility), T (Technology), E (Execution), G (Governance), I (Innovation), C (Customer-Centricity).**
-      `;
+          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items`;
           break;
         case "pestle":
-          systemContent = `You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers. Provide a detailed **PESTLE (Political, Economic, Social, Technological, Legal, Environmental)** analysis based on the book and the question answers.
-          - Identify **key external factors** that impact the business.
-          - Provide insights under **each PESTLE category** with real-world business implications.
-          - Conclude with **specific, actionable recommendations** using the STRATEGIC framework:
-            **S (Scaling), T (Talent), R (Revenue), A (Agility), T (Technology), E (Execution), G (Governance), I (Innovation), C (Customer-Centricity).**
-          `; break;
+          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed PESTLE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items.\nBe as detailed as possible`; break;
         case "noise":
-          systemContent = `You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers. Provide a detailed **NOISE (Needs, Opportunities, Improvements, Strengths, Exceptions)** analysis based on the book and the question answers.     
-      - Identify **current and unmet needs** within the business.  
-      - Highlight **opportunities for growth**.  
-      - Suggest **improvements** to optimize business functions.  
-      - Reinforce **strengths** that can drive success.  
-      - Define **exceptions** (external/internal factors that could limit change).  
-      - Conclude with **specific, actionable recommendations** using the STRATEGIC framework:
-        **S (Scaling), T (Talent), R (Revenue), A (Agility), T (Technology), E (Execution), G (Governance), I (Innovation), C (Customer-Centricity).**
-      `; break;
+          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed NOISE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible`; break;
         case "vrio":
-          systemContent = `You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers. Provide a detailed **VRIO (Value, Rarity, Imitability, Organization)** analysis based on the book and the question answers.      
-      - Identify **valuable** resources or capabilities that give the business a competitive advantage.
-      - Determine how **rare** these resources are in the market.
-      - Evaluate the **imitability** of these resources by competitors.
-      - Assess whether the company is **organized** to exploit these advantages.
-      - Conclude with **specific, actionable recommendations** using the STRATEGIC framework:
-        **S (Scaling), T (Talent), R (Revenue), A (Agility), T (Technology), E (Execution), G (Governance), I (Innovation), C (Customer-Centricity).**
-      `; break;
+          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed VRIO analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible`; break;
         case "bsc":
-          systemContent = `You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers. Provide a detailed **Balanced Scorecard (BSC) Analysis** based on the book and the question answers.     
-      - Assess the **four key Balanced Scorecard perspectives**:
-        1. **Financial Perspective:** How does the business create and sustain value?  
-        2. **Customer Perspective:** How does the business serve and retain customers?  
-        3. **Internal Processes Perspective:** What operational processes drive efficiency and performance?  
-        4. **Learning & Growth Perspective:** How does the business foster innovation and continuous improvement?  
-      - Provide strategic recommendations for each category.
-      - Conclude with **specific, actionable recommendations** using the STRATEGIC framework:
-        **S (Scaling), T (Talent), R (Revenue), A (Agility), T (Technology), E (Execution), G (Governance), I (Innovation), C (Customer-Centricity).**
-      `; break;
+          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed Balanced Scorecard analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible`; break;
         default:
-          systemContent = "You are a strategic analyst. Analyze the provided survey responses and deliver a comprehensive business analysis. Identify key strengths, weaknesses, opportunities for growth, and potential threats. Conclude with practical, actionable recommendations prioritized by impact and feasibility.";
+          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible";
       }
 
       const messages = [
@@ -271,11 +246,9 @@ const Dashboard = () => {
         },
         {
           "role": "user",
-          "content": promptText
+          "content": strategicPlanningBook + promptText
         }
-      ];
-      // "content": strategicPlanningBook + promptText
-
+      ]; 
       setAnalysisResult("");
 
       const chatCompletion = await groqClient.chat.completions.create({
