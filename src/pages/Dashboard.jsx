@@ -104,7 +104,7 @@ const Dashboard = () => {
       },
     }));
   };
-  
+
 
 
   // Debounce function to prevent too many API calls
@@ -337,16 +337,24 @@ const Dashboard = () => {
     const answer = answers[questionId];
     if (!answer) return false;
 
-    return (
-      (answer.description &&
-        answer.description.replace(/<(.|\n)*?>/g, "").trim() !== "") ||
-      (answer.selectedOption && answer.selectedOption !== "")
-    );
+    // For option-based questions
+    if (answer.type === "options") {
+      return (
+        (answer.selectedOption && answer.selectedOption !== "") &&
+        (answer.description && answer.description.trim() !== "")
+      );
+    }
+
+    // For text-based questions
+    return answer.description && answer.description.trim() !== "";
   };
 
   const allQuestionsAnswered = () => {
-    return Object.keys(answers).every((questionId) =>
-      isQuestionCompleted(questionId)
+    // Ensure all categories and their questions are answered
+    return categories.every((category) =>
+      category.questions.every((question) =>
+        isQuestionCompleted(question.id)
+      )
     );
   };
 
@@ -746,29 +754,30 @@ const Dashboard = () => {
             ))}
 
             <div className="d-flex justify-content-center gap-3 mt-4">
-            <Button
-            variant="success"
-            onClick={handleSaveAllAnswers}
-            className="btn-analyze"
-          >
-            Save All Answers
-          </Button>
-          <Button
-            variant="outline-info"
-            onClick={() => setShowPreview(true)}
-            className="btn-preview glass-button"
-          >
-            <Eye size={18} className="me-2" />
-            Preview
-          </Button>
-          <Button
-            variant="outline-primary"
-            onClick={handleShowAnalysisSelection}
-            className="btn-analyze"
-          >
-            <BarChart size={18} className="me-2" />
-            Analyze
-          </Button>
+              <Button
+                variant="success"
+                onClick={handleSaveAllAnswers}
+                className="btn-analyze"
+              >
+                Save All Answers
+              </Button>
+              <Button
+                variant="outline-info"
+                onClick={() => setShowPreview(true)}
+                className="btn-preview glass-button"
+              >
+                <Eye size={18} className="me-2" />
+                Preview
+              </Button>
+              <Button
+                variant="outline-primary"
+                onClick={handleShowAnalysisSelection}
+                className="btn-analyze"
+                disabled={!allQuestionsAnswered()} // Disable if not all questions are answered
+              >
+                <BarChart size={18} className="me-2" />
+                Analyze
+              </Button>
             </div>
           </div>
         );
