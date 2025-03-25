@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import {
   Card,
   Button,
@@ -93,9 +95,7 @@ const Dashboard = () => {
 
   // In your Dashboard component, modify the existing code:
 
-  const handleDescriptionChange = (questionId, e) => {
-    const newDescription = e.target.value;
-
+  const handleDescriptionChange = (questionId, newDescription) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: {
@@ -104,6 +104,7 @@ const Dashboard = () => {
       },
     }));
   };
+  
 
 
   // Debounce function to prevent too many API calls
@@ -337,7 +338,8 @@ const Dashboard = () => {
     if (!answer) return false;
 
     return (
-      answer.description.trim() !== "" ||
+      (answer.description &&
+        answer.description.replace(/<(.|\n)*?>/g, "").trim() !== "") ||
       (answer.selectedOption && answer.selectedOption !== "")
     );
   };
@@ -511,7 +513,6 @@ const Dashboard = () => {
 
   const PreviewContent = () => (
     <div className="preview-content">
-
       {categories.map((category) => (
         <div key={category.id} className="mb-4">
           <h5 className="category-heading">{category.name}</h5>
@@ -520,6 +521,7 @@ const Dashboard = () => {
             <Card key={question.id} className="mb-3 preview-card">
               <Card.Body>
                 <h6>{question.question}</h6>
+
                 {question.type === "options" &&
                   answers[question.id]?.selectedOption && (
                     <p className="text-primary">
@@ -528,9 +530,12 @@ const Dashboard = () => {
                   )}
 
                 {answers[question.id]?.description && (
-                  <p className="text-muted">
-                    {answers[question.id].description}
-                  </p>
+                  <div
+                    className="text-muted"
+                    dangerouslySetInnerHTML={{
+                      __html: answers[question.id]?.description,
+                    }}
+                  />
                 )}
               </Card.Body>
             </Card>
@@ -638,7 +643,11 @@ const Dashboard = () => {
             {categories.map((category) => (
               <Accordion key={category.id} className="mb-4 modern-accordion">
                 <Accordion.Item eventKey={category.id}>
-                  <Accordion.Header className={isCategoryCompleted(category) ? "category-completed" : ""}>
+                  <Accordion.Header
+                    className={
+                      isCategoryCompleted(category) ? "category-completed" : ""
+                    }
+                  >
                     <div className="d-flex align-items-center justify-content-between w-100">
                       <span>
                         {category.id}. {category.name}
@@ -697,29 +706,31 @@ const Dashboard = () => {
                                       }
                                     />
                                   </div>
-                                  <Form.Control
-                                    as="textarea"
-                                    rows={3}
-                                    placeholder="Share your thoughts here..."
+                                  <ReactQuill
+                                    theme="snow"
                                     value={
                                       answers[question.id]?.description || ""
                                     }
-                                    onChange={(e) =>
-                                      handleDescriptionChange(question.id, e)
+                                    onChange={(content) =>
+                                      handleDescriptionChange(
+                                        question.id,
+                                        content
+                                      )
                                     }
                                     className="modern-textarea half-width"
                                   />
                                 </div>
                               ) : (
-                                <Form.Control
-                                  as="textarea"
-                                  rows={3}
-                                  placeholder="Share your thoughts here..."
+                                <ReactQuill
+                                  theme="snow"
                                   value={
                                     answers[question.id]?.description || ""
                                   }
-                                  onChange={(e) =>
-                                    handleDescriptionChange(question.id, e)
+                                  onChange={(content) =>
+                                    handleDescriptionChange(
+                                      question.id,
+                                      content
+                                    )
                                   }
                                   className="modern-textarea"
                                 />
