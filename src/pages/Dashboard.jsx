@@ -35,11 +35,13 @@ import "../styles/Dashboard.css";
 import questionsData from "../utils/questions.json";
 import strategicPlanningBook from "../utils/strategicPlanningBook.js";
 import { Groq } from "groq-sdk";
+import axios from 'axios';
 
 const Dashboard = () => {
   const [categories, setCategories] = useState([]);
   const [answers, setAnswers] = useState({});
   const [showPreview, setShowPreview] = useState(false);
+  const [saveAnswers, setSaveAnswers] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [analysisResult, setAnalysisResult] = useState("");
   const [username, setUsername] = useState("");
@@ -89,6 +91,175 @@ const Dashboard = () => {
     },
   ];
 
+  // In your Dashboard component, modify the existing code:
+
+  const handleDescriptionChange = (questionId, e) => {
+    const newDescription = e.target.value;
+
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        description: newDescription,
+      },
+    }));
+  };
+
+
+  // Debounce function to prevent too many API calls
+  const debounceSaveDescription = debounce(async (questionId, description) => {
+    try {
+      await axios.post(`${API_BASE_URL}/api/survey/answers/single`,
+        {
+          questionId,
+          description
+        },
+        {
+          headers: {
+            'Authorization': localStorage.getItem('token'),
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      console.log(`Description saved for question ${questionId}`);
+    } catch (error) {
+      console.error(`Error saving description for question ${questionId}:`, error);
+    }
+  }, 500); // 500ms delay
+
+  // Utility debounce function (if not already imported)
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+  const handleSaveDescription = async (questionId) => {
+    try {
+      const description = answers[questionId]?.description || "";
+      const selectedOption = answers[questionId]?.selectedOption || "";
+
+      // Find the category for this question
+      let categoryId = "";
+      for (const category of categories) {
+        const foundQuestion = category.questions.find(q => q.id === questionId);
+        if (foundQuestion) {
+          categoryId = category.id;
+          break;
+        }
+      }
+
+      const response = await axios.post(`${API_BASE_URL}/api/survey/answer`,
+        {
+          [questionId]: {
+            question_id: questionId,
+            category_id: categoryId,
+            description: description,
+            selectedOption: selectedOption
+          }
+        },
+        {
+          headers: {
+            'Authorization': localStorage.getItem('token'),
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      alert(`Description saved for question ${questionId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error saving description for question ${questionId}:`, error);
+      alert(`Failed to save description: ${error.response?.data?.message || error.message}`);
+      throw error;
+    }
+  };
+  const fetchSavedAnswers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE_URL}/api/survey/answers`, {
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.data && response.data.answers) {
+        const savedAnswers = {};
+
+        Object.entries(response.data.answers).forEach(([questionId, answer]) => {
+          savedAnswers[questionId] = {
+            description: answer.description || "",
+            selectedOption: answer.selectedOption || ""
+          };
+        });
+        setAnswers(prevAnswers => ({
+          ...prevAnswers,
+          ...savedAnswers
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching saved answers:", error);
+
+      if (error.response && error.response.status === 401) {
+        alert("Unauthorized. Please log in again.");
+        localStorage.removeItem("token");
+        navigate("/login");
+      }
+    }
+  };
+  const handleSaveAllAnswers = async () => {
+    try {
+      // Transform answers object into an array of answers
+      const answersToSave = Object.entries(answers).map(([questionId, answer]) => {
+        // Find the category for this question
+        let categoryId = "";
+        for (const category of categories) {
+          const foundQuestion = category.questions.find(q => q.id === questionId);
+          if (foundQuestion) {
+            categoryId = category.id;
+            break;
+          }
+        }
+
+        return {
+          question_id: questionId,
+          category_id: categoryId,
+          selectedOption: answer.selectedOption || "",
+          description: answer.description || ""
+        };
+      });
+
+      const response = await axios.post(`${API_BASE_URL}/api/survey/answers`,
+        { answers: answersToSave }, // Wrap answers in an array
+        {
+          headers: {
+            'Authorization': localStorage.getItem('token'),
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      alert("All survey answers saved successfully!");
+      return response.data;
+    } catch (error) {
+      console.error("Error saving all answers:", error);
+      alert("Failed to save all answers: " + (error.response?.data?.message || error.message));
+      throw error;
+    }
+  };
+
+  // Modify your existing useEffect to call this function
   useEffect(() => {
     const setupQuestions = () => {
       try {
@@ -100,7 +271,6 @@ const Dashboard = () => {
         questionsData.forEach((category) => {
           category.questions.forEach((question) => {
             initialAnswers[question.id] = {
-              rating: 0,
               description: "",
               selectedOption: question.type === "options" ? "" : null,
             };
@@ -121,13 +291,19 @@ const Dashboard = () => {
       }
 
       try {
+        // Fetch user dashboard data
         const response = await fetch(`${API_BASE_URL}/dashboard`, {
           headers: { Authorization: token },
         });
         if (!response.ok) throw new Error("Failed to fetch data");
+
         const userData = await response.json();
         setUsername(userData.user?.name || "User");
+
+        // Fetch saved answers
+        await fetchSavedAnswers();
       } catch (err) {
+        console.error("Error fetching data:", err);
         alert("Error fetching data");
         navigate("/login");
       }
@@ -137,20 +313,13 @@ const Dashboard = () => {
     fetchData();
   }, [navigate]);
 
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
-  const handleDescriptionChange = (questionId, e) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: {
-        ...prev[questionId],
-        description: e.target.value,
-      },
-    }));
-  };
+
 
   const handleOptionChange = (questionId, option) => {
     setAnswers((prev) => ({
@@ -158,7 +327,7 @@ const Dashboard = () => {
       [questionId]: {
         ...prev[questionId],
         selectedOption: option,
-        description: "",
+        description: "", // Reset description when option changes
       },
     }));
   };
@@ -190,6 +359,7 @@ const Dashboard = () => {
   };
 
   const handleAnalyzeResponses = async () => {
+    await handleSaveAllAnswers();
     setShowAnalysisSelection(false);
     setShowAnalysis(true);
     let promptText = `Please analyze the following survey responses and provide insights:\n`;
@@ -206,9 +376,9 @@ const Dashboard = () => {
             promptText += `-${option}\n`;
           })
           promptText += `</Question>\n<Answer>\nChoice:${answer.selectedOption}`;
-          if(answer.description) {
+          if (answer.description) {
             promptText += `\nAdditional information:${answer.description}</Answer>`;
-          }else {
+          } else {
             promptText += `\n</Answer>`;
           }
         } else {
@@ -248,7 +418,7 @@ const Dashboard = () => {
           "role": "user",
           "content": strategicPlanningBook + promptText
         }
-      ]; 
+      ];
       setAnalysisResult("");
 
       const chatCompletion = await groqClient.chat.completions.create({
@@ -278,6 +448,61 @@ const Dashboard = () => {
 
   const isCategoryCompleted = (category) => {
     return category.questions.every((question) => isQuestionCompleted(question.id));
+  };
+
+  const getAuthHeader = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error("No authentication token found");
+      return {};
+    }
+    return {
+      'Authorization': `Bearer ${token}`,  // Add 'Bearer' if your backend expects it
+      'Content-Type': 'application/json'
+    };
+  };
+
+
+  const handleSaveAnswersSelection = async () => {
+    try {
+      // Transform the answers object into the format expected by the backend
+      const answersToSave = {};
+
+      Object.keys(answers).forEach((questionId) => {
+        // Find the category for this question
+        let categoryId = "";
+        for (const category of categories) {
+          const foundQuestion = category.questions.find(q => q.id === questionId);
+          if (foundQuestion) {
+            categoryId = category.id;
+            break;
+          }
+        }
+
+        answersToSave[questionId] = {
+          selectedOption: answers[questionId].selectedOption || "",
+          description: answers[questionId].description || "",
+          category_id: categoryId
+        };
+      });
+
+      const response = await axios.post(`${API_BASE_URL}/api/survey/answers`,
+        answersToSave,
+        {
+          headers: {
+            'Authorization': localStorage.getItem('token'),
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      alert("Survey answers saved successfully!");
+      return response.data;
+    } catch (error) {
+      console.error("Error saving answers:", error);
+      alert("Failed to save answers: " + (error.response?.data?.message || error.message));
+      throw error;
+    }
   };
 
   const handleShowAnalysisSelection = () => {
@@ -510,23 +735,29 @@ const Dashboard = () => {
             ))}
 
             <div className="d-flex justify-content-center gap-3 mt-4">
-              <Button
-                variant="outline-info"
-                onClick={() => setShowPreview(true)}
-                className="btn-preview glass-button"
-              >
-                <Eye size={18} className="me-2" />
-                Preview
-              </Button>
-              <Button
-                variant="success"
-                onClick={handleShowAnalysisSelection}
-                disabled={!allQuestionsAnswered()}
-                className="btn-analyze"
-              >
-                <BarChart size={18} className="me-2" />
-                Analyze
-              </Button>
+            <Button
+            variant="success"
+            onClick={handleSaveAllAnswers}
+            className="btn-analyze"
+          >
+            Save All Answers
+          </Button>
+          <Button
+            variant="outline-info"
+            onClick={() => setShowPreview(true)}
+            className="btn-preview glass-button"
+          >
+            <Eye size={18} className="me-2" />
+            Preview
+          </Button>
+          <Button
+            variant="outline-primary"
+            onClick={handleShowAnalysisSelection}
+            className="btn-analyze"
+          >
+            <BarChart size={18} className="me-2" />
+            Analyze
+          </Button>
             </div>
           </div>
         );
@@ -540,10 +771,8 @@ const Dashboard = () => {
         return renderPlaceholderContent("survey");
     }
   };
-
   const QuestionOptions = ({ question, value, onChange }) => {
     if (question.type !== "options") return null;
-
     return (
       <div className="mb-3">
         {question.options.map((option, idx) => (
@@ -568,10 +797,8 @@ const Dashboard = () => {
       </div>
     );
   };
-
   return (
     <div className="dashboard-layout">
-      {/* Main Header */}
       <Navbar expand="lg" className="p-2 sticky-top modern-navbar">
         <Container fluid>
           <Navbar.Brand href="#home" className="fw-bold logo-text">
@@ -598,7 +825,6 @@ const Dashboard = () => {
             </Dropdown>
             <Navbar.Toggle aria-controls="basic-navbar-nav" className="ms-2" />
           </div>
-
           {showSearchBox && (
             <div className="search-overlay">
               <div className="search-container">
@@ -621,7 +847,6 @@ const Dashboard = () => {
               </div>
             </div>
           )}
-
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto me-auto">
               <Nav.Link
@@ -638,15 +863,11 @@ const Dashboard = () => {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-
-      {/* Main Content Area */}
       <Container fluid className="mt-4 mb-5 px-4 main-content">
         <Row>
           <Col>{renderMainContent()}</Col>
         </Row>
       </Container>
-
-      {/* Analysis Type Selection Modal */}
       <Modal
         show={showAnalysisSelection}
         onHide={() => setShowAnalysisSelection(false)}
@@ -661,7 +882,6 @@ const Dashboard = () => {
         </Modal.Header>
         <Modal.Body>
           <div className="analysis-type-container">
-            {/* Replace the Row and Col components in the Analysis Type Selection Modal */}
             <Row>
               {analysisTypes.map((type) => (
                 <Col md={4} key={type.id} className="mb-3">
@@ -708,7 +928,6 @@ const Dashboard = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
       {/* Modals */}
       <Modal
         show={showPreview}
@@ -726,7 +945,6 @@ const Dashboard = () => {
           <PreviewContent />
         </Modal.Body>
       </Modal>
-
       <Modal
         show={showAnalysis}
         onHide={() => setShowAnalysis(false)}
