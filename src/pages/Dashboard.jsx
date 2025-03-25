@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import {
   Card,
   Button,
@@ -12,7 +14,7 @@ import {
   Navbar,
   Nav,
   Dropdown,
-  Badge
+  Badge,
 } from "react-bootstrap";
 import {
   LogOut,
@@ -28,7 +30,7 @@ import {
   Briefcase,
   Activity,
   ChevronRight,
-  CircleUserRound
+  CircleUserRound,
 } from "lucide-react";
 import useGroqChat from "../components/GroqChat";
 import "../styles/Dashboard.css";
@@ -53,9 +55,10 @@ const Dashboard = () => {
   const { loading } = useGroqChat();
   const groqClient = new Groq({
     apiKey: process.env.REACT_APP_GROQ_API_KEY,
-    dangerouslyAllowBrowser: true
+    dangerouslyAllowBrowser: true,
   });
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+  const [richText, setRichText] = useState("");
 
   // Analysis types with descriptions
   const analysisTypes = [
@@ -319,7 +322,19 @@ const Dashboard = () => {
     navigate("/login");
   };
 
+<<<<<<< Updated upstream
 
+=======
+  const handleDescriptionChange = (questionId, content) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        description: content, // Rich text input
+      },
+    }));
+  };
+>>>>>>> Stashed changes
 
   const handleOptionChange = (questionId, option) => {
     setAnswers((prev) => ({
@@ -337,7 +352,8 @@ const Dashboard = () => {
     if (!answer) return false;
 
     return (
-      answer.description.trim() !== "" ||
+      (answer.description &&
+        answer.description.replace(/<(.|\n)*?>/g, "").trim() !== "") ||
       (answer.selectedOption && answer.selectedOption !== "")
     );
   };
@@ -374,7 +390,7 @@ const Dashboard = () => {
           promptText += `(Choices given below)\n`;
           question.options.forEach((option) => {
             promptText += `-${option}\n`;
-          })
+          });
           promptText += `</Question>\n<Answer>\nChoice:${answer.selectedOption}`;
           if (answer.description) {
             promptText += `\nAdditional information:${answer.description}</Answer>`;
@@ -389,7 +405,11 @@ const Dashboard = () => {
     });
 
     try {
-      setAnalysisResult(`Analyzing responses with ${getAnalysisTypeName(selectedAnalysisType)} framework...`);
+      setAnalysisResult(
+        `Analyzing responses with ${getAnalysisTypeName(
+          selectedAnalysisType
+        )} framework...`
+      );
       console.log(promptText);
       let systemContent = "";
 
@@ -398,26 +418,37 @@ const Dashboard = () => {
           systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items`;
           break;
         case "pestle":
-          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed PESTLE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items.\nBe as detailed as possible`; break;
+          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed PESTLE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items.\nBe as detailed as possible`;
+          break;
         case "noise":
-          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed NOISE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible`; break;
+          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed NOISE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible`;
+          break;
         case "vrio":
-          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed VRIO analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible`; break;
+          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed VRIO analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible`;
+          break;
         case "bsc":
-          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed Balanced Scorecard analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible`; break;
+          systemContent = `You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed Balanced Scorecard analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible`;
+          break;
         default:
-          systemContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible";
+          systemContent =
+            'You are a strategic analyst. You should read the "Strategic Planning Book" given by the user and analyze the set of question answers and provide detailed SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items\nBe as detailed as possible';
       }
 
       const messages = [
         {
-          "role": "system",
-          "content": systemContent
+          role: "system",
+          content: systemContent,
         },
         {
+<<<<<<< Updated upstream
           "role": "user",
           "content": strategicPlanningBook + promptText
         }
+=======
+          role: "user",
+          content: strategicPlanningBook + promptText,
+        },
+>>>>>>> Stashed changes
       ];
       setAnalysisResult("");
 
@@ -428,26 +459,31 @@ const Dashboard = () => {
         max_tokens: 31980,
         top_p: 1,
         stream: true,
-        stop: null
+        stop: null,
       });
       for await (const chunk of chatCompletion) {
-        const content = chunk.choices[0]?.delta?.content || '';
-        setAnalysisResult(prevResult => prevResult + content);
+        const content = chunk.choices[0]?.delta?.content || "";
+        setAnalysisResult((prevResult) => prevResult + content);
       }
-
     } catch (error) {
-      console.error(`Error generating ${selectedAnalysisType} analysis:`, error);
+      console.error(
+        `Error generating ${selectedAnalysisType} analysis:`,
+        error
+      );
       setAnalysisResult(`Error generating analysis: ${error.message}`);
     }
   };
 
   const getAnalysisTypeName = (type) => {
-    const analysisName = analysisTypes.find(a => a.id === type)?.name || "comprehensive";
+    const analysisName =
+      analysisTypes.find((a) => a.id === type)?.name || "comprehensive";
     return analysisName;
   };
 
   const isCategoryCompleted = (category) => {
-    return category.questions.every((question) => isQuestionCompleted(question.id));
+    return category.questions.every((question) =>
+      isQuestionCompleted(question.id)
+    );
   };
 
   const getAuthHeader = () => {
@@ -511,7 +547,6 @@ const Dashboard = () => {
 
   const PreviewContent = () => (
     <div className="preview-content">
-
       {categories.map((category) => (
         <div key={category.id} className="mb-4">
           <h5 className="category-heading">{category.name}</h5>
@@ -520,6 +555,7 @@ const Dashboard = () => {
             <Card key={question.id} className="mb-3 preview-card">
               <Card.Body>
                 <h6>{question.question}</h6>
+
                 {question.type === "options" &&
                   answers[question.id]?.selectedOption && (
                     <p className="text-primary">
@@ -528,9 +564,12 @@ const Dashboard = () => {
                   )}
 
                 {answers[question.id]?.description && (
-                  <p className="text-muted">
-                    {answers[question.id].description}
-                  </p>
+                  <div
+                    className="text-muted"
+                    dangerouslySetInnerHTML={{
+                      __html: answers[question.id]?.description,
+                    }}
+                  />
                 )}
               </Card.Body>
             </Card>
@@ -559,7 +598,11 @@ const Dashboard = () => {
             {selectedAnalysisType && (
               <>
                 <Badge bg="primary" className="me-2">
-                  {analysisTypes.find(type => type.id === selectedAnalysisType).name}
+                  {
+                    analysisTypes.find(
+                      (type) => type.id === selectedAnalysisType
+                    ).name
+                  }
                 </Badge>
                 Analysis Results
               </>
@@ -638,7 +681,11 @@ const Dashboard = () => {
             {categories.map((category) => (
               <Accordion key={category.id} className="mb-4 modern-accordion">
                 <Accordion.Item eventKey={category.id}>
-                  <Accordion.Header className={isCategoryCompleted(category) ? "category-completed" : ""}>
+                  <Accordion.Header
+                    className={
+                      isCategoryCompleted(category) ? "category-completed" : ""
+                    }
+                  >
                     <div className="d-flex align-items-center justify-content-between w-100">
                       <span>
                         {category.id}. {category.name}
@@ -697,29 +744,31 @@ const Dashboard = () => {
                                       }
                                     />
                                   </div>
-                                  <Form.Control
-                                    as="textarea"
-                                    rows={3}
-                                    placeholder="Share your thoughts here..."
+                                  <ReactQuill
+                                    theme="snow"
                                     value={
                                       answers[question.id]?.description || ""
                                     }
-                                    onChange={(e) =>
-                                      handleDescriptionChange(question.id, e)
+                                    onChange={(content) =>
+                                      handleDescriptionChange(
+                                        question.id,
+                                        content
+                                      )
                                     }
                                     className="modern-textarea half-width"
                                   />
                                 </div>
                               ) : (
-                                <Form.Control
-                                  as="textarea"
-                                  rows={3}
-                                  placeholder="Share your thoughts here..."
+                                <ReactQuill
+                                  theme="snow"
                                   value={
                                     answers[question.id]?.description || ""
                                   }
-                                  onChange={(e) =>
-                                    handleDescriptionChange(question.id, e)
+                                  onChange={(content) =>
+                                    handleDescriptionChange(
+                                      question.id,
+                                      content
+                                    )
                                   }
                                   className="modern-textarea"
                                 />
@@ -811,7 +860,14 @@ const Dashboard = () => {
                 id="dropdown-user"
                 className="nav-profile-toggle"
               >
-                <div className="avatar-circle"> <CircleUserRound size={25} style={{ marginRight: "5px", marginBottom: "3px" }} />{username.toUpperCase()}</div>
+                <div className="avatar-circle">
+                  {" "}
+                  <CircleUserRound
+                    size={25}
+                    style={{ marginRight: "5px", marginBottom: "3px" }}
+                  />
+                  {username.toUpperCase()}
+                </div>
               </Dropdown.Toggle>
               <Dropdown.Menu align="end" className="modern-dropdown">
                 <Dropdown.Item
@@ -886,20 +942,24 @@ const Dashboard = () => {
               {analysisTypes.map((type) => (
                 <Col md={4} key={type.id} className="mb-3">
                   <Card
-                    className={`analysis-type-card p-3 h-100 ${selectedAnalysisType === type.id ? 'selected-analysis' : ''}`}
+                    className={`analysis-type-card p-3 h-100 ${
+                      selectedAnalysisType === type.id
+                        ? "selected-analysis"
+                        : ""
+                    }`}
                     onClick={() => setSelectedAnalysisType(type.id)}
                   >
                     <Card.Body className="d-flex flex-column">
                       <div className="d-flex align-items-center mb-2">
-                        <div className="analysis-icon me-3">
-                          {type.icon}
-                        </div>
+                        <div className="analysis-icon me-3">{type.icon}</div>
                         <h6 className="mb-0">{type.name}</h6>
                       </div>
                       <p className="text-muted mb-0 mt-2">{type.description}</p>
                       {selectedAnalysisType === type.id && (
                         <div className="selected-indicator mt-2">
-                          <Badge bg="success" pill>Selected</Badge>
+                          <Badge bg="success" pill>
+                            Selected
+                          </Badge>
                         </div>
                       )}
                     </Card.Body>
