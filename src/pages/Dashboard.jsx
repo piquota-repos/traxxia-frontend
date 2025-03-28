@@ -14,7 +14,9 @@ import {
   Navbar,
   Nav,
   Dropdown,
-  Badge
+  Badge,Toast,   
+  ToastContainer,
+  Collapse
 } from "react-bootstrap";
 import {
   LogOut,
@@ -32,12 +34,15 @@ import {
   ChevronRight,
   CircleUserRound
 } from "lucide-react";
+import { ChevronDown, ChevronUp } from "react-bootstrap-icons";
 import useGroqChat from "../components/GroqChat";
 import "../styles/Dashboard.css";
 import questionsData from "../utils/questions.json";
 import strategicPlanningBook from "../utils/strategicPlanningBook.js";
 import { Groq } from "groq-sdk";
 import axios from 'axios';
+import PreviewContent from "@/components/PreviewContent";
+import AnalysisContent from "../components/AnalysisContent";
 
 const Dashboard = () => {
   const [categories, setCategories] = useState([]);
@@ -51,6 +56,11 @@ const Dashboard = () => {
   const [showSearchBox, setShowSearchBox] = useState(false);
   const [selectedAnalysisType, setSelectedAnalysisType] = useState(null);
   const [showAnalysisSelection, setShowAnalysisSelection] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVariant, setToastVariant] = useState("success");
+
+
   const navigate = useNavigate();
   const { loading } = useGroqChat();
   const groqClient = new Groq({
@@ -92,7 +102,9 @@ const Dashboard = () => {
       icon: <BarChart size={24} />,
     },
   ];
-
+  const handleResetAnalysisResult = () => {
+    setAnalysisResult(""); // Reset analysis result
+  };
   // In your Dashboard component, modify the existing code:
 
   const handleDescriptionChange = (questionId, newDescription) => {
@@ -105,41 +117,6 @@ const Dashboard = () => {
     }));
   };
 
-
-
-  // Debounce function to prevent too many API calls
-  const debounceSaveDescription = debounce(async (questionId, description) => {
-    try {
-      await axios.post(`${API_BASE_URL}/api/survey/answers/single`,
-        {
-          questionId,
-          description
-        },
-        {
-          headers: {
-            'Authorization': localStorage.getItem('token'),
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      console.log(`Description saved for question ${questionId}`);
-    } catch (error) {
-      console.error(`Error saving description for question ${questionId}:`, error);
-    }
-  }, 500); // 500ms delay
-
-  // Utility debounce function (if not already imported)
-  function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }
   const handleSaveDescription = async (questionId) => {
     try {
       const description = answers[questionId]?.description || "";
@@ -219,11 +196,16 @@ const Dashboard = () => {
       }
     }
   };
-  const handleSaveAllAnswers = async () => {
+
+  const showToastNotification = (message, variant = "success") => {
+    setToastMessage(message);
+    setToastVariant(variant);
+    setShowToast(true);
+  };
+
+  const handleSaveAllAnswers = async (showToaster = false) => {
     try {
-      // Transform answers object into an array of answers
       const answersToSave = Object.entries(answers).map(([questionId, answer]) => {
-        // Find the category for this question
         let categoryId = "";
         for (const category of categories) {
           const foundQuestion = category.questions.find(q => q.id === questionId);
@@ -232,7 +214,7 @@ const Dashboard = () => {
             break;
           }
         }
-
+        
         return {
           question_id: questionId,
           category_id: categoryId,
@@ -240,9 +222,9 @@ const Dashboard = () => {
           description: answer.description || ""
         };
       });
-
+      
       const response = await axios.post(`${API_BASE_URL}/api/survey/answers`,
-        { answers: answersToSave }, // Wrap answers in an array
+        { answers: answersToSave },
         {
           headers: {
             'Authorization': localStorage.getItem('token'),
@@ -250,12 +232,22 @@ const Dashboard = () => {
           }
         }
       );
-
-      alert("All survey answers saved successfully!");
+      
+      if (showToaster) {
+        showToastNotification("All survey answers saved successfully!");
+      }
+      
       return response.data;
     } catch (error) {
       console.error("Error saving all answers:", error);
-      alert("Failed to save all answers: " + (error.response?.data?.message || error.message));
+      
+      if (showToaster) {
+        showToastNotification(
+          `Failed to save all answers: ${error.response?.data?.message || error.message}`,
+          "danger"
+        );
+      }
+      
       throw error;
     }
   };
@@ -519,72 +511,7 @@ const Dashboard = () => {
     setShowAnalysisSelection(true);
   };
 
-  const PreviewContent = () => (
-    <div className="preview-content">
-      {categories.map((category) => (
-        <div key={category.id} className="mb-4">
-          <h5 className="category-heading">{category.name}</h5>
 
-          {category.questions.map((question) => (
-            <Card key={question.id} className="mb-3 preview-card">
-              <Card.Body>
-                <h6>{question.question}</h6>
-
-                {question.type === "options" &&
-                  answers[question.id]?.selectedOption && (
-                    <p className="text-primary">
-                      Selected: {answers[question.id].selectedOption}
-                    </p>
-                  )}
-
-                {answers[question.id]?.description && (
-                  <div
-                    className="text-muted"
-                    dangerouslySetInnerHTML={{
-                      __html: answers[question.id]?.description,
-                    }}
-                  />
-                )}
-              </Card.Body>
-            </Card>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-
-  const AnalysisContent = () => (
-    <div className="p-4">
-      {loading ? (
-        <div className="text-center">
-          <h5 className="mb-3">Analyzing Your Responses...</h5>
-          <div className="progress">
-            <div
-              className="progress-bar progress-bar-striped progress-bar-animated"
-              role="progressbar"
-              style={{ width: "75%", backgroundColor: "var(--primary-color)" }}
-            ></div>
-          </div>
-        </div>
-      ) : (
-        <div>
-          <h5 className="mb-3">
-            {selectedAnalysisType && (
-              <>
-                <Badge bg="primary" className="me-2">
-                  {analysisTypes.find(type => type.id === selectedAnalysisType).name}
-                </Badge>
-                Analysis Results
-              </>
-            )}
-          </h5>
-          <div className="analysis-content" style={{ whiteSpace: "pre-line" }}>
-            {analysisResult}
-          </div>
-        </div>
-      )}
-    </div>
-  );
 
   // Placeholder content for other sections with trendy design
   const renderPlaceholderContent = (section) => {
@@ -658,7 +585,7 @@ const Dashboard = () => {
                   >
                     <div className="d-flex align-items-center justify-content-between w-100">
                       <span>
-                        {category.id}. {category.name}
+                        {category.name}
                       </span>
                       {isCategoryCompleted(category) && (
                         <CheckCircle
@@ -684,7 +611,6 @@ const Dashboard = () => {
                           <Accordion.Header>
                             <div className="d-flex align-items-center justify-content-between w-100">
                               <span>
-                                {question.nested?.id}
                                 {question.nested?.question}
                               </span>
                               {isQuestionCompleted(question.id) && (
@@ -756,7 +682,7 @@ const Dashboard = () => {
             <div className="d-flex justify-content-center gap-3 mt-4">
               <Button
                 variant="success"
-                onClick={handleSaveAllAnswers}
+                onClick={() => handleSaveAllAnswers(true)}
                 className="btn-analyze"
               >
                 Save All Answers
@@ -781,12 +707,6 @@ const Dashboard = () => {
             </div>
           </div>
         );
-      case "reports":
-        return renderPlaceholderContent("reports");
-      case "analytics":
-        return renderPlaceholderContent("analytics");
-      case "settings":
-        return renderPlaceholderContent("settings");
       default:
         return renderPlaceholderContent("survey");
     }
@@ -821,17 +741,25 @@ const Dashboard = () => {
     <div className="dashboard-layout">
       <Navbar expand="lg" className="p-2 sticky-top modern-navbar">
         <Container fluid>
-          <Navbar.Brand href="#home" className="fw-bold logo-text">
+          <Navbar.Brand href="#home" className="fw-bold logo-text order-1 order-lg-1">
             <span className="text-gradient">Traxxia</span>
           </Navbar.Brand>
-          <div className="d-flex align-items-center order-lg-last">
+
+          <div className="d-flex align-items-center order-3 order-lg-2" style={{ marginTop: "10px" }}>
+            <h5>SURVEY</h5>
+          </div>
+
+          <div className="d-flex align-items-center order-2 order-lg-3" style={{ marginTop: "10px" }}>
             <Dropdown>
               <Dropdown.Toggle
                 variant="link"
                 id="dropdown-user"
                 className="nav-profile-toggle"
               >
-                <div className="avatar-circle"> <CircleUserRound size={25} style={{ marginRight: "5px", marginBottom: "3px" }} />{username.toUpperCase()}</div>
+                <div className="avatar-circle">
+                  <CircleUserRound size={25} style={{ marginRight: "5px", marginBottom: "3px" }} />
+                  {username.toUpperCase()}
+                </div>
               </Dropdown.Toggle>
               <Dropdown.Menu align="end" className="modern-dropdown">
                 <Dropdown.Item
@@ -845,43 +773,8 @@ const Dashboard = () => {
             </Dropdown>
             <Navbar.Toggle aria-controls="basic-navbar-nav" className="ms-2" />
           </div>
-          {showSearchBox && (
-            <div className="search-overlay">
-              <div className="search-container">
-                <div className="d-flex align-items-center">
-                  <Search size={20} className="text-muted me-2" />
-                  <input
-                    type="text"
-                    className="form-control border-0 search-input"
-                    placeholder="Search..."
-                    autoFocus
-                  />
-                  <Button
-                    variant="link"
-                    className="p-0 ms-2"
-                    onClick={() => setShowSearchBox(false)}
-                  >
-                    ✕
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="ms-auto me-auto">
-              <Nav.Link
-                onClick={() => {
-                  setActiveSection("survey");
-                  window.location.reload();
-                }}
-                active={activeSection === "survey"}
-                className="nav-link-modern"
-              >
-                <FileText size={16} className="me-1" /> Survey
-              </Nav.Link>
-            </Nav>
-          </Navbar.Collapse>
         </Container>
+
       </Navbar>
       <Container fluid className="mt-4 mb-5 px-4 main-content">
         <Row>
@@ -895,58 +788,17 @@ const Dashboard = () => {
         className="modern-modal"
         size="lg"
       >
-        <Modal.Header closeButton>
-          <Modal.Title className="w-100 text-center">
-            Choose Analysis Type
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="analysis-type-container">
-            <Row>
-              {analysisTypes.map((type) => (
-                <Col md={4} key={type.id} className="mb-3">
-                  <Card
-                    className={`analysis-type-card p-3 h-100 ${selectedAnalysisType === type.id ? 'selected-analysis' : ''}`}
-                    onClick={() => setSelectedAnalysisType(type.id)}
-                  >
-                    <Card.Body className="d-flex flex-column">
-                      <div className="d-flex align-items-center mb-2">
-                        <div className="analysis-icon me-3">
-                          {type.icon}
-                        </div>
-                        <h6 className="mb-0">{type.name}</h6>
-                      </div>
-                      <p className="text-muted mb-0 mt-2">{type.description}</p>
-                      {selectedAnalysisType === type.id && (
-                        <div className="selected-indicator mt-2">
-                          <Badge bg="success" pill>Selected</Badge>
-                        </div>
-                      )}
-                    </Card.Body>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setShowAnalysisSelection(false)}
-            className="btn-modern"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleAnalyzeResponses}
-            disabled={!selectedAnalysisType || loading}
-            className="btn-modern"
-          >
-            {loading ? "Analyzing..." : "Generate Analysis"}
-            <ChevronRight size={16} className="ms-1" />
-          </Button>
-        </Modal.Footer>
+        <AnalysisContent
+          loading={loading}
+          selectedAnalysisType={selectedAnalysisType}
+          analysisTypes={analysisTypes}
+          analysisResult={analysisResult}
+          onAnalysisTypeSelect={setSelectedAnalysisType}
+          onAnalyzeResponses={handleAnalyzeResponses}
+          onResetAnalysisResult={handleResetAnalysisResult}
+          onClose={() => setShowAnalysisSelection(false)}
+        />
+
       </Modal>
       {/* Modals */}
       <Modal
@@ -962,7 +814,7 @@ const Dashboard = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <PreviewContent />
+          <PreviewContent categories={categories} answers={answers} showModal={showPreview} onHide={showPreview} />
         </Modal.Body>
       </Modal>
       <Modal
@@ -972,22 +824,35 @@ const Dashboard = () => {
         size="lg"
         dialogClassName="analysis-modal modern-modal"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>Detailed Analysis</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <AnalysisContent />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setShowAnalysis(false)}
-            className="btn-modern"
-          >
-            Close
-          </Button>
-        </Modal.Footer>
+        <AnalysisContent
+          loading={loading}
+          selectedAnalysisType={selectedAnalysisType}
+          analysisTypes={analysisTypes}
+          analysisResult={analysisResult}
+          onAnalysisTypeSelect={setSelectedAnalysisType}
+          onAnalyzeResponses={handleAnalyzeResponses}
+          onResetAnalysisResult={handleResetAnalysisResult}
+          onClose={() => setShowAnalysis(false)}
+        />
       </Modal>
+
+      <ToastContainer 
+      position="bottom-center" 
+      className="p-3 position-fixed bottom-50 start-50 translate-middle-x z-index-1050" // This ensures it's fixed and centered
+    >
+        <Toast 
+          onClose={() => setShowToast(false)} 
+          show={showToast} 
+          delay={3000} 
+          autohide
+          bg={toastVariant}
+        >
+          <Toast.Header>
+            <strong className="me-auto">Notification</strong>
+          </Toast.Header>
+          <Toast.Body className="text-white">{toastMessage}</Toast.Body>
+        </Toast>
+      </ToastContainer>
     </div>
   );
 };

@@ -105,12 +105,25 @@ body {
   color: white;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 14px; 
+  justify-content: center; 
+  font-size: 16px; 
   vertical-align: middle; /* Helps with alignment */
 }
-
+.preview-question{
+  font-weight: 700;
+  font-size: large;
+}
+.text-muted p, .preview-option p{
+  font-size: 15px;
+  margin-bottom: 0px !important;
+}
+.text-primary{
+  font-weight: 600;
+}
+.preview-option span {
+  display: inline-flex;
+  align-items: center;
+}
 /* Add this to align the dropdown toggle properly with nav links */
 .nav-profile-toggle {
   display: flex;
@@ -412,12 +425,12 @@ body {
 .category-heading {
   font-size: 20px;
   font-weight: bold;
-  color: #444;
-  margin-bottom: 10px;
-  border-left: 4px solid #007bff;
+  color: #444; 
   padding-left: 10px;
 }
-
+.modal-dialog{
+  max-width: 85% !important;  
+}
 /* Analysis Content */
 .analysis-content {
   max-height: 60vh;
@@ -488,12 +501,9 @@ body {
 
 .category-heading {
   position: relative;
-  font-weight: 700;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
+  font-weight: 700;  
   color: var(--primary);
-  font-size: 1.5rem;
-  display: inline-block;
+  font-size: 1.5rem; 
 }
 
 .category-heading::after {
@@ -800,8 +810,7 @@ body {
 }
 
 .analysis-type-card.selected-analysis {
-  border-color: var(--primary-color);
-  background-color: rgba(var(--primary-rgb), 0.05);
+  border-color: var(--primary-color); 
 }
 
 .analysis-icon {
@@ -810,9 +819,83 @@ body {
   justify-content: center;
   width: 48px;
   height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  border-radius: 12px; 
   color: white;
+}
+
+.analysis-type-pill {
+  position: relative;
+  display: flex;
+  flex-direction: column;  /* Ensure the icon and text are stacked vertically */
+  align-items: center;     /* Center the icon and text horizontally */
+  justify-content: center; /* Center the content vertically */
+  width: 20%;              /* Adjust width to make the pill more spacious */
+  height: 120px;   
+  margin: 0 10px;
+  background-color: #f1f3f5;
+  transition: all 0.3s ease;
+  cursor: pointer; 
+  padding: 10px;
+  border-radius: 10px;
+}
+.ql-editor{
+  font-size: 15px;
+}
+.analysis-container{
+  padding: 2.5rem !important;
+}
+.analysis-type-pill.selected {
+  background-color: #0d6efd;
+  transform: scale(1.1);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;  /* Add space between the icon and the text */
+}
+
+.icon-text {
+  margin: 0;          /* Remove any default margins */
+  font-size: 12px;     /* Adjust text size for better alignment */
+  text-align: center;  /* Center the text */
+  white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.analysis-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-wrapper p{
+  margin-bottom: 0px !important;
+}
+/* .analysis-type-pill.selected {
+  background-color: #0d6efd;
+  transform: scale(1.1);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+} */
+.analysis-type-pill.selected .analysis-icon,.analysis-type-pill.selected p{
+  color :white !important;
+
+}
+/* .analysis-type-pill .icon-wrapper { 
+  align-items: center;
+  justify-content: center;
+} */
+
+.analysis-badge {
+  font-size: 0.6rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.check-circle-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
 }
 
 .selected-indicator {
