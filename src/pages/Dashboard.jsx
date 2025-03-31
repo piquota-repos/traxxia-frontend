@@ -275,6 +275,7 @@ const Dashboard = () => {
       }
     };
 
+  
     const fetchData = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -306,7 +307,15 @@ const Dashboard = () => {
     fetchData();
   }, [navigate]);
 
+  const [activeQuestionId, setActiveQuestionId] = useState(null);
 
+// Add this function to handle accordion changes
+const handleAccordionChange = async (questionId) => { 
+  if (activeQuestionId && activeQuestionId !== questionId) { 
+    await handleSaveAllAnswers(false);
+  }
+  setActiveQuestionId(questionId);
+};
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
@@ -608,7 +617,7 @@ const Dashboard = () => {
                               : ""
                           }
                         >
-                          <Accordion.Header>
+                          <Accordion.Header  onClick={() => handleAccordionChange(question.id)}>
                             <div className="d-flex align-items-center justify-content-between w-100">
                               <span>
                                 {question.nested?.question}
@@ -680,13 +689,13 @@ const Dashboard = () => {
             ))}
 
             <div className="d-flex justify-content-center gap-3 mt-4">
-              <Button
+              {/* <Button
                 variant="success"
                 onClick={() => handleSaveAllAnswers(true)}
                 className="btn-analyze"
               >
                 Save All Answers
-              </Button>
+              </Button> */}
               <Button
                 variant="outline-info"
                 onClick={() => setShowPreview(true)}
