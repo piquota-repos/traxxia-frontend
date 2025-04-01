@@ -32,45 +32,56 @@ const PreviewContent = ({ showModal, onHide , categories, answers }) => {
               <h5 className="category-heading">{category.name}</h5>
     
               {category.questions.map((question) => (
-                <Card key={question.id} className="mb-3 preview-card">
-                  <Card.Body>
-                    <div className="d-flex justify-content-between align-items-center">
-                      <p className="preview-question">{question.question}</p>
-                      <button
-                        className="btn btn-link p-0"
-                        onClick={(e) => handleToggle(e, question.id)} // Prevent scroll and toggle the card
+            <Card key={question.id} className="mb-3 preview-card">
+              <Card.Body>
+                <div className="d-flex justify-content-between align-items-center">
+                  <p className="preview-question">{question.question}</p>
+                  <button
+                    className="btn btn-link p-0"
+                    onClick={(e) => handleToggle(e, question.id)} // Prevent scroll and toggle the card
+                  >
+                    {openCards[question.id] ? (
+                      <ChevronUp size={20} /> // Up arrow for expanded state
+                    ) : (
+                      <ChevronDown size={20} /> // Down arrow for collapsed state
+                    )}
+                  </button>
+                </div>
+
+                <Collapse in={openCards[question.id]}>
+                  <div>
+                    {question.type === "options" &&
+                      answers[question.id]?.selectedOption && (
+                        <div className="preview-option">
+                          <p className="text-primary">Selected Option: </p>
+                          <p>{answers[question.id].selectedOption}</p>
+                          <br></br>
+                        </div>
+                      )}
+
+                    {answers[question.id]?.description && (
+                      <div
+                        className="text-muted"
+                        style={{
+                          whiteSpace: "pre-wrap",
+                          wordWrap: "break-word",
+                        }}
                       >
-                        {openCards[question.id] ? (
-                          <ChevronUp size={20} /> // Up arrow for expanded state
-                        ) : (
-                          <ChevronDown size={20} /> // Down arrow for collapsed state
-                        )}
-                      </button>
-                    </div>
-    
-                    <Collapse in={openCards[question.id]}>
-                      <div>
-                        {question.type === "options" && answers[question.id]?.selectedOption && (
-                          <div className="preview-option">
-                            <p className="text-primary">Selected Option: </p>
-                            <p>{answers[question.id].selectedOption}</p><br></br>
-                          </div>
-                        )}
-    
-                        {answers[question.id]?.description && (
-                          <div
-                            className="text-muted"
-                            dangerouslySetInnerHTML={{
-                              __html: `
-                                <p class="text-primary">Description: </p>${answers[question.id]?.description || ''}`,
-                            }}
-                          />
-                        )}
+                        <p className="text-primary">Description:</p>
+                        {
+                          answers[question.id]?.description
+                            .replace(/<br\s*\/?>/gi, "\n") 
+                            .replace(/&lt;br\/&gt;/gi, "\n") 
+                            .replace(/\\n/g, "\n") 
+                            .replace(/<\/?[^>]+(>|$)/g, "") 
+                        }
                       </div>
-                    </Collapse>
-                  </Card.Body>
-                </Card>
-              ))}
+                    )}
+                  </div>
+                </Collapse>
+              </Card.Body>
+            </Card>
+          ))}
             </div>
           ))}
         </div>

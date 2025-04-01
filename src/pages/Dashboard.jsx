@@ -61,6 +61,26 @@ const Dashboard = () => {
   const [toastVariant, setToastVariant] = useState("success");
 
 
+  const modules = {
+    toolbar: [
+      ["bold", "italic", "underline", "strike"], // Text styles
+      ["blockquote", "code-block"],
+      ["link", "image", "video", "formula"], // Media & formula
+      [{ header: 1 }, { header: 2 }], // Headers
+      [{ list: "ordered" }, { list: "bullet" }, { list: "check" }], // Lists
+      [{ script: "sub" }, { script: "super" }], // Subscript/superscript
+      [{ indent: "-1" }, { indent: "+1" }], // Indentation
+      [{ direction: "rtl" }], // Text direction
+      [{ size: ["small", false, "large", "huge"] }], // Font sizes
+      [{ header: [1, 2, 3, 4, 5, 6, false] }], // Header levels
+      [{ color: [] }, { background: [] }], // Text color & background
+      [{ font: [] }], // Fonts
+      [{ align: [] }], // Alignments
+      ["clean"], // Remove formatting
+    ],
+  };
+
+
   const navigate = useNavigate();
   const { loading } = useGroqChat();
   const groqClient = new Groq({
@@ -593,9 +613,7 @@ const handleAccordionChange = async (questionId) => {
                     }
                   >
                     <div className="d-flex align-items-center justify-content-between w-100">
-                      <span>
-                        {category.name}
-                      </span>
+                      <span>{category.name}</span>
                       {isCategoryCompleted(category) && (
                         <CheckCircle
                           size={20}
@@ -617,11 +635,9 @@ const handleAccordionChange = async (questionId) => {
                               : ""
                           }
                         >
-                          <Accordion.Header  onClick={() => handleAccordionChange(question.id)}>
+                          <Accordion.Header>
                             <div className="d-flex align-items-center justify-content-between w-100">
-                              <span>
-                                {question.nested?.question}
-                              </span>
+                              <span>{question.nested?.question}</span>
                               {isQuestionCompleted(question.id) && (
                                 <CheckCircle
                                   size={20}
@@ -676,6 +692,7 @@ const handleAccordionChange = async (questionId) => {
                                     )
                                   }
                                   className="modern-textarea"
+                                  modules={modules} 
                                 />
                               )}
                             </div>

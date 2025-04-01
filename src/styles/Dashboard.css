@@ -799,15 +799,7 @@ body {
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
-.question-container,
-.quill,
-.ql-toolbar,
-.ql-container {
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
+
 
 .analysis-type-card.selected-analysis {
   border-color: var(--primary-color); 
@@ -929,4 +921,74 @@ body {
 }
 .row h6{
   font-weight: bold;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Quill rich text editor */
+
+.ql-toolbar {
+  background: linear-gradient(to right, rgba(84, 58, 183, 0.08), rgba(84, 58, 183, 0.02));
+  border: 1px solid #444;
+  border-radius: 8px 8px 0 0;
+  padding: 10px;
+}
+
+.ql-container {
+  border: 1px solid #444;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background: #ffffff;
+  color: white;
+}
+
+
+.ql-editor {
+  padding: 14px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #0f0f0f;
+}
+
+.ql-editor p {
+  margin-bottom: 10px;
+}
+
+/* .ql-picker-label svg,
+.ql-stroke,
+.ql-picker-label,
+.ql-fill {
+  color: white !important;
+  stroke: white !important;
+} */
+
+.ql-toolbar button {
+  border-radius: 5px;
+  padding: 5px;
+  transition: background 0.3s;
+}
+
+.ql-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.quill{
+  padding :0% !important
+}
+
+.modern-textarea .ql-container {
+  min-height: 80px;
+  max-height: 500px;
+  resize: vertical; 
+  overflow: auto;
 }
