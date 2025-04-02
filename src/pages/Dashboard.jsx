@@ -635,7 +635,7 @@ const handleAccordionChange = async (questionId) => {
                               : ""
                           }
                         >
-                          <Accordion.Header>
+                          <Accordion.Header  onClick={() => handleAccordionChange(question.id)}>
                             <div className="d-flex align-items-center justify-content-between w-100">
                               <span>{question.nested?.question}</span>
                               {isQuestionCompleted(question.id) && (
