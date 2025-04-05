@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { Delta } from "quill";
 import {
   Card,
   Button,
@@ -14,7 +15,7 @@ import {
   Navbar,
   Nav,
   Dropdown,
-  Badge,Toast,   
+  Badge, Toast,
   ToastContainer,
   Collapse
 } from "react-bootstrap";
@@ -43,6 +44,7 @@ import { Groq } from "groq-sdk";
 import axios from 'axios';
 import PreviewContent from "@/components/PreviewContent";
 import AnalysisContent from "../components/AnalysisContent";
+import FormattedContentViewer from '../components/FormattedContentViewer'
 
 const Dashboard = () => {
   const [categories, setCategories] = useState([]);
@@ -60,25 +62,6 @@ const Dashboard = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("success");
 
-
-  const modules = {
-    toolbar: [
-      ["bold", "italic", "underline", "strike"], // Text styles
-      ["blockquote", "code-block"],
-      ["link", "image", "video", "formula"], // Media & formula
-      [{ header: 1 }, { header: 2 }], // Headers
-      [{ list: "ordered" }, { list: "bullet" }, { list: "check" }], // Lists
-      [{ script: "sub" }, { script: "super" }], // Subscript/superscript
-      [{ indent: "-1" }, { indent: "+1" }], // Indentation
-      [{ direction: "rtl" }], // Text direction
-      [{ size: ["small", false, "large", "huge"] }], // Font sizes
-      [{ header: [1, 2, 3, 4, 5, 6, false] }], // Header levels
-      [{ color: [] }, { background: [] }], // Text color & background
-      [{ font: [] }], // Fonts
-      [{ align: [] }], // Alignments
-      ["clean"], // Remove formatting
-    ],
-  };
 
 
   const navigate = useNavigate();
@@ -177,6 +160,159 @@ const Dashboard = () => {
       throw error;
     }
   };
+  const quillRefs = useRef({});
+
+  const convertFormattedTextToHTML = (text) => {
+    // First, handle any escaped newlines
+    let converted = text.replace(/\\n/g, '\n');
+
+    // Split the text into lines
+    const lines = converted.split('\n');
+    let formattedContent = '';
+    let inOrderedList = false;
+    let inUnorderedList = false;
+    let previousNumberedValue = 0; // Track the previous number for sequence detection
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      // Skip empty lines
+      if (!line) continue;
+
+      // Check for numbered list item (e.g., "1. Item")
+      const numberedMatch = line.match(/^(\d+)\.\s+(.+)$/);
+
+      if (numberedMatch) {
+        const currentNumber = parseInt(numberedMatch[1], 10);
+
+        // Check if this is a new list or continuation of the existing one
+        if (!inOrderedList || (currentNumber !== previousNumberedValue + 1 && currentNumber !== 1)) {
+          // If we're already in a list and the sequence is broken, close it
+          if (inOrderedList) {
+            formattedContent += '</ol>';
+          }
+
+          // Start a new ordered list
+          formattedContent += '<ol>';
+          inOrderedList = true;
+          inUnorderedList = false;
+        }
+
+        // Add the list item
+        formattedContent += `<li>${numberedMatch[2]}</li>`;
+        previousNumberedValue = currentNumber;
+      }
+      // Check for bullet points
+      else if (/^[●\*\-•]\s/.test(line)) {
+        if (inOrderedList) {
+          // Close the ordered list if we're switching to unordered
+          formattedContent += '</ol>';
+          inOrderedList = false;
+        }
+
+        if (!inUnorderedList) {
+          // Start a new unordered list
+          formattedContent += '<ul>';
+          inUnorderedList = true;
+        }
+
+        // Add the bullet point as a list item
+        const bulletContent = line.replace(/^[●\*\-•]\s/, '');
+        formattedContent += `<li>${bulletContent}</li>`;
+      }
+      else {
+        // Regular text - close any open lists
+        if (inOrderedList) {
+          formattedContent += '</ol>';
+          inOrderedList = false;
+        }
+
+        if (inUnorderedList) {
+          formattedContent += '</ul>';
+          inUnorderedList = false;
+        }
+
+        // Add as regular paragraph
+        formattedContent += `<p>${line}</p>`;
+      }
+    }
+
+    // Close any open lists
+    if (inOrderedList) {
+      formattedContent += '</ol>';
+    }
+
+    if (inUnorderedList) {
+      formattedContent += '</ul>';
+    }
+
+    return formattedContent;
+  };
+  const registerQuillRef = (questionId, quillInstance) => {
+    if (quillInstance) {
+      const quill = quillInstance.getEditor();
+      quillRefs.current[questionId] = quill;
+
+      // Add direct paste event listener to the quill element
+      quill.root.addEventListener('paste', function (e) {
+        // Don't completely prevent default as we still want paste to work
+        // But we'll intercept the plain text content
+
+        // Get text from clipboard
+        const text = e.clipboardData.getData('text/plain');
+        if (text) {
+          // Stop the default paste
+          e.preventDefault();
+
+          // Convert the text
+          const formattedHTML = convertFormattedTextToHTML(text);
+
+          // Get selection range
+          const range = quill.getSelection();
+          if (range) {
+            // Insert the formatted HTML at cursor position
+            quill.clipboard.dangerouslyPasteHTML(range.index, formattedHTML);
+          } else {
+            // If no selection, append to the end
+            quill.clipboard.dangerouslyPasteHTML(quill.getLength(), formattedHTML);
+          }
+        }
+      });
+    }
+  };
+
+  const modules = {
+    toolbar: [
+      ["bold", "italic", "underline", "strike"],
+      ["blockquote", "code-block"],
+      ["link", "image", "video", "formula"],
+      [{ header: 1 }, { header: 2 }],
+      [{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
+      [{ script: "sub" }, { script: "super" }],
+      [{ indent: "-1" }, { indent: "+1" }],
+      [{ direction: "rtl" }],
+      [{ size: ["small", false, "large", "huge"] }],
+      [{ header: [1, 2, 3, 4, 5, 6, false] }],
+      [{ color: [] }, { background: [] }],
+      [{ font: [] }],
+      [{ align: [] }],
+      ["clean"],
+    ],
+    clipboard: {
+      matchVisual: false
+    }
+  };
+
+  const renderQuillEditor = (questionId) => (
+    <ReactQuill
+      theme="snow"
+      value={answers[questionId]?.description || ""}
+      onChange={(content) => handleDescriptionChange(questionId, content)}
+      className="modern-textarea"
+      modules={modules}
+      ref={(el) => registerQuillRef(questionId, el)}
+    />
+  );
   const fetchSavedAnswers = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -197,7 +333,7 @@ const Dashboard = () => {
 
         Object.entries(response.data.answers).forEach(([questionId, answer]) => {
           savedAnswers[questionId] = {
-            description: answer.description || "",
+            description: convertFormattedTextToHTML(answer.description) || "",
             selectedOption: answer.selectedOption || ""
           };
         });
@@ -234,7 +370,7 @@ const Dashboard = () => {
             break;
           }
         }
-        
+
         return {
           question_id: questionId,
           category_id: categoryId,
@@ -242,7 +378,7 @@ const Dashboard = () => {
           description: answer.description || ""
         };
       });
-      
+
       const response = await axios.post(`${API_BASE_URL}/api/survey/answers`,
         { answers: answersToSave },
         {
@@ -252,22 +388,22 @@ const Dashboard = () => {
           }
         }
       );
-      
+
       if (showToaster) {
         showToastNotification("All survey answers saved successfully!");
       }
-      
+
       return response.data;
     } catch (error) {
       console.error("Error saving all answers:", error);
-      
+
       if (showToaster) {
         showToastNotification(
           `Failed to save all answers: ${error.response?.data?.message || error.message}`,
           "danger"
         );
       }
-      
+
       throw error;
     }
   };
@@ -295,7 +431,7 @@ const Dashboard = () => {
       }
     };
 
-  
+
     const fetchData = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -329,19 +465,17 @@ const Dashboard = () => {
 
   const [activeQuestionId, setActiveQuestionId] = useState(null);
 
-// Add this function to handle accordion changes
-const handleAccordionChange = async (questionId) => { 
-  if (activeQuestionId && activeQuestionId !== questionId) { 
-    await handleSaveAllAnswers(false);
-  }
-  setActiveQuestionId(questionId);
-};
+  // Add this function to handle accordion changes
+  const handleAccordionChange = async (questionId) => {
+    if (activeQuestionId && activeQuestionId !== questionId) {
+      await handleSaveAllAnswers(false);
+    }
+    setActiveQuestionId(questionId);
+  };
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
-
-
 
   const handleOptionChange = (questionId, option) => {
     setAnswers((prev) => ({
@@ -349,7 +483,7 @@ const handleAccordionChange = async (questionId) => {
       [questionId]: {
         ...prev[questionId],
         selectedOption: option,
-        description: "", // Reset description when option changes
+        description: "",
       },
     }));
   };
@@ -358,18 +492,12 @@ const handleAccordionChange = async (questionId) => {
     const answer = answers[questionId];
     if (!answer) return false;
 
-    // For option-based questions
-    if (answer.type === "options") {
-      return (
-        (answer.selectedOption && answer.selectedOption !== "") &&
-        (answer.description && answer.description.trim() !== "")
-      );
-    }
-
-    // For text-based questions
-    return answer.description && answer.description.trim() !== "";
+    return (
+      (answer.description &&
+        answer.description.replace(/<(.|\n)*?>/g, "").trim() !== "") ||
+      (answer.selectedOption && answer.selectedOption !== "")
+    );
   };
-
   const allQuestionsAnswered = () => {
     // Ensure all categories and their questions are answered
     return categories.every((category) =>
@@ -635,7 +763,7 @@ const handleAccordionChange = async (questionId) => {
                               : ""
                           }
                         >
-                          <Accordion.Header  onClick={() => handleAccordionChange(question.id)}>
+                          <Accordion.Header onClick={() => handleAccordionChange(question.id)}>
                             <div className="d-flex align-items-center justify-content-between w-100">
                               <span>{question.nested?.question}</span>
                               {isQuestionCompleted(question.id) && (
@@ -665,35 +793,18 @@ const handleAccordionChange = async (questionId) => {
                                       }
                                     />
                                   </div>
-                                  <ReactQuill
-                                    theme="snow"
-                                    value={
-                                      answers[question.id]?.description || ""
-                                    }
-                                    onChange={(content) =>
-                                      handleDescriptionChange(
-                                        question.id,
-                                        content
-                                      )
-                                    }
-                                    className="modern-textarea half-width"
+                                  <FormattedContentViewer
+                                    value={answers[question.id]?.description || ''}
+                                    onChange={(newContent) => handleDescriptionChange(question.id, newContent)}
                                   />
                                 </div>
                               ) : (
-                                <ReactQuill
-                                  theme="snow"
-                                  value={
-                                    answers[question.id]?.description || ""
-                                  }
-                                  onChange={(content) =>
-                                    handleDescriptionChange(
-                                      question.id,
-                                      content
-                                    )
-                                  }
-                                  className="modern-textarea"
-                                  modules={modules} 
-                                />
+                                <>
+                                  <FormattedContentViewer
+                                    value={answers[question.id]?.description || ''}
+                                    onChange={(newContent) => handleDescriptionChange(question.id, newContent)}
+                                  />
+                                </>
                               )}
                             </div>
                           </Accordion.Body>
@@ -862,14 +973,14 @@ const handleAccordionChange = async (questionId) => {
         />
       </Modal>
 
-      <ToastContainer 
-      position="bottom-center" 
-      className="p-3 position-fixed bottom-50 start-50 translate-middle-x z-index-1050" // This ensures it's fixed and centered
-    >
-        <Toast 
-          onClose={() => setShowToast(false)} 
-          show={showToast} 
-          delay={3000} 
+      <ToastContainer
+        position="bottom-center"
+        className="p-3 position-fixed bottom-50 start-50 translate-middle-x z-index-1050" // This ensures it's fixed and centered
+      >
+        <Toast
+          onClose={() => setShowToast(false)}
+          show={showToast}
+          delay={3000}
           autohide
           bg={toastVariant}
         >
