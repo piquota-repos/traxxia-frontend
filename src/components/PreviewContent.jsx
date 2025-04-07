@@ -1,49 +1,47 @@
 import { useState, useEffect } from "react";
-import { Modal, Button, Card, Collapse } from "react-bootstrap"; // Import necessary components
-import { ChevronDown, ChevronUp } from "react-bootstrap-icons"; // Import arrow icons
+import { Modal, Button, Card, Collapse } from "react-bootstrap";  
+import { ChevronDown, ChevronUp } from "react-bootstrap-icons";  
 
-const PreviewContent = ({ showModal, onHide , categories, answers }) => {
-   const [openCards, setOpenCards] = useState({});
-  
-    // On initial render, set all cards to be open
-    useEffect(() => {
-      const initialOpenState = categories.reduce((acc, category) => {
-        category.questions.forEach((question) => {
-          acc[question.id] = true; // Set each card's state to 'open' (true)
-        });
-        return acc;
-      }, {});
-      
-      setOpenCards(initialOpenState); // Set all cards as open
-    }, [categories]);
-  
-     const handleToggle = (event, cardId) => {
-      event.preventDefault(); // Prevent the page from scrolling
-      setOpenCards(prevState => ({
-        ...prevState,
-        [cardId]: !prevState[cardId] // Toggle the current card's open state
-      }));
-    };
+const PreviewContent = ({ showModal, onHide, categories, answers }) => {
+  const [openCards, setOpenCards] = useState({});  
+  useEffect(() => {
+    const initialOpenState = categories.reduce((acc, category) => {
+      category.questions.forEach((question) => {
+        acc[question.id] = true;  
+      });
+      return acc;
+    }, {});
+
+    setOpenCards(initialOpenState);  
+  }, [categories]);
+
+  const handleToggle = (event, cardId) => {
+    event.preventDefault();  
+    setOpenCards(prevState => ({
+      ...prevState,
+      [cardId]: !prevState[cardId]  
+    }));
+  };
 
   return (
     <div className="preview-content">
-          {categories.map((category) => (
-            <div key={category.id} className="mb-4">
-              <h5 className="category-heading">{category.name}</h5>
-    
-              {category.questions.map((question) => (
+      {categories.map((category) => (
+        <div key={category.id} className="mb-4">
+          <h5 className="category-heading">{category.name}</h5>
+
+          {category.questions.map((question) => (
             <Card key={question.id} className="mb-3 preview-card">
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">
                   <p className="preview-question">{question.question}</p>
                   <button
                     className="btn btn-link p-0"
-                    onClick={(e) => handleToggle(e, question.id)} // Prevent scroll and toggle the card
+                    onClick={(e) => handleToggle(e, question.id)} 
                   >
                     {openCards[question.id] ? (
-                      <ChevronUp size={20} /> // Up arrow for expanded state
+                      <ChevronUp size={20} />  
                     ) : (
-                      <ChevronDown size={20} /> // Down arrow for collapsed state
+                      <ChevronDown size={20} />  
                     )}
                   </button>
                 </div>
@@ -68,13 +66,18 @@ const PreviewContent = ({ showModal, onHide , categories, answers }) => {
                         }}
                       >
                         <p className="text-primary">Description:</p>
-                        {
-                          answers[question.id]?.description
-                            .replace(/<br\s*\/?>/gi, "\n") 
-                            .replace(/&lt;br\/&gt;/gi, "\n") 
-                            .replace(/\\n/g, "\n") 
-                            .replace(/<\/?[^>]+(>|$)/g, "") 
-                        }
+                        {answers[question.id]?.description && (
+                          <div
+                            className="text-muted"
+                            style={{
+                              whiteSpace: "pre-wrap",
+                              wordWrap: "break-word",
+                            }}
+                            dangerouslySetInnerHTML={{
+                              __html: answers[question.id].description,
+                            }}
+                          ></div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -82,9 +85,9 @@ const PreviewContent = ({ showModal, onHide , categories, answers }) => {
               </Card.Body>
             </Card>
           ))}
-            </div>
-          ))}
         </div>
+      ))}
+    </div>
   );
 };
 export default PreviewContent;
