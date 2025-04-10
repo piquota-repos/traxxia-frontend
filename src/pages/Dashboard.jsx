@@ -1,17 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Groq } from "groq-sdk";
-import axios from 'axios';
-import {
-  Card,
+import { useNavigate } from "react-router-dom"; 
+import { 
   Button,
   Modal,
   Container,
   Row,
-  Col,
-  Accordion,
-  Navbar,
-  Nav,
+  Col, 
+  Navbar, 
   Dropdown,
   Toast,
   ToastContainer
@@ -19,16 +14,13 @@ import {
 import {
   LogOut,
   Eye,
-  BarChart,
-  CheckCircle,
+  BarChart, 
   CircleUserRound
 } from "lucide-react";
 
-// Components
-import FormattedContentViewer from '../components/FormattedContentViewer';
+// Components 
 import PreviewContent from "@/components/PreviewContent";
-import AnalysisContent from "../components/AnalysisContent";
-import QuestionOptions from "../components/QuestionOptions";
+import AnalysisContent from "../components/AnalysisContent"; 
 import SurveyProgressCard from "../components/SurveyProgressCard";
 import CategoryAccordion from "../components/CategoryAccordion";
 
@@ -70,7 +62,8 @@ const Dashboard = () => {
     selectedAnalysisType,
     setSelectedAnalysisType,
     handleAnalyzeResponses,
-    resetAnalysisResult
+    resetAnalysisResult,
+    isLoading
   } = useAnalysis(categories, answers, strategicPlanningBook);
 
   // UI State
@@ -239,15 +232,15 @@ const Dashboard = () => {
         size="lg"
       >
         <AnalysisContent
-          loading={false}
-          selectedAnalysisType={selectedAnalysisType}
-          analysisTypes={ANALYSIS_TYPES}
-          analysisResult={analysisResult}
-          onAnalysisTypeSelect={setSelectedAnalysisType}
-          onAnalyzeResponses={handleAnalyzeResponses}
-          onResetAnalysisResult={resetAnalysisResult}
-          onClose={() => setShowAnalysisSelection(false)}
-        />
+  loading={isLoading}
+  selectedAnalysisType={selectedAnalysisType}
+  analysisTypes={ANALYSIS_TYPES}
+  analysisResult={analysisResult}
+  onAnalysisTypeSelect={setSelectedAnalysisType}
+  onAnalyzeResponses={handleAnalyzeResponses}
+  onResetAnalysisResult={resetAnalysisResult}
+  onClose={() => setShowAnalysisSelection(false)}
+/>
       </Modal>
 
       <Modal
@@ -258,15 +251,15 @@ const Dashboard = () => {
         dialogClassName="analysis-modal modern-modal"
       >
         <AnalysisContent
-          loading={false}
-          selectedAnalysisType={selectedAnalysisType}
-          analysisTypes={ANALYSIS_TYPES}
-          analysisResult={analysisResult}
-          onAnalysisTypeSelect={setSelectedAnalysisType}
-          onAnalyzeResponses={handleAnalyzeResponses}
-          onResetAnalysisResult={resetAnalysisResult}
-          onClose={() => setShowAnalysis(false)}
-        />
+  loading={isLoading}
+  selectedAnalysisType={selectedAnalysisType}
+  analysisTypes={ANALYSIS_TYPES}
+  analysisResult={analysisResult}
+  onAnalysisTypeSelect={setSelectedAnalysisType}
+  onAnalyzeResponses={handleAnalyzeResponses}
+  onResetAnalysisResult={resetAnalysisResult}
+  onClose={() => setShowAnalysisSelection(false)}
+/>
       </Modal>
 
       <ToastContainer

@@ -163,7 +163,7 @@ const useSurveyData = (questionsData) => {
     }));
   }, []);
 
-  // Fetch saved answers from API
+  // Fetch saved answers from API - Updated to handle encrypted data from server
   const fetchSavedAnswers = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
@@ -183,8 +183,9 @@ const useSurveyData = (questionsData) => {
         const savedAnswers = {};
 
         Object.entries(response.data.answers).forEach(([questionId, answer]) => {
+          // Data is already decrypted on the server side
           savedAnswers[questionId] = {
-            description: convertFormattedTextToHTML(answer.description) || "",
+            description: answer.description || "",
             selectedOption: answer.selectedOption || ""
           };
         });
@@ -200,7 +201,7 @@ const useSurveyData = (questionsData) => {
     }
   }, []);
 
-  // Save all answers to API
+  // Save all answers to API - Updated to work with server-side encryption
   const saveAllAnswers = useCallback(async (showToaster = false) => {
     try {
       const answersToSave = Object.entries(answers).map(([questionId, answer]) => {
@@ -213,6 +214,7 @@ const useSurveyData = (questionsData) => {
           }
         }
 
+        // The backend will handle encryption, so we just send the raw data
         return {
           question_id: questionId,
           category_id: categoryId,

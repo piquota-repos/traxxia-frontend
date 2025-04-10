@@ -375,6 +375,12 @@ body {
 .preview-content p {
   margin-bottom: 0px !important;
 }
+.text-muted{
+  color :black;
+}
+.text-muted ol{
+  margin-bottom: 0px !important;
+}
 .text-muted ol li{
   font-weight: 600;
 }

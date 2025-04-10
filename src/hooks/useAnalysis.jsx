@@ -69,7 +69,7 @@ const useAnalysis = (categories, answers, strategicPlanningBook) => {
     return promptText;
   }, [categories, answers]);
 
-  const handleAnalyzeResponses = useCallback(async () => {
+  const handleAnalyzeResponses = useCallback(async () => { 
     if (!selectedAnalysisType) return;
     setIsLoading(true);
     setError(null);
@@ -84,7 +84,7 @@ const useAnalysis = (categories, answers, strategicPlanningBook) => {
         { role: "user", content: strategicPlanningBook + promptText }
       ];
 
-      setAnalysisResult("");
+      //setAnalysisResult("");
 
       const chatCompletion = await groqClient.chat.completions.create({
         messages: messages,
@@ -110,6 +110,7 @@ const useAnalysis = (categories, answers, strategicPlanningBook) => {
 
   return {
     analysisResult,
+    selectedAnalysisType,
     setSelectedAnalysisType,
     handleAnalyzeResponses,
     resetAnalysisResult,
