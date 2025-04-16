@@ -1137,25 +1137,43 @@ body {
 
 
 .political-bg {
-  background-color: #ffe6ea; 
+  background-color: #ffe6ea;
+    border: 2px solid #ff99aa;
+    margin-top: 10px;
+    padding: 5px;
 }
 
 .economic-bg {
   background-color: #e0f7fa; 
+  border: 2px solid #4dd0e1;
+    margin-top: 10px;
+    padding: 5px;
 }
 
 .social-bg {
   background-color: #f3e5f5;
+  border: 2px solid #ce93d8;
+    margin-top: 10px;
+    padding: 5px;
 }
 
 .technological-bg {
   background-color: #fbe9e7; 
+  border: 2px solid #ffab91;
+    margin-top: 10px;
+    padding: 5px;
 }
 
 .legal-bg {
   background-color: #e8f5e9; 
+  border: 2px solid #a5d6a7;
+    margin-top: 10px;
+    padding: 5px;
 }
 
 .environmental-bg {
   background-color: #fff9c4; 
+  border: 2px solid #ffeb3b;
+    margin-top: 10px;
+    padding: 5px;
 }
