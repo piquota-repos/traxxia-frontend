@@ -228,11 +228,11 @@ body {
 }
 /* Glass Card */
 .glass-card {
-  background:#d0d1f2;
-  backdrop-filter: blur(10px);
-  border-radius: var(--card-border-radius);
+  background:#f8f9fa; 
+  border-radius: 10px;
   border: 1px solid var(--border); 
   overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
 /* Modern Accordion */
@@ -376,8 +376,8 @@ body {
   margin-bottom: 0px !important;
 }
 .text-muted{
-  color :black;
-}
+  color :black !important;
+} 
 .text-muted ol{
   margin-bottom: 0px !important;
 }
@@ -541,7 +541,7 @@ body {
   margin-bottom: 16px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease-in-out;
 }
 
@@ -705,7 +705,7 @@ body {
 }
  .category-completed{
   position: relative;
-  background: linear-gradient(to right, rgba(84, 58, 183, 0.05), transparent) !important;
+  background: #fff !important;
  } 
 /* Progress indicator */
 .progress {
@@ -746,9 +746,9 @@ body {
 /* Survey progress card styling */
 .progress-card {
   padding: 20px;
-  background: linear-gradient(135deg, #ffffff, #f8f9ff);
+  background: #fff;
   border-radius: 0px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  box-shadow:  0 0 20px rgba(0, 0, 0, 0.2);
   margin-bottom: 30px;
   border: 1px solid rgba(0, 0, 0, 0.04);
   position: relative;
@@ -782,7 +782,7 @@ body {
 }
 /* Completed category styling */
 .category-completed .accordion-button {
-  background: linear-gradient(to right, rgba(84, 58, 183, 0.05), transparent) !important;
+  background: none !important;
   border-left: 4px solid var(--question-success) !important;
   color: var(--question-success) !important;
   border-radius: 0px !important;
@@ -853,7 +853,8 @@ body {
   font-size: 15px;
 }
 .analysis-container{
-  padding: 2.5rem !important;
+  padding: 1.5rem !important;
+  font-size: var(--font-size15);
 }
 .analysis-type-pill.selected {
   background-color: #0d6efd;
@@ -942,18 +943,7 @@ body {
   font-weight: bold;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
+ 
 /* Quill rich text editor */
 
 .ql-toolbar {
@@ -1014,4 +1004,158 @@ body {
  
 .accordion-body .fw-bold{
   font-size: 16px !important;
+}
+
+/* Step Indicator Styles */
+.step-indicator-container {
+  margin: 20px 0 40px 0;
+  position: relative;
+}
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  width: 200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #6c757d;
+  border: 2px solid #ced4da;
+  z-index: 2;
+  position: relative;
+}
+
+.step-circle.active {
+  background-color: var(--secondary-color);
+  color: white;
+  border-color: var(--secondary-color);
+}
+
+.step-circle .step-label {
+  position: absolute;
+  width: 100px;
+  text-align: center;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  color: #6c757d;
+}
+
+.step-circle.active .step-label {
+  color: var(--secondary-color);
+  font-weight: bold;
+}
+
+.step-line {
+  flex-grow: 1;
+  height: 3px;
+  background-color: #ced4da;
+  margin: 0 10px;
+  z-index: 1;
+}
+
+/* Button Styles */
+.btn-next, .btn-back {
+  transition: all 0.3s ease;
+}
+
+.btn-next:hover, .btn-back:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.step-header { 
+  border-bottom: 1px solid #eee; 
+}
+
+/* Analysis container in step 2 */
+.analysis-container {
+  padding: 0;
+}
+
+.analysis-type-pill {
+  background-color: #d0d1f2;
+  border-radius: 15px;
+  padding: 10px 15px;
+  margin: 0 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.analysis-type-pill:hover {
+  background-color: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.analysis-type-pill.selected {
+  background-color: var(--secondary-color);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.icon-wrapper p {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.analysis-content {
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.btn-primary{
+  background-color: var(--secondary-color) !important;
+  border:none !important
+}
+
+.pestle-box {
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+
+.political-bg {
+  background-color: #ffe6ea; 
+}
+
+.economic-bg {
+  background-color: #e0f7fa; 
+}
+
+.social-bg {
+  background-color: #f3e5f5;
+}
+
+.technological-bg {
+  background-color: #fbe9e7; 
+}
+
+.legal-bg {
+  background-color: #e8f5e9; 
+}
+
+.environmental-bg {
+  background-color: #fff9c4; 
 }

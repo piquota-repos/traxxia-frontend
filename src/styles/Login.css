@@ -42,6 +42,8 @@
   --dark: #2c3e50;
   --body-bg: #f8f9fa;
   --border: rgba(0, 0, 0, 0.08);
+
+  --font-size15: 16px;
   
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, #6A5ACD, #7E57C2);
@@ -57,7 +59,8 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Manrope', 'Segoe UI', Roboto, sans-serif;
+
 }
 
 body {

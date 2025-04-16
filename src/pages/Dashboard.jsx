@@ -1,26 +1,29 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; 
-import { 
+import { useNavigate } from "react-router-dom";
+import {
   Button,
   Modal,
   Container,
   Row,
-  Col, 
-  Navbar, 
+  Col,
+  Navbar,
   Dropdown,
   Toast,
-  ToastContainer
+  ToastContainer,
+  ProgressBar
 } from "react-bootstrap";
 import {
   LogOut,
   Eye,
-  BarChart, 
-  CircleUserRound
+  BarChart,
+  CircleUserRound,
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react";
 
 // Components 
 import PreviewContent from "@/components/PreviewContent";
-import AnalysisContent from "../components/AnalysisContent"; 
+import AnalysisContent from "../components/AnalysisContent";
 import SurveyProgressCard from "../components/SurveyProgressCard";
 import CategoryAccordion from "../components/CategoryAccordion";
 
@@ -42,7 +45,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { username, isLoggedIn } = useAuthGuard();
   const { showToast, toastMessage, toastVariant, setToastMessage, setToastVariant, setShowToast } = useToast();
-  
+
   const {
     categories,
     answers,
@@ -56,7 +59,7 @@ const Dashboard = () => {
     fetchSavedAnswers,
     saveAllAnswers
   } = useSurveyData(questionsData);
-  
+
   const {
     analysisResult,
     selectedAnalysisType,
@@ -69,9 +72,8 @@ const Dashboard = () => {
   // UI State
   const [activeSection, setActiveSection] = useState("survey");
   const [showPreview, setShowPreview] = useState(false);
-  const [showAnalysis, setShowAnalysis] = useState(false);
-  const [showAnalysisSelection, setShowAnalysisSelection] = useState(false);
   const [activeQuestionId, setActiveQuestionId] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1); // 1 for survey, 2 for analysis
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -91,8 +93,14 @@ const Dashboard = () => {
     navigate("/login");
   };
 
-  const handleShowAnalysisSelection = () => {
-    setShowAnalysisSelection(true);
+  const goToAnalysisStep = async () => {
+    await saveAllAnswers(false);
+    setCurrentStep(2);
+  };
+
+  const goBackToSurvey = () => {
+    resetAnalysisResult();
+    setCurrentStep(1);
   };
 
   const saveAndShowToast = async () => {
@@ -108,9 +116,28 @@ const Dashboard = () => {
     }
   };
 
-  // Main survey content
+  // Main survey content (Step 1)
   const renderSurveyContent = () => (
     <div className="glass-card p-4">
+      <div className="d-flex justify-content-between mt-4">
+        <Button
+          variant="primary"
+          onClick={() => setShowPreview(true)}
+          className="btn-next"
+        >
+          <Eye size={18} className="me-2" />
+          Preview
+        </Button>
+        <Button
+          variant="primary"
+          onClick={goToAnalysisStep}
+          className="btn-next"
+          disabled={!allQuestionsAnswered()}
+        >
+          Continue to Analysis
+          <ArrowRight size={18} className="ms-2" />
+        </Button>
+      </div><br></br>
       <SurveyProgressCard percentage={getProgressPercentage()} />
 
       {categories.map((category) => (
@@ -126,35 +153,57 @@ const Dashboard = () => {
         />
       ))}
 
-      <div className="d-flex justify-content-center gap-3 mt-4">
-        <Button
-          variant="outline-info"
-          onClick={() => setShowPreview(true)}
-          className="btn-preview glass-button"
-        >
-          <Eye size={18} className="me-2" />
-          Preview
-        </Button>
-        <Button
-          variant="outline-primary"
-          onClick={handleShowAnalysisSelection}
-          className="btn-analyze"
-          disabled={!allQuestionsAnswered()}
-        >
-          <BarChart size={18} className="me-2" />
-          Analyze
-        </Button>
-      </div>
+
     </div>
   );
 
-  const renderPlaceholderContent = () => (
-    <div className="text-center py-5 placeholder-content">
-      <div className="glass-card p-5">
-        <h4 className="mb-3">Survey Dashboard</h4>
-        <p className="text-muted">
-          Complete the survey questions to get strategic insights for your business.
+  // Analysis content (Step 2)
+  const renderAnalysisContent = () => (
+    <div className="glass-card p-4">
+      <div >
+        <Button
+          variant="primary"
+          onClick={goBackToSurvey}
+          className="btn-back"
+        >
+          <ArrowLeft size={18} className="me-2" />
+          Back to Survey
+        </Button>
+      </div>
+
+      <div className="step-header">
+        <h4 className="text-center">Analyze Your Responses</h4>
+        <p className="text-center text-muted">
+          Select an analysis type and generate insights from your survey responses
         </p>
+      </div>
+
+      <AnalysisContent
+        loading={isLoading}
+        selectedAnalysisType={selectedAnalysisType}
+        analysisTypes={ANALYSIS_TYPES}
+        analysisResult={analysisResult}
+        onAnalysisTypeSelect={setSelectedAnalysisType}
+        onAnalyzeResponses={handleAnalyzeResponses}
+        onResetAnalysisResult={resetAnalysisResult}
+        onClose={() => { }} // Empty function since we don't need to close a modal
+      />
+    </div>
+  );
+
+  // Step indicator component
+  const StepIndicator = () => (
+    <div className="step-indicator-container">
+      <div className="step-indicator">
+        <div className={`step-circle ${currentStep >= 1 ? 'active' : ''}`}>
+          1
+          <span className="step-label">SURVEY</span>
+        </div>
+        <div className="step-line"></div>
+        <div className={`step-circle ${currentStep >= 2 ? 'active' : ''}`}>
+          2
+          <span className="step-label">ANALYZE</span>
+        </div>
       </div>
     </div>
   );
@@ -168,7 +217,7 @@ const Dashboard = () => {
           </Navbar.Brand>
 
           <div className="d-flex align-items-center order-3 order-lg-2" style={{ marginTop: "10px" }}>
-            <h5>SURVEY</h5>
+            <h5>{currentStep === 1 ? "SURVEY" : "ANALYSIS"}</h5>
           </div>
 
           <div className="d-flex align-items-center order-2 order-lg-3" style={{ marginTop: "10px" }}>
@@ -201,7 +250,8 @@ const Dashboard = () => {
       <Container fluid className="mt-4 mb-5 px-4 main-content">
         <Row>
           <Col>
-            {activeSection === "survey" ? renderSurveyContent() : renderPlaceholderContent()}
+            <StepIndicator />
+            {currentStep === 1 ? renderSurveyContent() : renderAnalysisContent()}
           </Col>
         </Row>
       </Container>
@@ -222,44 +272,6 @@ const Dashboard = () => {
         <Modal.Body>
           <PreviewContent categories={categories} answers={answers} showModal={showPreview} onHide={showPreview} />
         </Modal.Body>
-      </Modal>
-
-      <Modal
-        show={showAnalysisSelection}
-        onHide={() => setShowAnalysisSelection(false)}
-        centered
-        className="modern-modal"
-        size="lg"
-      >
-        <AnalysisContent
-  loading={isLoading}
-  selectedAnalysisType={selectedAnalysisType}
-  analysisTypes={ANALYSIS_TYPES}
-  analysisResult={analysisResult}
-  onAnalysisTypeSelect={setSelectedAnalysisType}
-  onAnalyzeResponses={handleAnalyzeResponses}
-  onResetAnalysisResult={resetAnalysisResult}
-  onClose={() => setShowAnalysisSelection(false)}
-/>
-      </Modal>
-
-      <Modal
-        show={showAnalysis}
-        onHide={() => setShowAnalysis(false)}
-        centered
-        size="lg"
-        dialogClassName="analysis-modal modern-modal"
-      >
-        <AnalysisContent
-  loading={isLoading}
-  selectedAnalysisType={selectedAnalysisType}
-  analysisTypes={ANALYSIS_TYPES}
-  analysisResult={analysisResult}
-  onAnalysisTypeSelect={setSelectedAnalysisType}
-  onAnalyzeResponses={handleAnalyzeResponses}
-  onResetAnalysisResult={resetAnalysisResult}
-  onClose={() => setShowAnalysisSelection(false)}
-/>
       </Modal>
 
       <ToastContainer
