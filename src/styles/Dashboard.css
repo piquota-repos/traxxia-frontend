@@ -1015,3 +1015,44 @@ body {
 .accordion-body .fw-bold{
   font-size: 16px !important;
 }
+
+
+
+
+
+/* Pestle analysis */
+
+
+.pestle-box {
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+
+.political-bg {
+  background-color: #ffe6ea; 
+}
+
+.economic-bg {
+  background-color: #e0f7fa; 
+}
+
+.social-bg {
+  background-color: #f3e5f5;
+}
+
+.technological-bg {
+  background-color: #fbe9e7; 
+}
+
+.legal-bg {
+  background-color: #e8f5e9; 
+}
+
+.environmental-bg {
+  background-color: #fff9c4; 
+}
