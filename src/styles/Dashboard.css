@@ -840,7 +840,7 @@ body {
   flex-direction: column;  /* Ensure the icon and text are stacked vertically */
   align-items: center;     /* Center the icon and text horizontally */
   justify-content: center; /* Center the content vertically */
-  width: 20%;              /* Adjust width to make the pill more spacious */
+  width: 16%;              /* Adjust width to make the pill more spacious */
   height: 120px;   
   margin: 0 10px;
   background-color: #f1f3f5;
@@ -1088,7 +1088,7 @@ body {
   background-color: #d0d1f2;
   border-radius: 15px;
   padding: 10px 15px;
-  margin: 0 10px;
+  margin: 0 15px;
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
@@ -1134,46 +1134,122 @@ body {
   font-size: 0.95rem;
   color: #333;
 }
-
-
-.political-bg {
-  background-color: #ffe6ea;
-    border: 2px solid #ff99aa;
-    margin-top: 10px;
-    padding: 5px;
+.political-bg, .strengths-bg, .valuable-bg ,.needs-bg, .navigating-bg{
+  background-color: #ffe6ea !important;
+  border: 2px solid #ff99aa !important; 
 }
 
-.economic-bg {
-  background-color: #e0f7fa; 
-  border: 2px solid #4dd0e1;
-    margin-top: 10px;
-    padding: 5px;
+.economic-bg, .weaknesses-bg,.rare-bg {
+  background-color: #e0f7fa !important;
+  border: 2px solid #4dd0e1 !important; 
 }
 
-.social-bg {
-  background-color: #f3e5f5;
-  border: 2px solid #ce93d8;
-    margin-top: 10px;
-    padding: 5px;
+.social-bg, .opportunities-bg, .imitable-bg {
+  background-color: #f3e5f5 !important;
+  border: 2px solid #ce93d8 !important;
 }
 
-.technological-bg {
-  background-color: #fbe9e7; 
-  border: 2px solid #ffab91;
-    margin-top: 10px;
-    padding: 5px;
+.technological-bg, .threats-bg, .innovations-bg {
+  background-color: #fbe9e7 !important;
+  border: 2px solid #ffab91 !important; 
 }
 
-.legal-bg {
-  background-color: #e8f5e9; 
-  border: 2px solid #a5d6a7;
-    margin-top: 10px;
-    padding: 5px;
+.legal-bg, .organized-bg, .efforts-bg {
+  background-color: #e8f5e9 !important;
+  border: 2px solid #a5d6a7 !important; 
 }
 
 .environmental-bg {
-  background-color: #fff9c4; 
-  border: 2px solid #ffeb3b;
-    margin-top: 10px;
-    padding: 5px;
+  background-color: #fff9c4 !important;
+  border: 2px solid #ffeb3b !important; 
+}
+
+.environmental-bg, .legal-bg, .organized-bg, .efforts-bg,.technological-bg, .threats-bg, .innovations-bg,
+.social-bg, .opportunities-bg, .imitable-bg,.economic-bg, .weaknesses-bg,.rare-bg,
+.political-bg, .strengths-bg, .valuable-bg ,.needs-bg, .navigating-bg {
+  margin-top: 10px !important;
+  padding: 5px !important;
+}
+.rainbow-loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.rainbow-spinner {
+  position: relative;
+  width: 70px;
+  height: 70px;
+}
+
+.spinner-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: currentColor;
+  animation: spin 1.5s linear infinite;
+}
+
+.ring1 {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  color: #6610f2; /* Coral */
+  animation-duration: 1.5s;
+}
+
+.ring2 {
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  color: #33A1FF; /* Sky Blue */
+  animation-duration: 1.25s;
+  animation-direction: reverse;
+}
+
+.ring3 {
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  color: #6610f2; /* Lime */
+  animation-duration: 1s;
+}
+
+.spinner-core {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  background: conic-gradient(
+    #FF5733, #FF9933, #FFFF33, 
+    #6610f2, #33A1FF, #A133FF, 
+    #FF33A1, #6610f2
+  );
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
 }

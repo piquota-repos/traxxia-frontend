@@ -19,23 +19,84 @@ const useAnalysis = (categories, answers, strategicPlanningBook) => {
 
   const getAnalysisSystemContent = useCallback((analysisType) => {
     const baseContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed";
-    const endContent = "analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible";
+    const formatInstructions = `
+Your response MUST follow this exact format:
+
+1. Start with a brief introduction paragraph.
+
+2. Format the analysis section like this:
+**${analysisType.toUpperCase()} Analysis:**
+${getAnalysisFormatInstructions(analysisType)}
+
+3. Format the STRATEGIC acronym section exactly like this:
+**STRATEGIC Acronym:**
+**S** - [Keyword]: [Description of action item]
+**T** - [Keyword]: [Description of action item]
+**R** - [Keyword]: [Description of action item]
+**A** - [Keyword]: [Description of action item]
+**T** - [Keyword]: [Description of action item]
+**E** - [Keyword]: [Description of action item]
+**G** - [Keyword]: [Description of action item]
+**I** - [Keyword]: [Description of action item]
+**C** - [Keyword]: [Description of action item]
+
+4. End with a conclusion paragraph starting with "By following the STRATEGIC acronym..."
+
+DO NOT deviate from this format as it will break the component rendering the analysis.`;
     
     switch (analysisType) {
       case "swot":
-        return `${baseContent} SWOT ${endContent}`;
+        return `${baseContent} SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
       case "pestle":
-        return `${baseContent} PESTLE ${endContent}`;
+        return `${baseContent} PESTLE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
       case "noise":
-        return `${baseContent} NOISE ${endContent}`;
+        return `${baseContent} NOISE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
       case "vrio":
-        return `${baseContent} VRIO ${endContent}`;
+        return `${baseContent} VRIO analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
       case "bsc":
-        return `${baseContent} Balanced Scorecard ${endContent}`;
+        return `${baseContent} Balanced Scorecard analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
       default:
-        return `${baseContent} SWOT ${endContent}`;
+        return `${baseContent} SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
     }
   }, []);
+  
+  const getAnalysisFormatInstructions = (analysisType) => {
+    switch (analysisType) {
+      case "swot":
+        return `**Strengths:** [List the strengths identified]
+**Weaknesses:** [List the weaknesses identified]
+**Opportunities:** [List the opportunities identified]
+**Threats:** [List the threats identified]`;
+      case "pestle":
+        return `**Political:** [Political factors analysis]
+**Economic:** [Economic factors analysis]
+**Social:** [Social factors analysis]
+**Technological:** [Technological factors analysis]
+**Legal:** [Legal factors analysis]
+**Environmental:** [Environmental factors analysis]`;
+      case "noise":
+        return `**Navigating:** [Navigation analysis]
+**Opportunities:** [Opportunities analysis]
+**Innovations:** [Innovations analysis] 
+**Strengths:** [Strengths analysis]
+**Efforts:** [Efforts analysis]`;
+      case "vrio":
+        return `**Valuable:** [Value analysis]
+**Rare:** [Rarity analysis]
+**Imitable:** [Imitability analysis]
+**Organized:** [Organization analysis]`;
+      case "bsc":
+        return `**Financial Perspective:** [Financial analysis]
+**Customer Perspective:** [Customer analysis]
+**Internal Processes Perspective:** [Internal processes analysis]
+**Learning and Growth Perspective:** [Learning and growth analysis]`;
+      default:
+        return `**Strengths:** [List the strengths identified]
+**Weaknesses:** [List the weaknesses identified]
+**Opportunities:** [List the opportunities identified]
+**Threats:** [List the threats identified]`;
+    }
+  };
 
   const buildSurveyPrompt = useCallback(() => {
     let promptText = `Please analyze the following survey responses and provide insights:\n`;
@@ -69,37 +130,34 @@ const useAnalysis = (categories, answers, strategicPlanningBook) => {
     return promptText;
   }, [categories, answers]);
 
-  const handleAnalyzeResponses = useCallback(async () => { 
+  const handleAnalyzeResponses = useCallback(async () => {
     if (!selectedAnalysisType) return;
     setIsLoading(true);
     setError(null);
+    
     try {
       setAnalysisResult(`Analyzing responses with ${selectedAnalysisType.toUpperCase()} framework...`);
-
+      
       const promptText = buildSurveyPrompt();
       const systemContent = getAnalysisSystemContent(selectedAnalysisType);
-
+      
       const messages = [
         { role: "system", content: systemContent },
         { role: "user", content: strategicPlanningBook + promptText }
       ];
-
-      //setAnalysisResult("");
-
+      
       const chatCompletion = await groqClient.chat.completions.create({
         messages: messages,
         model: "llama-3.3-70b-versatile",
-        temperature: 1,
+        temperature: 0.7, // Reduced from 1 to make output more consistent
         max_tokens: 31980,
         top_p: 1,
-        stream: true,
+        stream: false,
         stop: null
       });
-
-      for await (const chunk of chatCompletion) {
-        const content = chunk.choices[0]?.delta?.content || '';
-        setAnalysisResult((prevResult) => prevResult + content);
-      }
+       
+      const content = chatCompletion.choices[0].message.content;  
+      setAnalysisResult(content);
     } catch (err) {
       console.error(`Error generating ${selectedAnalysisType} analysis:`, err);
       setError(`Error generating analysis: ${err.message}`);

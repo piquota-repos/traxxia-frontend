@@ -12,11 +12,11 @@ export const ANALYSIS_TYPES = [
       name: "PESTLE",
       icon: "Briefcase",
     },
-    // {
-    //   id: "noise",
-    //   name: "NOISE",
-    //   icon: "Bell",
-    // },
+    {
+      id: "noise",
+      name: "NOISE",
+      icon: "Bell",
+    },
     {
       id: "vrio",
       name: "VRIO",
