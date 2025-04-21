@@ -75,11 +75,11 @@ DO NOT deviate from this format as it will break the component rendering the ana
 **Legal:** [Legal factors analysis]
 **Environmental:** [Environmental factors analysis]`;
       case "noise":
-        return `**Navigating:** [Navigation analysis]
-**Opportunities:** [Opportunities analysis]
-**Innovations:** [Innovations analysis] 
-**Strengths:** [Strengths analysis]
-**Efforts:** [Efforts analysis]`;
+        return `**Need:** [Need analysis]
+**Opportunity:** [Opportunity analysis]
+**Issue:** [Issue analysis] 
+**Solution:** [Solution analysis]
+**Expectation:** [Expectation analysis]`;
       case "vrio":
         return `**Valuable:** [Value analysis]
 **Rare:** [Rarity analysis]

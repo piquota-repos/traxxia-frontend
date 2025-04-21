@@ -36,7 +36,7 @@ const ANALYSIS_CONFIG = {
   },
   noise: {
     mainPattern: /\*\*\s*NOISE Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-    sectionPattern: /\*\*\s*(Navigating|Opportunities|Innovations|Strengths|Efforts)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Navigating|Opportunities|Innovations|Strengths|Efforts|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+    sectionPattern: /\*\*\s*(Need|Opportunity|Issue|Solution|Expectation)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Need|Opportunity|Issue|Solution|Expectation|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
     title: "NOISE Analysis Table"
   },
   bsc: {

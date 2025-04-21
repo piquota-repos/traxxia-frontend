@@ -1134,7 +1134,7 @@ body {
   font-size: 0.95rem;
   color: #333;
 }
-.political-bg, .strengths-bg, .valuable-bg ,.needs-bg, .navigating-bg{
+.political-bg, .strengths-bg, .valuable-bg ,.needs-bg, .navigating-bg, .need-bg {
   background-color: #ffe6ea !important;
   border: 2px solid #ff99aa !important; 
 }
@@ -1144,29 +1144,29 @@ body {
   border: 2px solid #4dd0e1 !important; 
 }
 
-.social-bg, .opportunities-bg, .imitable-bg {
+.social-bg, .opportunities-bg, .imitable-bg,.expectation-bg {
   background-color: #f3e5f5 !important;
   border: 2px solid #ce93d8 !important;
 }
 
-.technological-bg, .threats-bg, .innovations-bg {
+.technological-bg, .threats-bg, .innovations-bg,.issue-bg {
   background-color: #fbe9e7 !important;
   border: 2px solid #ffab91 !important; 
 }
 
-.legal-bg, .organized-bg, .efforts-bg {
+.legal-bg, .organized-bg, .efforts-bg,.opportunity-bg {
   background-color: #e8f5e9 !important;
   border: 2px solid #a5d6a7 !important; 
 }
 
-.environmental-bg {
+.environmental-bg,.solution-bg {
   background-color: #fff9c4 !important;
   border: 2px solid #ffeb3b !important; 
 }
 
 .environmental-bg, .legal-bg, .organized-bg, .efforts-bg,.technological-bg, .threats-bg, .innovations-bg,
 .social-bg, .opportunities-bg, .imitable-bg,.economic-bg, .weaknesses-bg,.rare-bg,
-.political-bg, .strengths-bg, .valuable-bg ,.needs-bg, .navigating-bg {
+.political-bg, .strengths-bg, .valuable-bg ,.needs-bg, .navigating-bg,.expectation-bg, .solution-bg, .issue-bg, .opportunity-bg,.need-bg {
   margin-top: 10px !important;
   padding: 5px !important;
 }
