@@ -1139,22 +1139,22 @@ body {
   border: 2px solid #ff99aa !important; 
 }
 
-.economic-bg, .weaknesses-bg,.rare-bg {
+.economic-bg, .weaknesses-bg,.rare-bg, .learning-and-growth-bg {
   background-color: #e0f7fa !important;
   border: 2px solid #4dd0e1 !important; 
 }
 
-.social-bg, .opportunities-bg, .imitable-bg,.expectation-bg {
+.social-bg, .opportunities-bg, .imitable-bg,.expectation-bg, .internal-processes-bg {
   background-color: #f3e5f5 !important;
   border: 2px solid #ce93d8 !important;
 }
 
-.technological-bg, .threats-bg, .innovations-bg,.issue-bg {
+.technological-bg, .threats-bg, .innovations-bg,.issue-bg, .customer-bg {
   background-color: #fbe9e7 !important;
   border: 2px solid #ffab91 !important; 
 }
 
-.legal-bg, .organized-bg, .efforts-bg,.opportunity-bg {
+.legal-bg, .organized-bg, .efforts-bg,.opportunity-bg, .financial-bg {
   background-color: #e8f5e9 !important;
   border: 2px solid #a5d6a7 !important; 
 }
@@ -1166,7 +1166,9 @@ body {
 
 .environmental-bg, .legal-bg, .organized-bg, .efforts-bg,.technological-bg, .threats-bg, .innovations-bg,
 .social-bg, .opportunities-bg, .imitable-bg,.economic-bg, .weaknesses-bg,.rare-bg,
-.political-bg, .strengths-bg, .valuable-bg ,.needs-bg, .navigating-bg,.expectation-bg, .solution-bg, .issue-bg, .opportunity-bg,.need-bg {
+.political-bg, .strengths-bg, .valuable-bg ,.needs-bg, .navigating-bg,.expectation-bg, .solution-bg, .issue-bg, .opportunity-bg,.need-bg,
+.financial-bg, .customer-bg, .internal-processes-bg, .learning-and-growth-bg
+  {
   margin-top: 10px !important;
   padding: 5px !important;
 }

@@ -160,43 +160,58 @@ const StrategicTable = ({ strategicItems }) => {
 
 // Special BSC renderer that shows full text instead of table
 const BSCAnalysisRenderer = ({ analysisResult }) => {
-  // Extract intro text
   const introRegex = /^(.*?)(?=\*\*BSC Analysis|\*\*Balanced Scorecard Analysis)/s;
   const introMatch = introRegex.exec(analysisResult);
   const introText = introMatch ? introMatch[1].trim() : "";
-
-  // Extract BSC section
+ 
   const bscRegex = /\*\*\s*(?:BSC|Balanced Scorecard) Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*STRATEGIC Acronym\s*:\*\*|$)/i;
   const bscMatch = bscRegex.exec(analysisResult);
-  const bscText = bscMatch ? bscMatch[1].trim() : "";
-
-  // Extract STRATEGIC acronym section
+  const bscContent = bscMatch ? bscMatch[1].trim() : "";
+ 
   const strategicRegex = /\*\*\s*STRATEGIC Acronym\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations|By following)\s*:|$)/i;
   const strategicMatch = strategicRegex.exec(analysisResult);
-  const strategicContent = strategicMatch ? strategicMatch[1].trim() : "";
-  const strategicItems = extractStrategicItems(strategicContent);
-
-  // Extract conclusion
+  const strategicItems = strategicMatch ? extractStrategicItems(strategicMatch[1].trim()) : [];
+ 
   const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
   const conclusionMatch = conclusionRegex.exec(analysisResult);
   const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
-
+ 
+  const sectionPattern = /\*\*\s*(Financial|Customer|Internal Processes|Learning and Growth) Perspective\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Financial|Customer|Internal Processes|Learning and Growth) Perspective\s*:\*\*|$))/gi;
+  const bscData = extractAnalysisSections(bscContent, sectionPattern);
+  const labels = Object.keys(bscData);
+ 
   return (
     <>
-      {introText && <div className="mb-4">{introText}</div>}
-      
-      {bscText && (
-        <div className="mb-4">
-          <h5 className="mb-3"><strong>Balanced Scorecard Analysis</strong></h5>
-          <div 
-            className="bsc-content p-3 border rounded bg-light"
-            dangerouslySetInnerHTML={{ __html: bscText.replace(/\n/g, "<br/>") }}
-          />
-        </div>
+      {introText && <div className="mb-3">{introText}</div>}
+ 
+      {labels.length > 0 && (
+        <>
+          <h5 className="mb-3">
+            <strong>Balanced Scorecard Analysis</strong>
+          </h5>
+          <div className="table-responsive mb-4">
+            <table className="table table-bordered table-striped">
+              <thead className="table-light">
+                <tr>
+                  {labels.map(label => <th key={label}>{label}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {labels.map(label => (
+                    <td key={label}>
+                      {renderAnalysisBoxes(bscData[label], label, 'bsc')}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
-
+ 
       {strategicItems.length > 0 && <StrategicTable strategicItems={strategicItems} />}
-
+ 
       {conclusionText && (
         <div className="mt-3 conclusion-text">
           {conclusionText}

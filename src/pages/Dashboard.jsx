@@ -119,7 +119,7 @@ const Dashboard = () => {
   // Main survey content (Step 1)
   const renderSurveyContent = () => (
     <div className="glass-card p-4">
-      <div className="d-flex justify-content-between mt-4">
+      <div className="d-flex justify-content-between">
         <Button
           variant="primary"
           onClick={() => setShowPreview(true)}
