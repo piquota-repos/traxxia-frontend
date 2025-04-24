@@ -22,6 +22,7 @@ const ValueChainMatrixStatic = () => {
           <div className="primary-block marketing">Marketing & Sales<br /><span>Everyday low pricing strategy and large-scale promotions.</span></div>
           <div className="primary-block services">Services<br /><span>Customer support, satisfaction guarantees, and returns processing.</span></div>
         </div>
+        <div className="triangle-right"></div>
       </div>
     );
   };
