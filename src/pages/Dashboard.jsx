@@ -247,7 +247,7 @@ const Dashboard = () => {
         </Container>
       </Navbar>
 
-      <Container fluid className="mt-4 mb-5 px-4 main-content">
+      <Container fluid className="mb-5 px-4 main-content">
         <Row>
           <Col>
             <StepIndicator />

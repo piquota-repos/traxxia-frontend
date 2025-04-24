@@ -27,6 +27,21 @@ export const ANALYSIS_TYPES = [
       name: "Balanced Scorecard",
       icon: "BarChart",
     },
+    {
+      id: "porter",
+      name: "Porter’s Five Forces",
+      icon: "BarChart",
+    },
+    {
+      id: "bcg",
+      name: "BCG Matrix",
+      icon: "BarChart",
+    },
+    {
+      id: "valuechain",
+      name: "Value Chain Analysis",
+      icon: "BarChart",
+    }
   ];
   
   // Add other constants as needed

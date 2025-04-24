@@ -55,6 +55,12 @@ DO NOT deviate from this format as it will break the component rendering the ana
         return `${baseContent} VRIO analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
       case "bsc":
         return `${baseContent} Balanced Scorecard analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
+      case "porter":
+        return `${baseContent} Porter's Five Forces analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
+      case "valuechain":
+        return `${baseContent} Value Chain analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
+      case "bcg":
+        return `${baseContent} BCG Matrix analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
       default:
         return `${baseContent} SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
     }
@@ -90,6 +96,22 @@ DO NOT deviate from this format as it will break the component rendering the ana
 **Customer Perspective:** [Customer analysis]
 **Internal Processes Perspective:** [Internal processes analysis]
 **Learning and Growth Perspective:** [Learning and growth analysis]`;
+      case "porter":
+        return `**Supplier Power:** [Supplier power analysis]
+**Buyer Power:** [Buyer power analysis]
+**Competitive Rivalry:** [Competitive rivalry analysis]
+**Threat of Substitution:** [Threat of substitution analysis]
+**Threat of New Entry:** [Threat of new entry analysis]`;
+      case "valuechain":
+        return `**Primary Activities:** [Primary activities analysis]
+**Support Activities:** [Support activities analysis]
+**Margin:** [Margin analysis]
+**Linkages:** [Linkages analysis]`;
+      case "bcg":
+        return `**Stars:** [Stars analysis]
+**Cash Cows:** [Cash cows analysis]
+**Question Marks:** [Question marks analysis]
+**Dogs:** [Dogs analysis]`;
       default:
         return `**Strengths:** [List the strengths identified]
 **Weaknesses:** [List the weaknesses identified]

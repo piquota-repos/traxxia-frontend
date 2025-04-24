@@ -5,8 +5,14 @@ import {
   Briefcase,
   Bell,
   PieChart,
-  BarChart
+  BarChart,
+  Network,
+  Link,
+  Grid
 } from 'lucide-react';
+import BCGMatrixStatic from './BCGMatrixStatic';
+import PorterMatrixStatic from './PorterMatrixStatic';
+import ValueChainMatrixStatic from './ValueChainMatrixStatic';
 
 // Constants
 const ANALYSIS_ICONS = {
@@ -14,7 +20,10 @@ const ANALYSIS_ICONS = {
   pestle: Briefcase,
   noise: Bell,
   vrio: PieChart,
-  bsc: BarChart
+  bsc: BarChart,
+  porter: Network,
+  valuechain: Link,
+  bcg: Grid
 };
 
 // Analysis section configuration for different analysis types
@@ -43,6 +52,21 @@ const ANALYSIS_CONFIG = {
     mainPattern: /\*\*\s*Balanced Scorecard Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
     sectionPattern: /\*\*\s*(Financial|Customer|Internal Processes|Learning and Growth) Perspective\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Financial|Customer|Internal Processes|Learning and Growth) Perspective\s*:\*\*|$))/gi,
     title: "Balanced Scorecard Analysis"
+  },
+  porter: {
+    mainPattern: /\*\*\s*Porter(?:'s)? Five Forces Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
+    sectionPattern: /\*\*\s*(Threat of New Entrants|Bargaining Power of Suppliers|Bargaining Power of Buyers|Threat of Substitutes|Competitive Rivalry)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Threat of New Entrants|Bargaining Power of Suppliers|Bargaining Power of Buyers|Threat of Substitutes|Competitive Rivalry|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+    title: "Porter's Five Forces Analysis"
+  },
+  valuechain: {
+    mainPattern: /\*\*\s*Value Chain Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
+    sectionPattern: /\*\*\s*(Primary Activities|Support Activities|Margin Analysis)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Primary Activities|Support Activities|Margin Analysis|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+    title: "Value Chain Analysis"
+  },
+  bcg: {
+    mainPattern: /\*\*\s*BCG Matrix Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
+    sectionPattern: /\*\*\s*(Stars|Cash Cows|Question Marks|Dogs)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Stars|Cash Cows|Question Marks|Dogs|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+    title: "BCG Matrix Analysis"
   }
 };
 
@@ -74,7 +98,7 @@ const LoadingIndicator = () => (
 
 const AnalysisTypeSelector = ({ analysisTypes, selectedType, onTypeSelect }) => (
   <div className="analysis-header mb-4">
-    <div className="d-flex justify-content-center align-items-center">
+    <div className="d-flex justify-content-center align-items-center flex-wrap">
       {analysisTypes.map((type) => {
         const Icon = ANALYSIS_ICONS[type.id] || BarChart;
         const isSelected = selectedType === type.id;
@@ -218,6 +242,150 @@ const BSCAnalysisRenderer = ({ analysisResult }) => {
         </div>
       )}
     </>
+  );
+};
+
+// Value Chain specific renderer
+const ValueChainAnalysisRenderer = ({ analysisResult }) => {
+  const introRegex = /^(.*?)(?=\*\*Value Chain Analysis)/s;
+  const introMatch = introRegex.exec(analysisResult);
+  const introText = introMatch ? introMatch[1].trim() : "";
+ 
+  const valueChainRegex = /\*\*\s*Value Chain Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*STRATEGIC Acronym\s*:\*\*|$)/i;
+  const valueChainMatch = valueChainRegex.exec(analysisResult);
+  const valueChainContent = valueChainMatch ? valueChainMatch[1].trim() : "";
+ 
+  const strategicRegex = /\*\*\s*STRATEGIC Acronym\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations|By following)\s*:|$)/i;
+  const strategicMatch = strategicRegex.exec(analysisResult);
+  const strategicItems = strategicMatch ? extractStrategicItems(strategicMatch[1].trim()) : [];
+ 
+  const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
+  const conclusionMatch = conclusionRegex.exec(analysisResult);
+  const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
+ 
+  const sectionPattern = /\*\*\s*(Primary Activities|Support Activities|Margin Analysis)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Primary Activities|Support Activities|Margin Analysis|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi;
+  const valueChainData = extractAnalysisSections(valueChainContent, sectionPattern);
+  const labels = Object.keys(valueChainData);
+ 
+  return (
+    <>
+      {introText && <div className="mb-3">{introText}</div>}
+ 
+      {labels.length > 0 && (
+        <>
+          <h5 className="mb-3">
+            <strong>Value Chain Analysis</strong>
+          </h5>
+          <div className="table-responsive mb-4">
+            <table className="table table-bordered table-striped">
+              <thead className="table-light">
+                <tr>
+                  {labels.map(label => <th key={label}>{label}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {labels.map(label => (
+                    <td key={label}>
+                      {renderAnalysisBoxes(valueChainData[label], label, 'valuechain')}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+ 
+      {strategicItems.length > 0 && <StrategicTable strategicItems={strategicItems} />}
+ 
+      {conclusionText && (
+        <div className="mt-3 conclusion-text">
+          {conclusionText}
+        </div>
+      )}
+    </>
+  );
+};
+
+// BCG Matrix specific renderer
+const BCGMatrixAnalysisRenderer = ({ analysisResult }) => {
+  const introRegex = /^(.*?)(?=\*\*BCG Matrix Analysis)/s;
+  const introMatch = introRegex.exec(analysisResult);
+  const introText = introMatch ? introMatch[1].trim() : "";
+ 
+  const bcgRegex = /\*\*\s*BCG Matrix Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*STRATEGIC Acronym\s*:\*\*|$)/i;
+  const bcgMatch = bcgRegex.exec(analysisResult);
+  const bcgContent = bcgMatch ? bcgMatch[1].trim() : "";
+ 
+  const strategicRegex = /\*\*\s*STRATEGIC Acronym\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations|By following)\s*:|$)/i;
+  const strategicMatch = strategicRegex.exec(analysisResult);
+  const strategicItems = strategicMatch ? extractStrategicItems(strategicMatch[1].trim()) : [];
+ 
+  const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
+  const conclusionMatch = conclusionRegex.exec(analysisResult);
+  const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
+ 
+  const sectionPattern = /\*\*\s*(Stars|Cash Cows|Question Marks|Dogs)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Stars|Cash Cows|Question Marks|Dogs|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi;
+  const bcgData = extractAnalysisSections(bcgContent, sectionPattern);
+  const labels = Object.keys(bcgData);
+ 
+  return (
+    // <>
+    //   {introText && <div className="mb-3">{introText}</div>}
+ 
+    //   {labels.length > 0 && (
+    //     <>
+    //       <h5 className="mb-3">
+    //         <strong>BCG Matrix Analysis</strong>
+    //       </h5>
+    //       <div className="table-responsive mb-4">
+    //         <div className="bcg-matrix-container">
+    //           <table className="table table-bordered bcg-matrix">
+    //             <thead className="table-light">
+    //               <tr>
+    //                 <th colSpan="2" className="text-center">Market Growth</th>
+    //               </tr>
+    //             </thead>
+    //             <tbody>
+    //               <tr>
+    //                 <td className="text-center bcg-quadrant high-share high-growth">
+    //                   <h6>Stars</h6>
+    //                   {bcgData['Stars'] && renderAnalysisBoxes(bcgData['Stars'], 'Stars', 'bcg')}
+    //                 </td>
+    //                 <td className="text-center bcg-quadrant low-share high-growth">
+    //                   <h6>Question Marks</h6>
+    //                   {bcgData['Question Marks'] && renderAnalysisBoxes(bcgData['Question Marks'], 'Question Marks', 'bcg')}
+    //                 </td>
+    //               </tr>
+    //               <tr>
+    //                 <td className="text-center bcg-quadrant high-share low-growth">
+    //                   <h6>Cash Cows</h6>
+    //                   {bcgData['Cash Cows'] && renderAnalysisBoxes(bcgData['Cash Cows'], 'Cash Cows', 'bcg')}
+    //                 </td>
+    //                 <td className="text-center bcg-quadrant low-share low-growth">
+    //                   <h6>Dogs</h6>
+    //                   {bcgData['Dogs'] && renderAnalysisBoxes(bcgData['Dogs'], 'Dogs', 'bcg')}
+    //                 </td>
+    //               </tr>
+    //             </tbody>
+    //           </table>
+    //           <div className="matrix-label-x">Market Share</div>
+    //           <div className="matrix-label-y">Market Growth</div>
+    //         </div>
+    //       </div>
+    //     </>
+    //   )}
+ 
+    //   {strategicItems.length > 0 && <StrategicTable strategicItems={strategicItems} />}
+ 
+    //   {conclusionText && (
+    //     <div className="mt-3 conclusion-text">
+    //       {conclusionText}
+    //     </div>
+    //   )}
+    // </>
+    <BCGMatrixStatic></BCGMatrixStatic>
   );
 };
 
@@ -394,9 +562,16 @@ const AnalysisContent = ({
       return <div>No analysis results available.</div>;
     }
 
-    // Use BSC renderer for Balanced Scorecard analysis
+    // Use specific renderers for specialized analysis types
     if (selectedAnalysisType === 'bsc') {
       return <BSCAnalysisRenderer analysisResult={analysisResult} />;
+    } else if (selectedAnalysisType === 'valuechain') {
+      // return <ValueChainAnalysisRenderer analysisResult={analysisResult} />;
+      return <ValueChainMatrixStatic />;
+    } else if (selectedAnalysisType === 'bcg') {
+      return <BCGMatrixAnalysisRenderer analysisResult={analysisResult} />;
+    } else if (selectedAnalysisType === 'porter') {
+      return <PorterMatrixStatic />; // static Porter template
     }
 
     // Use generic renderer for all other analysis types
