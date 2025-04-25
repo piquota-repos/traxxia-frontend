@@ -1,11 +1,14 @@
 import { useState, useCallback } from "react";
 import { Groq } from "groq-sdk";
 
+import { extractBCGMatrixData } from "../utils/constants";
+
 const useAnalysis = (categories, answers, strategicPlanningBook) => {
   const [analysisResult, setAnalysisResult] = useState("");
   const [selectedAnalysisType, setSelectedAnalysisType] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [bcgMatrixData, setBcgMatrixData] = useState(null);
 
   const groqClient = new Groq({
     apiKey: process.env.REACT_APP_GROQ_API_KEY,
@@ -15,7 +18,15 @@ const useAnalysis = (categories, answers, strategicPlanningBook) => {
   const resetAnalysisResult = useCallback(() => {
     setAnalysisResult("");
     setError(null);
+    setBcgMatrixData(null);
   }, []);
+
+  const analysisNames = {
+    swot: "SWOT analysis",
+    porter: "Porter's Five Forces analysis",
+    valuechain: "Value Chain analysis",
+    bcg: "BCG Matrix analysis"
+  };
 
   const getAnalysisSystemContent = useCallback((analysisType) => {
     const baseContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed";
@@ -43,29 +54,11 @@ ${getAnalysisFormatInstructions(analysisType)}
 4. End with a conclusion paragraph starting with "By following the STRATEGIC acronym..."
 
 DO NOT deviate from this format as it will break the component rendering the analysis.`;
-    
-    switch (analysisType) {
-      case "swot":
-        return `${baseContent} SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
-      case "pestle":
-        return `${baseContent} PESTLE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
-      case "noise":
-        return `${baseContent} NOISE analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
-      case "vrio":
-        return `${baseContent} VRIO analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
-      case "bsc":
-        return `${baseContent} Balanced Scorecard analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
-      case "porter":
-        return `${baseContent} Porter's Five Forces analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
-      case "valuechain":
-        return `${baseContent} Value Chain analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
-      case "bcg":
-        return `${baseContent} BCG Matrix analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
-      default:
-        return `${baseContent} SWOT analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
-    }
+
+    const selectedAnalysis = analysisNames[analysisType] || "SWOT analysis";
+    return `${baseContent} ${selectedAnalysis} based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
   }, []);
-  
+
   const getAnalysisFormatInstructions = (analysisType) => {
     switch (analysisType) {
       case "swot":
@@ -73,29 +66,6 @@ DO NOT deviate from this format as it will break the component rendering the ana
 **Weaknesses:** [List the weaknesses identified]
 **Opportunities:** [List the opportunities identified]
 **Threats:** [List the threats identified]`;
-      case "pestle":
-        return `**Political:** [Political factors analysis]
-**Economic:** [Economic factors analysis]
-**Social:** [Social factors analysis]
-**Technological:** [Technological factors analysis]
-**Legal:** [Legal factors analysis]
-**Environmental:** [Environmental factors analysis]`;
-      case "noise":
-        return `**Need:** [Need analysis]
-**Opportunity:** [Opportunity analysis]
-**Issue:** [Issue analysis] 
-**Solution:** [Solution analysis]
-**Expectation:** [Expectation analysis]`;
-      case "vrio":
-        return `**Valuable:** [Value analysis]
-**Rare:** [Rarity analysis]
-**Imitable:** [Imitability analysis]
-**Organized:** [Organization analysis]`;
-      case "bsc":
-        return `**Financial Perspective:** [Financial analysis]
-**Customer Perspective:** [Customer analysis]
-**Internal Processes Perspective:** [Internal processes analysis]
-**Learning and Growth Perspective:** [Learning and growth analysis]`;
       case "porter":
         return `**Supplier Power:** [Supplier power analysis]
 **Buyer Power:** [Buyer power analysis]
@@ -108,10 +78,10 @@ DO NOT deviate from this format as it will break the component rendering the ana
 **Margin:** [Margin analysis]
 **Linkages:** [Linkages analysis]`;
       case "bcg":
-        return `**Stars:** [Stars analysis]
-**Cash Cows:** [Cash cows analysis]
-**Question Marks:** [Question marks analysis]
-**Dogs:** [Dogs analysis]`;
+        return `**Agile Leaders (High Share / High Growth):** [Analysis]
+        **Established Performers (High Share / Low Growth):** [Analysis]
+        **Emerging Innovators (Low Share / High Growth):** [Analysis]
+        **Strategic Drifters (Low Share / Low Growth):** [Analysis]`;
       default:
         return `**Strengths:** [List the strengths identified]
 **Weaknesses:** [List the weaknesses identified]
@@ -156,18 +126,18 @@ DO NOT deviate from this format as it will break the component rendering the ana
     if (!selectedAnalysisType) return;
     setIsLoading(true);
     setError(null);
-    
+
     try {
       setAnalysisResult(`Analyzing responses with ${selectedAnalysisType.toUpperCase()} framework...`);
-      
+
       const promptText = buildSurveyPrompt();
       const systemContent = getAnalysisSystemContent(selectedAnalysisType);
-      
+
       const messages = [
         { role: "system", content: systemContent },
         { role: "user", content: strategicPlanningBook + promptText }
       ];
-      
+
       const chatCompletion = await groqClient.chat.completions.create({
         messages: messages,
         model: "llama-3.3-70b-versatile",
@@ -177,9 +147,16 @@ DO NOT deviate from this format as it will break the component rendering the ana
         stream: false,
         stop: null
       });
-       
-      const content = chatCompletion.choices[0].message.content;  
+
+      const content = chatCompletion.choices[0].message.content;
       setAnalysisResult(content);
+
+      if (selectedAnalysisType === 'bcg') {
+        const extractedData = extractBCGMatrixData(content);
+        if (extractedData) {
+          setBcgMatrixData(extractedData);
+        }
+      }
     } catch (err) {
       console.error(`Error generating ${selectedAnalysisType} analysis:`, err);
       setError(`Error generating analysis: ${err.message}`);
@@ -196,6 +173,7 @@ DO NOT deviate from this format as it will break the component rendering the ana
     resetAnalysisResult,
     isLoading,
     error,
+    bcgMatrixData
   };
 };
 

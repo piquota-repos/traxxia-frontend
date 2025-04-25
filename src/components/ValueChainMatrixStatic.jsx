@@ -4,7 +4,7 @@ import '../styles/Dashboard.css';
 const ValueChainMatrixStatic = () => {
     return (
       <div className="value-chain-static">
-        <h4 className="text-center mb-4"><strong>Value Chain Analysis – Walmart</strong></h4>
+        <h4 className="text-center mb-4"><strong>Value Chain Analysis</strong></h4>
   
         <div className="support-activities">
           <div className="support-row">

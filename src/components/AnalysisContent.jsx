@@ -9,10 +9,10 @@ import {
   Network,
   Link,
   Grid
-} from 'lucide-react';
-import BCGMatrixStatic from './BCGMatrixStatic';
+} from 'lucide-react'; 
 import PorterMatrixStatic from './PorterMatrixStatic';
 import ValueChainMatrixStatic from './ValueChainMatrixStatic';
+import DynamicBCGMatrix from './BCGMatrixStatic';
 
 // Constants
 const ANALYSIS_ICONS = {
@@ -28,31 +28,31 @@ const ANALYSIS_ICONS = {
 
 // Analysis section configuration for different analysis types
 const ANALYSIS_CONFIG = {
-  pestle: {
-    mainPattern: /\*\*\s*PESTLE Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-    sectionPattern: /\*\*\s*(Political|Economic|Social|Technological|Legal|Environmental)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Political|Economic|Social|Technological|Legal|Environmental|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
-    title: "PESTLE Analysis Table"
-  },
+  // pestle: {
+  //   mainPattern: /\*\*\s*PESTLE Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
+  //   sectionPattern: /\*\*\s*(Political|Economic|Social|Technological|Legal|Environmental)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Political|Economic|Social|Technological|Legal|Environmental|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+  //   title: "PESTLE Analysis Table"
+  // },
   swot: {
     mainPattern: /\*\*\s*SWOT Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
     sectionPattern: /\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Strengths|Weaknesses|Opportunities|Threats|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
     title: "SWOT Analysis Table"
   },
-  vrio: {
-    mainPattern: /\*\*\s*VRIO Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-    sectionPattern: /\*\*\s*(Valuable|Rare|Imitable|Organized)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Valuable|Rare|Imitable|Organized|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
-    title: "VRIO Analysis Table"
-  },
-  noise: {
-    mainPattern: /\*\*\s*NOISE Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-    sectionPattern: /\*\*\s*(Need|Opportunity|Issue|Solution|Expectation)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Need|Opportunity|Issue|Solution|Expectation|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
-    title: "NOISE Analysis Table"
-  },
-  bsc: {
-    mainPattern: /\*\*\s*Balanced Scorecard Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-    sectionPattern: /\*\*\s*(Financial|Customer|Internal Processes|Learning and Growth) Perspective\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Financial|Customer|Internal Processes|Learning and Growth) Perspective\s*:\*\*|$))/gi,
-    title: "Balanced Scorecard Analysis"
-  },
+  // vrio: {
+  //   mainPattern: /\*\*\s*VRIO Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
+  //   sectionPattern: /\*\*\s*(Valuable|Rare|Imitable|Organized)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Valuable|Rare|Imitable|Organized|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+  //   title: "VRIO Analysis Table"
+  // },
+  // noise: {
+  //   mainPattern: /\*\*\s*NOISE Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
+  //   sectionPattern: /\*\*\s*(Need|Opportunity|Issue|Solution|Expectation)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Need|Opportunity|Issue|Solution|Expectation|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+  //   title: "NOISE Analysis Table"
+  // },
+  // bsc: {
+  //   mainPattern: /\*\*\s*Balanced Scorecard Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
+  //   sectionPattern: /\*\*\s*(Financial|Customer|Internal Processes|Learning and Growth) Perspective\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Financial|Customer|Internal Processes|Learning and Growth) Perspective\s*:\*\*|$))/gi,
+  //   title: "Balanced Scorecard Analysis"
+  // },
   porter: {
     mainPattern: /\*\*\s*Porter(?:'s)? Five Forces Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
     sectionPattern: /\*\*\s*(Threat of New Entrants|Bargaining Power of Suppliers|Bargaining Power of Buyers|Threat of Substitutes|Competitive Rivalry)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Threat of New Entrants|Bargaining Power of Suppliers|Bargaining Power of Buyers|Threat of Substitutes|Competitive Rivalry|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
@@ -314,10 +314,6 @@ const BCGMatrixAnalysisRenderer = ({ analysisResult }) => {
   const introMatch = introRegex.exec(analysisResult);
   const introText = introMatch ? introMatch[1].trim() : "";
  
-  const bcgRegex = /\*\*\s*BCG Matrix Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*STRATEGIC Acronym\s*:\*\*|$)/i;
-  const bcgMatch = bcgRegex.exec(analysisResult);
-  const bcgContent = bcgMatch ? bcgMatch[1].trim() : "";
- 
   const strategicRegex = /\*\*\s*STRATEGIC Acronym\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations|By following)\s*:|$)/i;
   const strategicMatch = strategicRegex.exec(analysisResult);
   const strategicItems = strategicMatch ? extractStrategicItems(strategicMatch[1].trim()) : [];
@@ -326,66 +322,21 @@ const BCGMatrixAnalysisRenderer = ({ analysisResult }) => {
   const conclusionMatch = conclusionRegex.exec(analysisResult);
   const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
  
-  const sectionPattern = /\*\*\s*(Stars|Cash Cows|Question Marks|Dogs)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Stars|Cash Cows|Question Marks|Dogs|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi;
-  const bcgData = extractAnalysisSections(bcgContent, sectionPattern);
-  const labels = Object.keys(bcgData);
- 
   return (
-    // <>
-    //   {introText && <div className="mb-3">{introText}</div>}
+    <>
+      {introText && <div className="mb-3">{introText}</div>} 
+      
+      {/* Use the dynamic BCG Matrix component here */}
+      <DynamicBCGMatrix analysisResult={analysisResult} />
  
-    //   {labels.length > 0 && (
-    //     <>
-    //       <h5 className="mb-3">
-    //         <strong>BCG Matrix Analysis</strong>
-    //       </h5>
-    //       <div className="table-responsive mb-4">
-    //         <div className="bcg-matrix-container">
-    //           <table className="table table-bordered bcg-matrix">
-    //             <thead className="table-light">
-    //               <tr>
-    //                 <th colSpan="2" className="text-center">Market Growth</th>
-    //               </tr>
-    //             </thead>
-    //             <tbody>
-    //               <tr>
-    //                 <td className="text-center bcg-quadrant high-share high-growth">
-    //                   <h6>Stars</h6>
-    //                   {bcgData['Stars'] && renderAnalysisBoxes(bcgData['Stars'], 'Stars', 'bcg')}
-    //                 </td>
-    //                 <td className="text-center bcg-quadrant low-share high-growth">
-    //                   <h6>Question Marks</h6>
-    //                   {bcgData['Question Marks'] && renderAnalysisBoxes(bcgData['Question Marks'], 'Question Marks', 'bcg')}
-    //                 </td>
-    //               </tr>
-    //               <tr>
-    //                 <td className="text-center bcg-quadrant high-share low-growth">
-    //                   <h6>Cash Cows</h6>
-    //                   {bcgData['Cash Cows'] && renderAnalysisBoxes(bcgData['Cash Cows'], 'Cash Cows', 'bcg')}
-    //                 </td>
-    //                 <td className="text-center bcg-quadrant low-share low-growth">
-    //                   <h6>Dogs</h6>
-    //                   {bcgData['Dogs'] && renderAnalysisBoxes(bcgData['Dogs'], 'Dogs', 'bcg')}
-    //                 </td>
-    //               </tr>
-    //             </tbody>
-    //           </table>
-    //           <div className="matrix-label-x">Market Share</div>
-    //           <div className="matrix-label-y">Market Growth</div>
-    //         </div>
-    //       </div>
-    //     </>
-    //   )}
+      {strategicItems.length > 0 && <StrategicTable strategicItems={strategicItems} />}
  
-    //   {strategicItems.length > 0 && <StrategicTable strategicItems={strategicItems} />}
- 
-    //   {conclusionText && (
-    //     <div className="mt-3 conclusion-text">
-    //       {conclusionText}
-    //     </div>
-    //   )}
-    // </>
-    <BCGMatrixStatic></BCGMatrixStatic>
+      {conclusionText && (
+        <div className="mt-3 conclusion-text">
+          {conclusionText}
+        </div>
+      )}
+    </>
   );
 };
 
@@ -569,7 +520,14 @@ const AnalysisContent = ({
       // return <ValueChainAnalysisRenderer analysisResult={analysisResult} />;
       return <ValueChainMatrixStatic />;
     } else if (selectedAnalysisType === 'bcg') {
-      return <BCGMatrixAnalysisRenderer analysisResult={analysisResult} />;
+      return (
+        <> 
+          <DynamicBCGMatrix analysisResult={analysisResult} />
+          <StrategicTable 
+            strategicItems={extractStrategicItems(analysisResult)} 
+          />
+        </>
+      );
     } else if (selectedAnalysisType === 'porter') {
       return <PorterMatrixStatic />; // static Porter template
     }
