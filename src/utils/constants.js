@@ -39,7 +39,7 @@ export const ANALYSIS_TYPES = [
     },
     {
       id: "valuechain",
-      name: "Value Chain Analysis",
+      name: "Value Chain",
       icon: "BarChart",
     }
   ];

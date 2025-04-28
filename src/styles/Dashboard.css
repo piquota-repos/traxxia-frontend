@@ -886,7 +886,7 @@ body {
 }
 
 .analysis-container {
-  padding: 1.5rem !important;
+  /* padding: 1.5rem !important; */
   font-size: var(--font-size15);
 }
 
@@ -1360,8 +1360,11 @@ body {
 .bcg-matrix-template {
   /* margin: 2rem auto;
   max-width: 800px; */
-  text-align: center;
-  font-family: sans-serif;
+  text-align: center; 
+  text-align: center; 
+    background: #f8f9fa;
+    border: 1px solid #c6c7c8;
+    border-radius: 10px; 
 }
 
 .bcg-matrix-header,
@@ -1389,8 +1392,8 @@ body {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 250px 250px;
   gap: 1px;
-  background: #e0e0e0;
-  border: 2px solid #999;
+  /* background: #e0e0e0;
+  border: 2px solid #999; */
   border-radius: 10px;
 }
 
@@ -1435,8 +1438,7 @@ body {
  /* Value chain activities */ 
 
 .value-chain-static {
-  font-family: 'Segoe UI', sans-serif;
-  max-width: 995px;
+  /* max-width: 995px; */
   margin: 0;
   padding: 20px;
 }
@@ -1451,8 +1453,8 @@ body {
 
 .support-row {
   display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  flex-direction: column; /* Stack vertically */
+  gap: 10px;
 }
 
 .support-block {
@@ -1487,7 +1489,7 @@ body {
 }
 
 .primary-block {
-  flex: 1 1 19%;
+  flex: 1 1 20%;
   margin: 5px;
   background-color: #e9f5ff;
   padding: 15px;
@@ -1509,78 +1511,213 @@ body {
 /* Optional Hover Effects */
 .primary-block:hover,
 .support-block:hover {
-  transform: scale(1.02);
+  transform: translateY(-2px);
 }
 
 /* Example Colors (Customize as needed) */
-.infrastructure { background-color: #ffcccb; }
-.hr { background-color: #ffe0b2; }
-.tech { background-color: #dcedc8; }
-.procurement { background-color: #c5cae9; }
+/* --- SUPPORT ACTIVITIES --- */
+.infrastructure {
+  background-color: #ffcccb;
+  border: 2px solid #e57373; /* darker red */
+}
 
-.inbound { background-color: #bbdefb; }
-.operations { background-color: #b2ebf2; }
-.outbound { background-color: #c8e6c9; }
-.marketing { background-color: #fff9c4; }
-.services { background-color: #f8bbd0; }
+.hr {
+  background-color: #ffe0b2;
+  border: 2px solid #ffb74d; /* darker orange */
+}
 
+.tech {
+  background-color: #dcedc8;
+  border: 2px solid #aed581; /* darker green */
+}
 
-.triangle-right {
-  width: 0;
-  height: 0;
-  border-top: 210px solid transparent;
-  border-bottom: 210px solid transparent;
-  border-left: 160px solid #4ea9e6; /* Change color as needed */
+.procurement {
+  background-color: #c5cae9;
+  border: 2px solid #7986cb; /* darker blue-purple */
+}
+
+/* --- PRIMARY ACTIVITIES --- */
+.inbound {
+  background-color: #bbdefb;
+  border: 2px solid #64b5f6; /* darker blue */
+}
+
+.operations {
+  background-color: #b2ebf2;
+  border: 2px solid #4dd0e1; /* darker teal */
+}
+
+.outbound {
+  background-color: #c8e6c9;
+  border: 2px solid #81c784; /* darker green */
+}
+
+.marketing {
+  background-color: #fff9c4;
+  border: 2px solid #fff176; /* darker yellow */
+}
+
+.services {
+  background-color: #f8bbd0;
+  border: 2px solid #f06292; /* darker pink */
+}
+
+ /* Add this to your Dashboard.css file */
+
+.value-chain-static {
+  position: relative;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+/* Existing styles for support and primary activities... */
+
+/* Blue Triangle styling */
+.blue-triangle-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  margin-bottom: 40px;
+}
+
+/* Triangle with border using multiple elements approach */
+.blue-triangle {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin-top:10px;
+}
+
+/* This creates the dark blue border triangle */
+.blue-triangle::before {
+  content: '';
   position: absolute;
-  margin-left: 960px;
-  top: 620px; 
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  border-radius: 10px;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  z-index: 1;
+}
+
+/* This creates the inner light blue triangle */
+.blue-triangle::after {
+  content: '';
+  position: absolute;
+  top: 3px; /* Border thickness */
+  left: 3px; /* Border thickness */
+  width: calc(100% - 6px); /* Adjust for border thickness */
+  height: calc(100% - 3px); /* Adjust for border thickness */
+  background-color: #E3F2FD; /* Light blue background */
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  z-index: 2;
+}
+
+/* Base styles for analysis sections */
+.margin-analysis, 
+.linkages-analysis {
+  position: absolute;
+  padding: 8px;
+  width: 45%;
+  max-width: 400px;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  z-index: 3; /* Make sure text is above the triangle layers */
+}
+
+.margin-analysis h5, 
+.linkages-analysis h5 {
+  font-weight: bold;
+  color: #1976D2; /* Blue text for headers */
+  margin-bottom: 5px;
+}
+
+/* Left slanting text positioning */
+.left-slant {
+  right: 35%;
+  top: -15%;
+    left: 20%;
+  transform: rotate(28deg);
+  transform-origin: left top;
+  text-align: right;
+}
+
+/* Right slanting text positioning */
+.right-slant {
+  right: 24%;
+  top: -16%;
+  left: 46%;
+  transform: rotate(-27deg);
+  transform-origin: right top;
+  text-align: left;
+}
+
+/* Make triangle responsive */
+@media (max-width: 768px) {
+  .blue-triangle::before,
+  .blue-triangle::after {
+    clip-path: none;
+  }
+  
+  .blue-triangle::before {
+    background-color: #0D47A1; /* Dark blue border */
+    border-radius: 5px;
+  }
+  
+  .blue-triangle::after {
+    background-color: #E3F2FD;
+    border-radius: 3px;
+    padding: 15px;
+  }
+  
+  .margin-analysis,
+  .linkages-analysis {
+    position: static;
+    width: 100%;
+    max-width: none;
+    transform: none;
+    margin-bottom: 15px;
+    text-align: left;
+  }
+  
+  .blue-triangle-container {
+    height: auto;
+  }
 }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-.porter-container {
-  font-family: 'Segoe UI', sans-serif;
-  max-width: 1100px;
+.porter-container { 
+  /* max-width: 1100px; */
   margin: 0 auto;
-  padding: 20px;
-  height: 700px;
+  padding-top: 20px;
+  height: auto;
 }
 
 .porter-forces {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr; /* Center column takes more space */
+  grid-template-rows: 1fr 2fr 1fr;    /* Center row takes more space */
+  gap: 20px; /* Adds space between grid items */
   position: relative;
   width: 100%;
-  padding-top: 100%; 
-
   border-radius: 10px;
- 
 }
 
-/* Box Style */
 .force {
-  position: absolute;
-  width: 27%;
-  height: 16%;
   background-color: #e3f2fd;
   padding: 10px;
   text-align: center;
   font-weight: bold;
   border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  height: 100%;
+  position: relative;
 }
 
 /* Inner text */
@@ -1592,48 +1729,45 @@ body {
   color: #444;
 }
 
-
-
+/* Specific force color and border */
 .top {
-  background-color: #fce4ec; 
-  border: 2px solid #d81b60; 
-  top: 4%;
-  left: 36.5%;
+  background-color: #fce4ec;
+  border: 2px solid #d81b60;
+  grid-column: 2; /* Center column */
+  grid-row: 1;    /* Top row */
 }
 
 .bottom {
-  background-color: #f3e5f5; 
+  background-color: #f3e5f5;
   border: 2px solid #e04cf7;
-  bottom: 40%;
-  left: 36.5%;
+  grid-column: 2; /* Center column */
+  grid-row: 3;    /* Bottom row */
 }
 
 .left {
-  background-color: #c4f0c8;  
-  border: 2px solid #74e97e;  
-  top: 24%;
-  left: 5%;
+  background-color: #c4f0c8;
+  border: 2px solid #74e97e;
+  grid-column: 1; /* Left column */
+  grid-row: 2;    /* Center row */
 }
 
 .right {
-  background-color: #fff9c4;  
-  border: 2px solid #f5e65f;;  
-  top: 24%;
-  right: 5%;
+  background-color: #fff9c4;
+  border: 2px solid #f5e65f;
+  grid-column: 3; /* Right column */
+  grid-row: 2;    /* Center row */
 }
 
 .center {
-  top: 24%;
-  left: 36.5%;
-  background-color: #e3f2fd;  
-  border: 2px solid #5db0eb;  
+  background-color: #e3f2fd;
+  border: 2px solid #5db0eb;
   z-index: 2;
+  grid-column: 2; /* Center column */
+  grid-row: 2;    /* Center row */
 }
 
-
-
 /* Common arrow style */
-.force::after {
+.top::after,.left::after,.bottom::after,.right::after {
   content: '';
   position: absolute;
   width: 0;
@@ -1650,7 +1784,7 @@ body {
   border-color: #d81b60 transparent transparent transparent;
 }
 
-/* Arrow  Bottom to Center */
+/* Arrow Bottom to Center */
 .bottom::after {
   top: -10px;
   left: 50%;
@@ -1659,7 +1793,7 @@ body {
   border-color: transparent transparent #e04cf7 transparent;
 }
 
-/* Arrow  Left to Center */
+/* Arrow Left to Center */
 .left::after {
   right: -10px;
   top: 50%;
@@ -1668,7 +1802,7 @@ body {
   border-color: transparent transparent transparent #74e97e;
 }
 
-/* Arrow  Right to Center */
+/* Arrow Right to Center */
 .right::after {
   left: -10px;
   top: 50%;
@@ -1676,6 +1810,33 @@ body {
   border-width: 10px 10px 10px 0;
   border-color: transparent #f5e65f transparent transparent;
 }
+
+/* Adjustments for responsive layout */
+@media screen and (max-width: 768px) {
+  .porter-forces {
+    grid-template-columns: 1fr;  /* One column for smaller screens */
+    grid-template-rows: repeat(5, auto); /* Stack all forces vertically */
+  }
+
+  .force {
+    margin: 10px 0;  /* Add space between force boxes */
+  }
+
+  /* Arrows will be removed in mobile view */
+  .force::after {
+    display: none;
+  }
+}
+
+
+
+
+
+
+
+
+
+ 
 
 /* Dashboard.css */
 

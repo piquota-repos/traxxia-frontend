@@ -9,10 +9,12 @@ import {
   Network,
   Link,
   Grid
-} from 'lucide-react'; 
-import PorterMatrixStatic from './PorterMatrixStatic';
-import ValueChainMatrixStatic from './ValueChainMatrixStatic';
-import DynamicBCGMatrix from './BCGMatrixStatic';
+} from 'lucide-react';  
+import ValueChainMatrix from './ValueChainMatrix';
+import BCGMatrix from './BCGMatrix'; 
+import PorterMatrix from './PorterMatrix';
+import SwotAnalysis from './SwotAnalysis';
+import StrategicAcronym from './StrategicAcronym';
 
 // Constants
 const ANALYSIS_ICONS = {
@@ -55,7 +57,7 @@ const ANALYSIS_CONFIG = {
   // },
   porter: {
     mainPattern: /\*\*\s*Porter(?:'s)? Five Forces Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-    sectionPattern: /\*\*\s*(Threat of New Entrants|Bargaining Power of Suppliers|Bargaining Power of Buyers|Threat of Substitutes|Competitive Rivalry)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Threat of New Entrants|Bargaining Power of Suppliers|Bargaining Power of Buyers|Threat of Substitutes|Competitive Rivalry|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+    sectionPattern: /\*\*\s*(Supplier Power|Buyer Power|Competitive Rivalry|Threat of Substitution|Threat of New Entry)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Supplier Power|Buyer Power|Competitive Rivalry|Threat of Substitution|Threat of New Entry|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
     title: "Porter's Five Forces Analysis"
   },
   valuechain: {
@@ -69,19 +71,6 @@ const ANALYSIS_CONFIG = {
     title: "BCG Matrix Analysis"
   }
 };
-
-// Define the style classes for STRATEGIC table columns
-const STRATEGIC_COLUMN_STYLES = [
-  'political-bg', // S - red
-  'economic-bg',  // T - blue
-  'social-bg',    // R - purple
-  'technological-bg', // A - orange
-  'legal-bg',     // T - green
-  'environmental-bg', // E - yellow
-  'strengths-bg', // G - red
-  'weaknesses-bg', // I - blue
-  'opportunities-bg' // C - purple
-];
 
 const LoadingIndicator = () => (
   <div className="text-center analysis-loading py-4">
@@ -138,50 +127,6 @@ const AnalysisButton = ({ selectedType, onClick, loading }) => (
   )
 );
 
-// Renders the STRATEGIC table with colored columns
-const StrategicTable = ({ strategicItems }) => {
-  if (!strategicItems || strategicItems.length === 0) return null;
-
-  const acronymLetters = ['S', 'T', 'R', 'A', 'T', 'E', 'G', 'I', 'C'];
-
-  return (
-    <>
-      <h5 className="mt-4 mb-3"><strong>STRATEGIC Acronym</strong></h5>
-      <div className="table-responsive mb-4">
-        <table className="table table-bordered">
-          <thead className="table-light">
-            <tr>
-              <th width="10%" className="text-center">Letter</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            {acronymLetters.map((letter, index) => {
-              const item = strategicItems[index];
-              const styleClass = STRATEGIC_COLUMN_STYLES[index];
-              
-              return (
-                <tr key={`${letter}-${index}`}>
-                  <td className="text-center align-middle">
-                    <strong>{letter}</strong>
-                  </td>
-                  <td className="p-2">
-                    {item ? (
-                      <div className={`strategic-item ${styleClass}`}>
-                        {item.keyword && <strong>{item.keyword}:</strong>} {item.description}
-                      </div>
-                    ) : ""}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </>
-  );
-};
-
 // Special BSC renderer that shows full text instead of table
 const BSCAnalysisRenderer = ({ analysisResult }) => {
   const introRegex = /^(.*?)(?=\*\*BSC Analysis|\*\*Balanced Scorecard Analysis)/s;
@@ -191,10 +136,6 @@ const BSCAnalysisRenderer = ({ analysisResult }) => {
   const bscRegex = /\*\*\s*(?:BSC|Balanced Scorecard) Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*STRATEGIC Acronym\s*:\*\*|$)/i;
   const bscMatch = bscRegex.exec(analysisResult);
   const bscContent = bscMatch ? bscMatch[1].trim() : "";
- 
-  const strategicRegex = /\*\*\s*STRATEGIC Acronym\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations|By following)\s*:|$)/i;
-  const strategicMatch = strategicRegex.exec(analysisResult);
-  const strategicItems = strategicMatch ? extractStrategicItems(strategicMatch[1].trim()) : [];
  
   const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
   const conclusionMatch = conclusionRegex.exec(analysisResult);
@@ -234,102 +175,7 @@ const BSCAnalysisRenderer = ({ analysisResult }) => {
         </>
       )}
  
-      {strategicItems.length > 0 && <StrategicTable strategicItems={strategicItems} />}
- 
-      {conclusionText && (
-        <div className="mt-3 conclusion-text">
-          {conclusionText}
-        </div>
-      )}
-    </>
-  );
-};
-
-// Value Chain specific renderer
-const ValueChainAnalysisRenderer = ({ analysisResult }) => {
-  const introRegex = /^(.*?)(?=\*\*Value Chain Analysis)/s;
-  const introMatch = introRegex.exec(analysisResult);
-  const introText = introMatch ? introMatch[1].trim() : "";
- 
-  const valueChainRegex = /\*\*\s*Value Chain Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*STRATEGIC Acronym\s*:\*\*|$)/i;
-  const valueChainMatch = valueChainRegex.exec(analysisResult);
-  const valueChainContent = valueChainMatch ? valueChainMatch[1].trim() : "";
- 
-  const strategicRegex = /\*\*\s*STRATEGIC Acronym\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations|By following)\s*:|$)/i;
-  const strategicMatch = strategicRegex.exec(analysisResult);
-  const strategicItems = strategicMatch ? extractStrategicItems(strategicMatch[1].trim()) : [];
- 
-  const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
-  const conclusionMatch = conclusionRegex.exec(analysisResult);
-  const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
- 
-  const sectionPattern = /\*\*\s*(Primary Activities|Support Activities|Margin Analysis)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Primary Activities|Support Activities|Margin Analysis|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi;
-  const valueChainData = extractAnalysisSections(valueChainContent, sectionPattern);
-  const labels = Object.keys(valueChainData);
- 
-  return (
-    <>
-      {introText && <div className="mb-3">{introText}</div>}
- 
-      {labels.length > 0 && (
-        <>
-          <h5 className="mb-3">
-            <strong>Value Chain Analysis</strong>
-          </h5>
-          <div className="table-responsive mb-4">
-            <table className="table table-bordered table-striped">
-              <thead className="table-light">
-                <tr>
-                  {labels.map(label => <th key={label}>{label}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  {labels.map(label => (
-                    <td key={label}>
-                      {renderAnalysisBoxes(valueChainData[label], label, 'valuechain')}
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
- 
-      {strategicItems.length > 0 && <StrategicTable strategicItems={strategicItems} />}
- 
-      {conclusionText && (
-        <div className="mt-3 conclusion-text">
-          {conclusionText}
-        </div>
-      )}
-    </>
-  );
-};
-
-// BCG Matrix specific renderer
-const BCGMatrixAnalysisRenderer = ({ analysisResult }) => {
-  const introRegex = /^(.*?)(?=\*\*BCG Matrix Analysis)/s;
-  const introMatch = introRegex.exec(analysisResult);
-  const introText = introMatch ? introMatch[1].trim() : "";
- 
-  const strategicRegex = /\*\*\s*STRATEGIC Acronym\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations|By following)\s*:|$)/i;
-  const strategicMatch = strategicRegex.exec(analysisResult);
-  const strategicItems = strategicMatch ? extractStrategicItems(strategicMatch[1].trim()) : [];
- 
-  const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
-  const conclusionMatch = conclusionRegex.exec(analysisResult);
-  const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
- 
-  return (
-    <>
-      {introText && <div className="mb-3">{introText}</div>} 
-      
-      {/* Use the dynamic BCG Matrix component here */}
-      <DynamicBCGMatrix analysisResult={analysisResult} />
- 
-      {strategicItems.length > 0 && <StrategicTable strategicItems={strategicItems} />}
+      <StrategicAcronym analysisResult={analysisResult} />
  
       {conclusionText && (
         <div className="mt-3 conclusion-text">
@@ -357,11 +203,6 @@ const GenericAnalysisRenderer = ({ analysisResult, analysisType }) => {
   const labels = Object.keys(analysisData);
   const hasContent = introText?.trim() || labels.length > 0 || afterText?.trim();
 
-  const strategicRegex = /\*\*\s*STRATEGIC Acronym\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations|By following)\s*:|$)/i;
-  const strategicMatch = strategicRegex.exec(analysisResult);
-  const strategicContent = strategicMatch ? strategicMatch[1].trim() : "";
-  const strategicItems = extractStrategicItems(strategicContent); 
-  
   const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
   const conclusionMatch = conclusionRegex.exec(analysisResult);
   const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
@@ -400,7 +241,7 @@ const GenericAnalysisRenderer = ({ analysisResult, analysisType }) => {
         </>
       )}
 
-      {strategicItems.length > 0 && <StrategicTable strategicItems={strategicItems} />}
+      <StrategicAcronym analysisResult={analysisResult} />
 
       {conclusionText && (
         <div className="mt-3 conclusion-text">
@@ -409,42 +250,6 @@ const GenericAnalysisRenderer = ({ analysisResult, analysisType }) => {
       )}
     </>
   );
-};
-
-const extractStrategicItems = (strategicContent) => {
-  if (!strategicContent) return [];
-
-  const acronymSequence = ['S', 'T', 'R', 'A', 'T', 'E', 'G', 'I', 'C'];
-  const lines = strategicContent.split('\n').filter(line => line.trim() !== '');
-
-  const parsedItems = [];
-
-  // Match lines that start with a letter + dash format
-  const regex = /^\*?\s*\*?\*?([A-Z])\*?\*?\s*-\s*(?:\*\*([^:*]+)\*\*|([^:*]+))?:?\s*(.*)/i;
-
-  lines.forEach(line => {
-    const match = line.trim().match(regex);
-    if (match) {
-      const acronym = match[1].toUpperCase();
-      const keyword = (match[2] || match[3] || '').trim();
-      const description = match[4].trim();
-      parsedItems.push({ acronym, keyword, description });
-    }
-  });
-
-  // Track usage of each acronym letter (to support duplicates like 'T')
-  const letterUsage = {};
-
-  const result = acronymSequence.map(letter => {
-    const usedCount = letterUsage[letter] || 0;
-    const matches = parsedItems.filter(item => item.acronym === letter);
-    const match = matches[usedCount] || null;
-
-    letterUsage[letter] = usedCount + 1;
-    return match;
-  });
-
-  return result;
 };
 
 const extractAnalysisSections = (analysisBlock, sectionPattern) => {
@@ -517,19 +322,13 @@ const AnalysisContent = ({
     if (selectedAnalysisType === 'bsc') {
       return <BSCAnalysisRenderer analysisResult={analysisResult} />;
     } else if (selectedAnalysisType === 'valuechain') {
-      // return <ValueChainAnalysisRenderer analysisResult={analysisResult} />;
-      return <ValueChainMatrixStatic />;
+      return <ValueChainMatrix analysisResult={analysisResult} />;
     } else if (selectedAnalysisType === 'bcg') {
-      return (
-        <> 
-          <DynamicBCGMatrix analysisResult={analysisResult} />
-          <StrategicTable 
-            strategicItems={extractStrategicItems(analysisResult)} 
-          />
-        </>
-      );
+      return <BCGMatrix analysisResult={analysisResult} />; 
     } else if (selectedAnalysisType === 'porter') {
-      return <PorterMatrixStatic />; // static Porter template
+      return <PorterMatrix porterText={analysisResult} />; 
+    } else if (selectedAnalysisType === 'swot') {
+      return <SwotAnalysis analysisResult={analysisResult} />;
     }
 
     // Use generic renderer for all other analysis types
