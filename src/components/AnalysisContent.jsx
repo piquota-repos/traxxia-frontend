@@ -29,32 +29,12 @@ const ANALYSIS_ICONS = {
 };
 
 // Analysis section configuration for different analysis types
-const ANALYSIS_CONFIG = {
-  // pestle: {
-  //   mainPattern: /\*\*\s*PESTLE Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-  //   sectionPattern: /\*\*\s*(Political|Economic|Social|Technological|Legal|Environmental)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Political|Economic|Social|Technological|Legal|Environmental|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
-  //   title: "PESTLE Analysis Table"
-  // },
+const ANALYSIS_CONFIG = { 
   swot: {
     mainPattern: /\*\*\s*SWOT Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
     sectionPattern: /\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Strengths|Weaknesses|Opportunities|Threats|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
     title: "SWOT Analysis Table"
-  },
-  // vrio: {
-  //   mainPattern: /\*\*\s*VRIO Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-  //   sectionPattern: /\*\*\s*(Valuable|Rare|Imitable|Organized)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Valuable|Rare|Imitable|Organized|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
-  //   title: "VRIO Analysis Table"
-  // },
-  // noise: {
-  //   mainPattern: /\*\*\s*NOISE Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-  //   sectionPattern: /\*\*\s*(Need|Opportunity|Issue|Solution|Expectation)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Need|Opportunity|Issue|Solution|Expectation|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
-  //   title: "NOISE Analysis Table"
-  // },
-  // bsc: {
-  //   mainPattern: /\*\*\s*Balanced Scorecard Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-  //   sectionPattern: /\*\*\s*(Financial|Customer|Internal Processes|Learning and Growth) Perspective\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Financial|Customer|Internal Processes|Learning and Growth) Perspective\s*:\*\*|$))/gi,
-  //   title: "Balanced Scorecard Analysis"
-  // },
+  }, 
   porter: {
     mainPattern: /\*\*\s*Porter(?:'s)? Five Forces Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
     sectionPattern: /\*\*\s*(Supplier Power|Buyer Power|Competitive Rivalry|Threat of Substitution|Threat of New Entry)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Supplier Power|Buyer Power|Competitive Rivalry|Threat of Substitution|Threat of New Entry|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,

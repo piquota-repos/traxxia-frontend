@@ -63,20 +63,34 @@ DO NOT deviate from this format as it will break the component rendering the ana
     switch (analysisType) {
       case "swot":
         return `**Strengths:** [List the strengths identified]
-**Weaknesses:** [List the weaknesses identified]
-**Opportunities:** [List the opportunities identified]
-**Threats:** [List the threats identified]`;
-      case "porter":
-        return `**Supplier Power:** [Supplier power analysis]
-**Buyer Power:** [Buyer power analysis]
-**Competitive Rivalry:** [Competitive rivalry analysis]
-**Threat of Substitution:** [Threat of substitution analysis]
-**Threat of New Entry:** [Threat of new entry analysis]`;
-      case "valuechain":
-        return `**Primary Activities:** [Primary activities analysis]
-**Support Activities:** [Support activities analysis]
-**Margin:** [Margin analysis]
-**Linkages:** [Linkages analysis]`;
+        **Weaknesses:** [List the weaknesses identified]
+        **Opportunities:** [List the opportunities identified]
+        **Threats:** [List the threats identified]`;
+              case "porter":
+                return `**Supplier Power:** [Supplier power analysis]
+        **Buyer Power:** [Buyer power analysis]
+        **Competitive Rivalry:** [Competitive rivalry analysis]
+        **Threat of Substitution:** [Threat of substitution analysis]
+        **Threat of New Entry:** [Threat of new entry analysis]`;
+        case "valuechain":
+  return `**Primary Activities:** [Provide a concise overview of how the primary activities create value]
+
+- Inbound Logistics: [Analyze how materials and resources are received, stored, and distributed within the organization]
+- Operations: [Evaluate the processes that transform inputs into outputs/products/services]
+- Outbound Logistics: [Assess the collection, storage, and distribution of products to customers]
+- Marketing & Sales: [Review activities related to customer acquisition and persuasion to purchase]
+- Service: [Examine activities that maintain and enhance product value after purchase]
+
+**Support Activities:** [Provide a concise overview of how support activities strengthen primary activities]
+
+- Firm Infrastructure: [Analyze general management, planning, finance, accounting, legal, and quality management]
+- Human Resource Management: [Evaluate recruitment, development, retention, and compensation of employees]
+- Technology Development: [Assess R&D, process automation, and other technological developments]
+- Procurement: [Review processes for acquiring resources needed for the business]
+
+**Margin:** [Analyze how the organization's value chain contributes to competitive advantage and profitability]
+
+**Linkages:** [Identify key connections between activities that create additional value or reduce costs]`;
       case "bcg":
         return `**Agile Leaders (High Share / High Growth):** [Analysis]
         **Established Performers (High Share / Low Growth):** [Analysis]
@@ -84,9 +98,9 @@ DO NOT deviate from this format as it will break the component rendering the ana
         **Strategic Drifters (Low Share / Low Growth):** [Analysis]`;
       default:
         return `**Strengths:** [List the strengths identified]
-**Weaknesses:** [List the weaknesses identified]
-**Opportunities:** [List the opportunities identified]
-**Threats:** [List the threats identified]`;
+        **Weaknesses:** [List the weaknesses identified]
+        **Opportunities:** [List the opportunities identified]
+        **Threats:** [List the threats identified]`;
     }
   };
 
