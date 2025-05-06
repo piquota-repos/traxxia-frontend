@@ -120,7 +120,7 @@ const ValueChainMatrix = ({ analysisResult }) => {
 
   return (
     <div className="value-chain-static">
-      <h4 className="text-center mb-4">Value Chain Analysis</h4>
+      <h4 className="text-center text-color mb-4">Value Chain Analysis</h4>
 
       {/* Support Activities */}
       <div className="support-activities">

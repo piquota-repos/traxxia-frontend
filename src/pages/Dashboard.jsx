@@ -173,7 +173,7 @@ const Dashboard = () => {
 
       <div className="step-header">
         <h4 className="text-center">Analyze Your Responses</h4>
-        <p className="text-center text-muted">
+        <p className="text-center text-color">
           Select an analysis type and generate insights from your survey responses
         </p>
       </div>

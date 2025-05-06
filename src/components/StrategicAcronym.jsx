@@ -64,7 +64,7 @@ const StrategicAcronym = ({ analysisResult }) => {
 
   return (
     <>
-      <h5 className="mt-4 mb-3"><strong>STRATEGIC Acronym</strong></h5>
+      <h5 className="mt-4 mb-3 text-color"><strong>STRATEGIC Acronym</strong></h5>
       <div className="table-responsive mb-4">
         <table className="table table-bordered">
           <thead className="table-light">

@@ -69,7 +69,7 @@ const PorterMatrix = ({ porterText }) => {
 
   return (
     <div className="porter-container">
-      <h4 className="text-center mb-4"><strong>Porter's Five Forces Analysis</strong></h4>
+      <h4 className="text-center text-color mb-4"><strong>Porter's Five Forces Analysis</strong></h4>
 
       <div className="porter-forces">
         <div className="force top">

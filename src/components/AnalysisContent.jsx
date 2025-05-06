@@ -187,7 +187,7 @@ const GenericAnalysisRenderer = ({ analysisResult, analysisType }) => {
   const conclusionMatch = conclusionRegex.exec(analysisResult);
   const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
 
-  if (!hasContent) return <div>No analysis results available.</div>;
+  if (!hasContent) return <div className='text-color'>No analysis results available.</div>;
 
   return (
     <>
@@ -295,7 +295,7 @@ const AnalysisContent = ({
 
   const renderAnalysisResults = () => {
     if (!analysisResult?.trim()) {
-      return <div>No analysis results available.</div>;
+      return <div className='text-color'>No analysis results available.</div>;
     }
 
     // Use specific renderers for specialized analysis types

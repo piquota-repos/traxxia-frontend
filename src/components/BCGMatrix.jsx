@@ -60,7 +60,7 @@ const BCGMatrix = ({ analysisResult }) => {
 
   return (
     <div className="bcg-matrix-container">
-       <h4 className="text-center mt-4"><strong>BCG Matrix Analysis</strong></h4> 
+       <h4 className="text-center text-color mt-4"><strong>BCG Matrix Analysis</strong></h4> 
       <div className="bcg-matrix-template">
         <div className="bcg-matrix-header">
           <div className="matrix-label-y">High</div>

@@ -14,13 +14,18 @@
   --shadow: rgba(0, 0, 0, 0.1);
   --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
   --transition: all 0.3s ease;
+  --form-background-color:#1D2641;
+  --form-input-header-color:#A0A0AE;
+  --button-background-color:#56C7EF;
+  --fullscreen-background-color: #0E152C;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+  /* font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif; */
+  font-family: 'Manrope', sans-serif;
 }
 
 body {
@@ -42,7 +47,7 @@ body {
 .register-card {
   width: 100%;
   max-width: 550px;
-  background-color: var(--white);
+  background-color: var(--form-background-color);
   border-radius: 16px;
   box-shadow: var(--card-shadow);
   overflow: hidden;
@@ -59,7 +64,7 @@ body {
 .register-header h2 {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--white);
   margin-bottom: 1.5rem;
 }
 
@@ -112,7 +117,7 @@ body {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: var(--text-dark);
+  color: var(--form-input-header-color);
 }
 
 .step-description {
@@ -130,7 +135,7 @@ body {
   font-size: 0.95rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
-  color: var(--text-dark);
+  color: var(--form-input-header-color);
 }
 
 .register-container .form-group input[type="text"],
@@ -140,17 +145,18 @@ body {
   width: 100%;
   padding: 0.75rem 1rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 25px;
   font-size: 1rem;
-  color: var(--text-dark);
-  background-color: var(--bg-light);
+  color: var(--form-input-header-color);
+  background-color: var(--fullscreen-background-color);
   transition: var(--transition);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--primary);
+  background-color: var(--form-background-color) !important;
+  border-color: var(--white) !important;
   box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
 }
 
@@ -177,18 +183,18 @@ body {
   position: relative;
   padding: 0.75rem 1.5rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 25px;
   cursor: pointer;
   transition: var(--transition);
   flex: 1;
   text-align: center;
   justify-content: center;
-  background-color: var(--bg-light);
+  background-color: var(--fullscreen-background-color);
 }
 
 .radio-option.selected {
-  border-color: var(--primary);
-  background-color: rgba(108, 99, 255, 0.05);
+  border-color: var(--white) !important;
+  background-color: var(--form-background-color);
 }
 
 .radio-option input {
@@ -228,8 +234,8 @@ body {
   left: 0;
   height: 20px;
   width: 20px;
-  background-color: var(--bg-light);
-  border: 1px solid var(--border);
+  background-color: transparent;
+  border: 1px solid #CCCCCC;
   border-radius: 4px;
 }
 
@@ -238,7 +244,7 @@ body {
 }
 
 .checkbox-container input:checked ~ .checkmark {
-  background-color: var(--primary);
+  background-color: var(--button-background-color);
   border-color: var(--primary);
 }
 
@@ -267,12 +273,13 @@ body {
 }
 
 .checkbox-label a {
-  color: var(--primary);
+  color: var(--white);
   text-decoration: none;
   font-weight: 500;
 }
 
 .checkbox-label a:hover {
+  color:var(--button-background-color);
   text-decoration: underline;
 }
 
@@ -287,7 +294,7 @@ body {
 .next-button,
 .submit-button {
   padding: 0.85rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 25px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -296,27 +303,30 @@ body {
 }
 
 .back-button {
-  background-color: var(--bg-light);
-  color: var(--text-dark);
+  background-color: var(--button-background-color);
+  color: var(--white);
   border: 1px solid var(--border);
+  border-radius: 25px;
 }
 
 .back-button:hover {
   background-color: #e2e8f0;
+  color: var(--fullscreen-background-color);
 }
 
 .next-button,
 .submit-button {
-  background-color: var(--primary);
+  background-color: var(--button-background-color);
   color: var(--white);
   width: 100%;
 }
 
 .next-button:hover,
 .submit-button:hover {
-  background-color: var(--primary-dark);
+  background-color: var(--white);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(80, 70, 229, 0.25);
+  color: #0E152C;
 }
 
 .submit-button {
@@ -352,11 +362,11 @@ body {
   text-align: center;
   padding: 1.5rem 2rem;
   border-top: 1px solid var(--border);
-  color: var(--text-light);
+  color: var(--form-input-header-color);
 }
 
 .register-footer a {
-  color: var(--primary);
+  color: var(--button-background-color);
   text-decoration: none;
   font-weight: 500;
 }
