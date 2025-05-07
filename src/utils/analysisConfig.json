@@ -1,0 +1,45 @@
+{
+  "swot": {
+    "regex": {
+      "intro": "^(.*?)(?=\\*\\*SWOT Analysis)",
+      "swot": "\\*\\*\\s*SWOT Analysis\\s*:\\*\\*([\\s\\S]*?)(?=\\*\\*\\s*STRATEGIC Acronym\\s*:\\*\\*|$)",
+      "conclusion": "By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\\s\\S]*?$",
+      "sectionPattern": "\\*\\*\\s*(Strengths|Weaknesses|Opportunities|Threats)\\s*:\\*\\*\\s*([\\s\\S]*?)(?=(\\*\\*\\s*(Strengths|Weaknesses|Opportunities|Threats|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\\s*:\\*\\*|$))"
+    },
+    "sections": ["Strengths", "Weaknesses", "Opportunities", "Threats"],
+    "sectionFilterRules": {
+      "ignoreStrings": ["", "*", "<br/>*", "<br />*"],
+      "ignorePatterns": ["^\\*+$"]
+    },
+    "headings": {
+      "main": "SWOT Analysis",
+      "table": "SWOT Analysis Table"
+    }
+  },
+  "porter": {
+    "title": "Porter's Five Forces Analysis",
+    "forces": [
+      "Supplier Power",
+      "Buyer Power",
+      "Competitive Rivalry",
+      "Threat of Substitution",
+      "Threat of New Entry"
+    ],
+    "layout": {
+      "Threat of New Entry": "top",
+      "Supplier Power": "left",
+      "Competitive Rivalry": "center",
+      "Buyer Power": "right",
+      "Threat of Substitution": "bottom"
+    },
+    "regex": {
+      "conclusion": "By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\\s\\S]*?$"
+    }
+  },
+  "shared": {
+    "regex": {
+      "conclusion": "By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\\s\\S]*?$",
+      "strategic": "\\*\\*\\s*STRATEGIC Acronym\\s*:\\*\\*([\\s\\S]*?)(?=\\*\\*|$)"
+    }
+  }
+}

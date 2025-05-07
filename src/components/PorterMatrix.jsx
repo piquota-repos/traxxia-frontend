@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/Dashboard.css';
 import StrategicAcronym from './StrategicAcronym';
+import analysisConfig from '../utils/analysisConfig.json';
 
 const PorterMatrix = ({ porterText }) => {
-  const [forces, setForces] = useState({
-    'Supplier Power': { items: [] },
-    'Buyer Power': { items: [] },
-    'Competitive Rivalry': { items: [] },
-    'Threat of Substitution': { items: [] },
-    'Threat of New Entry': { items: [] }
+  // Access the Porter configuration
+  const porterConfig = analysisConfig.porter;
+  
+  // Initialize state with forces from the config file
+  const [forces, setForces] = useState(() => {
+    const initialForces = {};
+    porterConfig.forces.forEach(force => {
+      initialForces[force] = { items: [] };
+    });
+    return initialForces;
   });
 
   useEffect(() => {
@@ -19,19 +24,19 @@ const PorterMatrix = ({ porterText }) => {
   }, [porterText]);
 
   const parsePorterText = (text) => {
-    const result = {
-      'Supplier Power': { items: [] },
-      'Buyer Power': { items: [] },
-      'Competitive Rivalry': { items: [] },
-      'Threat of Substitution': { items: [] },
-      'Threat of New Entry': { items: [] }
-    };
+    // Initialize result with forces from the config file
+    const result = {};
+    porterConfig.forces.forEach(force => {
+      result[force] = { items: [] };
+    });
 
+    // Create a regex pattern with all forces from the config
+    const forcesPattern = porterConfig.forces.join('|');
+    
+    // Parse each force
     Object.keys(result).forEach(force => {
       const pattern = new RegExp(
-        `\\*\\*\\s*${force}\\s*:\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*\\s*(?:${
-          Object.keys(result).join('|')
-        }|STRATEGIC Acronym)\\s*:\\*\\*|$)`,
+        `\\*\\*\\s*${force}\\s*:\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*\\s*(?:${forcesPattern}|STRATEGIC Acronym)\\s*:\\*\\*|$)`,
         'i'
       );
 
@@ -62,60 +67,35 @@ const PorterMatrix = ({ porterText }) => {
 
   const getConclusionText = () => {
     if (!porterText) return "";
-    const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
+    const conclusionRegex = new RegExp(analysisConfig.shared.regex.conclusion, 'i');
     const conclusionMatch = conclusionRegex.exec(porterText);
     return conclusionMatch ? conclusionMatch[0] : "";
   };
 
+  // Create a force component for each position
+  const renderForce = (force, position) => {
+    const key = force.toLowerCase().replace(/\s+/g, '-');
+    
+    return (
+      <div className={`force ${position}`} key={key}>
+        {force}
+        <br />
+        <span>{forces[force].summary}</span>
+        {forces[force].items.map((item, i) => (
+          <div key={`${key}-${i}`} className="analysis-box">{item}</div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="porter-container">
-      <h4 className="text-center mb-4"><strong>Porter's Five Forces Analysis</strong></h4>
+      <h4 className="text-center mb-4"><strong>{porterConfig.title}</strong></h4>
 
       <div className="porter-forces">
-        <div className="force top">
-          Threat of New Entry
-          <br />
-          <span>{forces['Threat of New Entry'].summary}</span>
-          {forces['Threat of New Entry'].items.map((item, i) => (
-            <div key={`entry-${i}`} className="analysis-box">{item}</div>
-          ))}
-        </div>
-
-        <div className="force left">
-          Supplier Power
-          <br />
-          <span>{forces['Supplier Power'].summary}</span>
-          {forces['Supplier Power'].items.map((item, i) => (
-            <div key={`supplier-${i}`} className="analysis-box">{item}</div>
-          ))}
-        </div>
-
-        <div className="force center">
-          Competitive Rivalry
-          <br />
-          <span>{forces['Competitive Rivalry'].summary}</span>
-          {forces['Competitive Rivalry'].items.map((item, i) => (
-            <div key={`rivalry-${i}`} className="analysis-box">{item}</div>
-          ))}
-        </div>
-
-        <div className="force right">
-          Buyer Power
-          <br />
-          <span>{forces['Buyer Power'].summary}</span>
-          {forces['Buyer Power'].items.map((item, i) => (
-            <div key={`buyer-${i}`} className="analysis-box">{item}</div>
-          ))}
-        </div>
-
-        <div className="force bottom">
-          Threat of Substitution
-          <br />
-          <span>{forces['Threat of Substitution'].summary}</span>
-          {forces['Threat of Substitution'].items.map((item, i) => (
-            <div key={`sub-${i}`} className="analysis-box">{item}</div>
-          ))}
-        </div>
+        {Object.entries(porterConfig.layout).map(([force, position]) => 
+          renderForce(force, position)
+        )}
       </div>
 
       <StrategicAcronym analysisResult={porterText} />

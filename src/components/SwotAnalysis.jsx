@@ -1,32 +1,43 @@
 import React from 'react';
 import StrategicAcronym from './StrategicAcronym';
+import analysisConfig from '../utils/analysisConfig.json';
 
 const SwotAnalysis = ({ analysisResult }) => {
-  const introRegex = /^(.*?)(?=\*\*SWOT Analysis)/s;
+  // Access the SWOT configuration
+  const swotConfig = analysisConfig.swot;
+  
+  // Create RegExp objects from the JSON configuration
+  const introRegex = new RegExp(swotConfig.regex.intro, 's');
+  const swotRegex = new RegExp(swotConfig.regex.swot, 'i');
+  const conclusionRegex = new RegExp(analysisConfig.shared.regex.conclusion, 'i');
+  const sectionPattern = new RegExp(swotConfig.regex.sectionPattern, 'gi');
+  
+  // Extract introduction text
   const introMatch = introRegex.exec(analysisResult);
   const introText = introMatch ? introMatch[1].trim() : "";
-
-  const swotRegex = /\*\*\s*SWOT Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*STRATEGIC Acronym\s*:\*\*|$)/i;
+  
+  // Extract SWOT analysis content
   const swotMatch = swotRegex.exec(analysisResult);
   const swotContent = swotMatch ? swotMatch[1].trim() : "";
-
-  const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
+  
+  // Extract conclusion text
   const conclusionMatch = conclusionRegex.exec(analysisResult);
   const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
-
-  const sectionPattern = /\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Strengths|Weaknesses|Opportunities|Threats|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi;
+  
+  // Extract SWOT sections
   const swotData = extractAnalysisSections(swotContent, sectionPattern);
   const labels = Object.keys(swotData);
-
+  
   return (
     <>
-    <h4 className="text-center mt-4"><strong>SWOT Analysis</strong></h4>
+      <h4 className="text-center mt-4"><strong>{swotConfig.headings.main}</strong></h4>
+      
       {introText && <div className="mb-3">{introText}</div>}
-
+      
       {labels.length > 0 && (
         <>
           <h5 className="mb-3">
-            <strong>SWOT Analysis Table</strong>
+            <strong>{swotConfig.headings.table}</strong>
           </h5>
           <div className="table-responsive mb-4">
             <table className="table table-bordered table-striped">
@@ -39,7 +50,7 @@ const SwotAnalysis = ({ analysisResult }) => {
                 <tr>
                   {labels.map(label => (
                     <td key={label}>
-                      {renderAnalysisBoxes(swotData[label], label, 'swot')}
+                      {renderAnalysisBoxes(swotData[label], label)}
                     </td>
                   ))}
                 </tr>
@@ -48,9 +59,9 @@ const SwotAnalysis = ({ analysisResult }) => {
           </div>
         </>
       )}
-
+      
       <StrategicAcronym analysisResult={analysisResult} />
-
+      
       {conclusionText && (
         <div className="mt-3 conclusion-text">
           {conclusionText}
@@ -63,9 +74,12 @@ const SwotAnalysis = ({ analysisResult }) => {
 // Helper function to extract analysis sections
 const extractAnalysisSections = (analysisBlock, sectionPattern) => {
   const analysisData = {};
-
+  
   let m;
-  while ((m = sectionPattern.exec(analysisBlock)) !== null) {
+  // Need to reset the RegExp because it's using the 'g' flag
+  const pattern = new RegExp(sectionPattern);
+  
+  while ((m = pattern.exec(analysisBlock)) !== null) {
     const key = m[1].trim();
     const value = m[2]
       .split(/\n(?=\*\*|\d+\.\s)/)[0]
@@ -73,25 +87,34 @@ const extractAnalysisSections = (analysisBlock, sectionPattern) => {
       .replace(/\n/g, "<br/>");
     analysisData[key] = value;
   }
-
+  
   return analysisData;
 };
 
 // Helper function to render analysis boxes
 const renderAnalysisBoxes = (content, label) => {
+  const swotConfig = analysisConfig.swot;
   const normalizedLabel = label.toLowerCase().replace(/\s+/g, '-');
   const bgClass = `${normalizedLabel}-bg`;
-
+  
   return content
     .split(/<br\s*\/?>\s*(?=<br\s*\/?>|[^<])/i)
     .map((para) => para.trim())
-    .filter((para) => 
-      para !== "" && 
-      para !== "*" && 
-      para !== "<br/>*" && 
-      para !== "<br />*" && 
-      !/^\*+$/.test(para) // removes any line that's just multiple `*`
-    )
+    .filter((para) => {
+      // Filter out strings to ignore
+      if (swotConfig.sectionFilterRules.ignoreStrings.includes(para)) {
+        return false;
+      }
+      
+      // Filter out pattern matches
+      for (const pattern of swotConfig.sectionFilterRules.ignorePatterns) {
+        if (new RegExp(pattern).test(para)) {
+          return false;
+        }
+      }
+      
+      return true;
+    })
     .map((para, idx) => {
       return (
         <div
