@@ -1,32 +1,29 @@
 import React, { useMemo } from 'react';
 import '../styles/Dashboard.css';
 import StrategicAcronym from './StrategicAcronym';
+import analysisConfig from '../utils/analysisConfig.json';
 
 const BCGMatrix = ({ analysisResult }) => {
-  const matrixData = useMemo(() => {
-    if (!analysisResult) return {
-      'Agile Leaders': [],
-      'Established Performers': [],
-      'Emerging Innovators': [],
-      'Strategic Drifters': []
-    };
+  const bcgConfig = analysisConfig.bcg;
 
-    // These are the quadrant labels we expect from the GROQ API based on the strategic planning book
-    const quadrantLabels = [
-      'Agile Leaders', // High Growth / High Market Share (Stars equivalent)
-      'Established Performers', // Low Growth / High Market Share (Cash Cows equivalent)
-      'Emerging Innovators', // High Growth / Low Market Share (Question Marks equivalent)
-      'Strategic Drifters' // Low Growth / Low Market Share (Dogs equivalent)
-    ];
+  const matrixData = useMemo(() => {
+    if (!analysisResult) {
+      const initialData = {};
+      bcgConfig.quadrants.forEach(quadrant => {
+        initialData[quadrant] = [];
+      });
+      return initialData;
+    }
 
     const extractedData = {};
-
-    quadrantLabels.forEach(label => {
-      // Pattern to match each quadrant section
-      // Handles both (High Share / High Growth) format and other potential variants
+    const allQuadrants = bcgConfig.quadrants.join('|');
+    
+    bcgConfig.quadrants.forEach(quadrant => {
+      // Create the regex pattern by replacing placeholders
       const pattern = new RegExp(
-        `\\*\\*\\s*${label}\\s*(?:\\(.*?\\))?\\s*:\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*\\s*(?:${quadrantLabels.join('|')
-        }|STRATEGIC Acronym)\\s*(?:\\(.*?\\))?\\s*:\\*\\*|$)`,
+        bcgConfig.regex.quadrant
+          .replace('{quadrant}', quadrant)
+          .replace('{allQuadrants}', allQuadrants),
         'i'
       );
 
@@ -34,33 +31,29 @@ const BCGMatrix = ({ analysisResult }) => {
 
       if (match) {
         const content = match[1].trim();
-
-        // Extract items from bullet points, dashes, or numbered lists
         const items = content
           .split(/\n+/)
           .map(line => line.replace(/^[\s•\-\d.]+/, '').trim())
           .filter(item => item.length > 0);
-
-        extractedData[label] = items;
+        extractedData[quadrant] = items;
       } else {
-        extractedData[label] = [];
+        extractedData[quadrant] = [];
       }
     });
 
     return extractedData;
-  }, [analysisResult]);
+  }, [analysisResult, bcgConfig]);
 
   const getConclusionText = () => {
     if (!analysisResult) return "";
-
-    const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
+    const conclusionRegex = new RegExp(analysisConfig.shared.regex.conclusion, 'i');
     const conclusionMatch = conclusionRegex.exec(analysisResult);
     return conclusionMatch ? conclusionMatch[0] : "";
   };
 
   return (
     <div className="bcg-matrix-container">
-       <h4 className="text-center mt-4"><strong>BCG Matrix Analysis</strong></h4> 
+      <h4 className="text-center mt-4"><strong>{bcgConfig.title}</strong></h4> 
       <div className="bcg-matrix-template">
         <div className="bcg-matrix-header">
           <div className="matrix-label-y">High</div>
@@ -71,9 +64,9 @@ const BCGMatrix = ({ analysisResult }) => {
         <div className="bcg-matrix-grid">
           {/* Agile Leaders (Stars) - Top Left */}
           <div className="bcg-box stars-bg">
-            <h6>Agile Leaders</h6>
-            <p className="matrix-description">(High Share / High Growth)</p>
-            {matrixData['Agile Leaders'].map((item, i) => (
+            <h6>{bcgConfig.quadrants[0]}</h6>
+            <p className="matrix-description">{bcgConfig.descriptions[bcgConfig.quadrants[0]]}</p>
+            {matrixData[bcgConfig.quadrants[0]].map((item, i) => (
               <div key={`agile-${i}`} className="analysis-box">
                 {item}
               </div>
@@ -82,9 +75,9 @@ const BCGMatrix = ({ analysisResult }) => {
 
           {/* Emerging Innovators (Question Marks) - Top Right */}
           <div className="bcg-box question-marks-bg">
-            <h6>Emerging Innovators</h6>
-            <p className="matrix-description">(Low Share / High Growth)</p>
-            {matrixData['Emerging Innovators'].map((item, i) => (
+            <h6>{bcgConfig.quadrants[2]}</h6>
+            <p className="matrix-description">{bcgConfig.descriptions[bcgConfig.quadrants[2]]}</p>
+            {matrixData[bcgConfig.quadrants[2]].map((item, i) => (
               <div key={`emerging-${i}`} className="analysis-box">
                 {item}
               </div>
@@ -93,9 +86,9 @@ const BCGMatrix = ({ analysisResult }) => {
 
           {/* Established Performers (Cash Cows) - Bottom Left */}
           <div className="bcg-box cash-cows-bg">
-            <h6>Established Performers</h6>
-            <p className="matrix-description">(High Share / Low Growth)</p>
-            {matrixData['Established Performers'].map((item, i) => (
+            <h6>{bcgConfig.quadrants[1]}</h6>
+            <p className="matrix-description">{bcgConfig.descriptions[bcgConfig.quadrants[1]]}</p>
+            {matrixData[bcgConfig.quadrants[1]].map((item, i) => (
               <div key={`established-${i}`} className="analysis-box">
                 {item}
               </div>
@@ -104,9 +97,9 @@ const BCGMatrix = ({ analysisResult }) => {
 
           {/* Strategic Drifters (Dogs) - Bottom Right */}
           <div className="bcg-box dogs-bg">
-            <h6>Strategic Drifters</h6>
-            <p className="matrix-description">(Low Share / Low Growth)</p>
-            {matrixData['Strategic Drifters'].map((item, i) => (
+            <h6>{bcgConfig.quadrants[3]}</h6>
+            <p className="matrix-description">{bcgConfig.descriptions[bcgConfig.quadrants[3]]}</p>
+            {matrixData[bcgConfig.quadrants[3]].map((item, i) => (
               <div key={`drifters-${i}`} className="analysis-box">
                 {item}
               </div>

@@ -1,27 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/Dashboard.css';
 import StrategicAcronym from './StrategicAcronym';
+import analysisConfig from '../utils/analysisConfig.json';
 
-const ValueChainMatrix = ({ analysisResult }) => {
-  const [sections, setSections] = useState({
-    primaryActivities: {
-      overview: '',
-      inboundLogistics: '',
-      operations: '',
-      outboundLogistics: '',
-      marketingSales: '',
-      service: ''
-    },
-    supportActivities: {
-      overview: '',
-      firmInfrastructure: '',
-      hrManagement: '',
-      techDevelopment: '',
-      procurement: ''
-    },
+// Helper functions moved outside the component
+const getActivityKey = (label) => {
+  return label.toLowerCase().replace(/\s+/g, '').replace('&', '');
+};
+
+const initializeActivities = (config) => {
+  const initialState = {
+    primaryActivities: {},
+    supportActivities: {},
     margin: { summary: '' },
     linkages: { summary: '' },
+  };
+  
+  // Initialize primary activities
+  config.sections.primary.activities.forEach(activity => {
+    initialState.primaryActivities[getActivityKey(activity)] = '';
   });
+  
+  // Initialize support activities
+  config.sections.support.activities.forEach(activity => {
+    initialState.supportActivities[getActivityKey(activity)] = '';
+  });
+  
+  return initialState;
+};
+
+const ValueChainMatrix = ({ analysisResult }) => { 
+  const vcConfig = analysisConfig.valuechain; 
+  const [sections, setSections] = useState(() => initializeActivities(vcConfig));
 
   useEffect(() => {
     if (analysisResult) {
@@ -30,79 +40,61 @@ const ValueChainMatrix = ({ analysisResult }) => {
     }
   }, [analysisResult]);
 
-  // Function to parse the analysisResult and extract relevant sections
+  const cleanText = (text) => text.replace(/^:\s*/, '');
+
   const parseAnalysisResult = (text) => {
-    const result = {
-      primaryActivities: {
-        overview: '',
-        inboundLogistics: '',
-        operations: '',
-        outboundLogistics: '',
-        marketingSales: '',
-        service: ''
-      },
-      supportActivities: {
-        overview: '',
-        firmInfrastructure: '',
-        hrManagement: '',
-        techDevelopment: '',
-        procurement: ''
-      },
-      margin: { summary: '' },
-      linkages: { summary: '' },
-    };
+    const result = initializeActivities(vcConfig);
 
-    // Parse Primary Activities section
-    const primaryMatch = text.match(/\*\*Primary Activities:\*\*([\s\S]*?)(?=\*\*Support Activities:|$)/i);
-    
-    if (primaryMatch) {
-      const primaryContent = primaryMatch[1].trim();
+    // Parse Primary Activities
+    const primarySectionMatch = new RegExp(vcConfig.sections.primary.regex.section, 'i').exec(text);
+    if (primarySectionMatch) {
+      const primaryContent = primarySectionMatch[1].trim();
       
-      // Extract individual activities using bullet point pattern
-      const inboundMatch = primaryContent.match(/- \*\*Inbound Logistics:\*\*([\s\S]*?)(?=- \*\*Operations:|$)/i);
-      if (inboundMatch) result.primaryActivities.inboundLogistics = inboundMatch[1].trim();
-      
-      const operationsMatch = primaryContent.match(/- \*\*Operations:\*\*([\s\S]*?)(?=- \*\*Outbound Logistics:|$)/i);
-      if (operationsMatch) result.primaryActivities.operations = operationsMatch[1].trim();
-      
-      const outboundMatch = primaryContent.match(/- \*\*Outbound Logistics:\*\*([\s\S]*?)(?=- \*\*Marketing (?:\u0026|&) Sales:|$)/i);
-      if (outboundMatch) result.primaryActivities.outboundLogistics = outboundMatch[1].trim();
-      
-      const marketingMatch = primaryContent.match(/- \*\*Marketing (?:\u0026|&) Sales:\*\*([\s\S]*?)(?=- \*\*Service:|$)/i);
-      if (marketingMatch) result.primaryActivities.marketingSales = marketingMatch[1].trim();
-      
-      const serviceMatch = primaryContent.match(/- \*\*Service:\*\*([\s\S]*?)(?=$)/i);
-      if (serviceMatch) result.primaryActivities.service = serviceMatch[1].trim();
+      vcConfig.sections.primary.activities.forEach((activity, index) => {
+        const nextActivity = index < vcConfig.sections.primary.activities.length - 1 
+          ? vcConfig.sections.primary.activities[index + 1] 
+          : '';
+        
+        const activityPattern = vcConfig.sections.primary.regex.activity
+          .replace('{activity}', activity)
+          .replace('{nextActivity}', nextActivity);
+        
+        const activityMatch = new RegExp(activityPattern, 'i').exec(primaryContent);
+        if (activityMatch) {
+          result.primaryActivities[getActivityKey(activity)] = cleanText(activityMatch[1].trim());
+        }
+      });
     }
 
-    // Parse Support Activities section
-    const supportMatch = text.match(/\*\*Support Activities:\*\*([\s\S]*?)(?=\*\*Margin:|$)/i);
-    
-    if (supportMatch) {
-      const supportContent = supportMatch[1].trim();
+    // Parse Support Activities
+    const supportSectionMatch = new RegExp(vcConfig.sections.support.regex.section, 'i').exec(text);
+    if (supportSectionMatch) {
+      const supportContent = supportSectionMatch[1].trim();
       
-      // Extract individual support activities
-      const infraMatch = supportContent.match(/- \*\*Firm Infrastructure:\*\*([\s\S]*?)(?=- \*\*Human Resource Management:|$)/i);
-      if (infraMatch) result.supportActivities.firmInfrastructure = infraMatch[1].trim();
-      
-      const hrMatch = supportContent.match(/- \*\*Human Resource Management:\*\*([\s\S]*?)(?=- \*\*Technology Development:|$)/i);
-      if (hrMatch) result.supportActivities.hrManagement = hrMatch[1].trim();
-      
-      const techMatch = supportContent.match(/- \*\*Technology Development:\*\*([\s\S]*?)(?=- \*\*Procurement:|$)/i);
-      if (techMatch) result.supportActivities.techDevelopment = techMatch[1].trim();
-      
-      const procurementMatch = supportContent.match(/- \*\*Procurement:\*\*([\s\S]*?)(?=$)/i);
-      if (procurementMatch) result.supportActivities.procurement = procurementMatch[1].trim();
+      vcConfig.sections.support.activities.forEach((activity, index) => {
+        const nextActivity = index < vcConfig.sections.support.activities.length - 1 
+          ? vcConfig.sections.support.activities[index + 1] 
+          : '';
+        
+        const activityPattern = vcConfig.sections.support.regex.activity
+          .replace('{activity}', activity)
+          .replace('{nextActivity}', nextActivity);
+        
+        const activityMatch = new RegExp(activityPattern, 'i').exec(supportContent);
+        if (activityMatch) {
+          result.supportActivities[getActivityKey(activity)] = cleanText(activityMatch[1].trim());
+        }
+      });
     }
 
-    // Parse Margin section
-    const marginMatch = text.match(/\*\*Margin:\*\*([\s\S]*?)(?=\*\*Linkages:|$)/i);
+    // Parse Margin
+    const marginMatch = new RegExp(vcConfig.sections.margin.regex, 'i').exec(text);
     if (marginMatch) {
       result.margin.summary = marginMatch[1].trim();
     }
 
-    // Parse Linkages section
-    const linkagesMatch = text.match(/\*\*Linkages:\*\*([\s\S]*?)(?=\*\*STRATEGIC Acronym:|$)/i);
+    // Parse Linkages
+    const linkagesMatch = new RegExp(vcConfig.sections.linkages.regex, 'i').exec(text);
     if (linkagesMatch) {
       result.linkages.summary = linkagesMatch[1].trim();
     }
@@ -112,30 +104,29 @@ const ValueChainMatrix = ({ analysisResult }) => {
 
   const getConclusionText = () => {
     if (!analysisResult) return "";
-
-    const conclusionRegex = /By following the STRATEGIC acronym[\s\S]*?$/i;
+    const conclusionRegex = new RegExp(analysisConfig.shared.regex.conclusion, 'i');
     const conclusionMatch = conclusionRegex.exec(analysisResult);
     return conclusionMatch ? conclusionMatch[0] : "";
   };
 
   return (
     <div className="value-chain-static">
-      <h4 className="text-center mb-4">Value Chain Analysis</h4>
+      <h4 className="text-center mb-4">{vcConfig.title}</h4>
 
-      {/* Support Activities */}
+      {/* Support Activities - Top Row */}
       <div className="support-activities">
         <div className="support-row">
           <div className="support-block infrastructure">
             <strong>Firm Infrastructure</strong>
-            <span>{sections.supportActivities.firmInfrastructure || 'No analysis available.'}</span>
+            <span>{sections.supportActivities.firminfrastructure || 'No analysis available.'}</span>
           </div>
           <div className="support-block hr">
             <strong>Human Resource Management</strong>
-            <span>{sections.supportActivities.hrManagement || 'No analysis available.'}</span>
+            <span>{sections.supportActivities.humanresourcemanagement || 'No analysis available.'}</span>
           </div>
           <div className="support-block tech">
             <strong>Technology Development</strong>
-            <span>{sections.supportActivities.techDevelopment || 'No analysis available.'}</span>
+            <span>{sections.supportActivities.technologydevelopment || 'No analysis available.'}</span>
           </div>
           <div className="support-block procurement">
             <strong>Procurement</strong>
@@ -144,11 +135,11 @@ const ValueChainMatrix = ({ analysisResult }) => {
         </div>
       </div>
 
-      {/* Primary Activities */}
+      {/* Primary Activities - Bottom Row */}
       <div className="primary-activities">
         <div className="primary-block inbound">
           <strong>Inbound Logistics</strong>
-          <span>{sections.primaryActivities.inboundLogistics || 'No analysis available.'}</span>
+          <span>{sections.primaryActivities.inboundlogistics || 'No analysis available.'}</span>
         </div>
         <div className="primary-block operations">
           <strong>Operations</strong>
@@ -156,11 +147,11 @@ const ValueChainMatrix = ({ analysisResult }) => {
         </div>
         <div className="primary-block outbound">
           <strong>Outbound Logistics</strong>
-          <span>{sections.primaryActivities.outboundLogistics || 'No analysis available.'}</span>
+          <span>{sections.primaryActivities.outboundlogistics || 'No analysis available.'}</span>
         </div>
         <div className="primary-block marketing">
           <strong>Marketing & Sales</strong>
-          <span>{sections.primaryActivities.marketingSales || 'No analysis available.'}</span>
+          <span>{sections.primaryActivities.marketingsales || 'No analysis available.'}</span>
         </div>
         <div className="primary-block service">
           <strong>Service</strong>
@@ -171,23 +162,20 @@ const ValueChainMatrix = ({ analysisResult }) => {
       {/* Margin and Linkages Analysis */}
       <div className="blue-triangle-container">
         <div className="blue-triangle">
-        <div className="margin-analysis left-slant">
-          <h5>Margin Analysis</h5>
-          <p>{sections.margin.summary || 'No margin analysis available.'}</p>
+          <div className="margin-analysis left-slant">
+            <h5>Margin Analysis</h5>
+            <p>{sections.margin.summary || 'No margin analysis available.'}</p>
+          </div>
+          
+          <div className="linkages-analysis right-slant">
+            <h5>Linkages Analysis</h5>
+            <p>{sections.linkages.summary || 'No linkages analysis available.'}</p>
+          </div>
         </div>
-        
-        <div className="linkages-analysis right-slant">
-          <h5>Linkages Analysis</h5>
-          <p>{sections.linkages.summary || 'No linkages analysis available.'}</p>
-        </div>
-        </div>
-        
       </div>
 
-      {/* Strategic Acronym */}
       <StrategicAcronym analysisResult={analysisResult} />
       
-      {/* Conclusion */}
       {getConclusionText() && (
         <div className="mt-3 conclusion-text">
           {getConclusionText()}
