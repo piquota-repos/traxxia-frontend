@@ -1,269 +1,348 @@
 [
   {
     "id": 1,
-    "name": "Business Fundamentals",
+    "name": "Customer",
     "questions": [
       {
         "id": "1a",
-        "nested": {
-          "id": "a) ",
-          "question": "Industry and Market Niche"
-        },
-        "question": "What industry does your business operate in, and what specific market niche do you target?",
+        "nested": { "id": "a)", "question": "Target Demographics" },
+        "question": "Who are your target demographics?",
         "type": "open-ended"
       },
       {
         "id": "1b",
-        "nested": {
-          "id": "b) ",
-          "question": "Business Model"
-        },
-        "question": "How would you describe your business model?",
-        "type": "options",
-        "options": ["B2B", "B2C", "Subscription-based", "Freemium", "Other"]
+        "nested": { "id": "b)", "question": "Customer Segments" },
+        "question": "How do you segment your customer base?",
+        "type": "open-ended"
       },
       {
         "id": "1c",
-        "nested": {
-          "id": "c) ",
-          "question": "Mission/Vision"
-        },
-        "question": "What is your company's mission, and how does it align with your vision?",
+        "nested": { "id": "c)", "question": "Customer Pain Points" },
+        "question": "What are the main pain points or unmet needs of your customers?",
         "type": "open-ended"
       },
       {
         "id": "1d",
-        "nested": {
-          "id": "d) ",
-          "question": "Core Values"
-        },
-        "question": "What are your company's core values, and how do they influence your operations?",
+        "nested": { "id": "d)", "question": "Purchasing Behaviors" },
+        "question": "What influences your customers' purchasing decisions?",
+        "type": "open-ended"
+      },
+      { 
+        "id": "1e",
+        "nested": { "id": "e)", "question": "How do you measure customer satisfaction and loyalty (e.g., Net Promoter Score)?" },
         "type": "open-ended"
       },
       {
-        "id": "1e",
-        "nested": {
-          "id": "e) ",
-          "question": "Product/Service Description"
-        },
-        "question": "Provide a detailed description of your products or services.",
+        "id": "1f",
+        "nested": { "id": "f)", "question": "How do you incorporate customer feedback into your product/service development process?" },
+        "type": "open-ended"
+      },
+      {
+        "id": "1g",
+        "nested": { "id": "g)", "question": "What digital channels do you use to engage with and understand your customers?" },
+        "type": "open-ended"
+      },
+      {
+        "id": "1h",
+        "nested": { "id": "h)", "question": "How do you identify and validate new customer opportunities?" },
         "type": "open-ended"
       }
     ]
   },
   {
     "id": 2,
-    "name": "Market and Consumer Data",
+    "name": "Competitors",
     "questions": [
       {
         "id": "2a",
-        "nested": {
-          "id": "a) ",
-          "question": "Target Demographics"
-        },
-        "question": "Who are your target demographics?",
-        "type": "options",
-        "options": ["Age range", "Gender", "Income level", "Other"]
+        "nested": { "id": "a)", "question": "Competitive Landscape" },
+        "question": "Who are your main competitors, and what are their market positions and strengths?",
+        "type": "open-ended"
       },
       {
         "id": "2b",
-        "nested": {
-          "id": "b) ",
-          "question": "Customer Segments"
-        },
-        "question": "How do you segment your customer base?",
+        "nested": { "id": "b)", "question": "How do you differentiate your products/services from competitors?" },
         "type": "open-ended"
       },
       {
         "id": "2c",
-        "nested": {
-          "id": "c) ",
-          "question": "Customer Pain Points"
-        },
-        "question": "What are the main pain points or unmet needs of your customers?",
-        "type": "open-ended"
-      },
-      {
-        "id": "2d",
-        "nested": {
-          "id": "d) ",
-          "question": "Purchasing Behaviors"
-        },
-        "question": "What influences your customers' purchasing decisions?",
-        "type": "options",
-        "options": ["Price", "Quality", "Brand loyalty", "Other"]
-      },
-      {
-        "id": "2e",
-        "nested": {
-          "id": "e) ",
-          "question": "Market Trends"
-        },
-        "question": "What current and emerging trends are impacting your industry?",
-        "type": "open-ended"
-      },
-      {
-        "id": "2f",
-        "nested": {
-          "id": "f) ",
-          "question": "Competitive Landscape"
-        },
-        "question": "Who are your main competitors, and what are their market positions and strengths?",
+        "nested": { "id": "c)", "question": "What is your unique value proposition compared to competitors?" },
         "type": "open-ended"
       }
     ]
   },
   {
     "id": 3,
-    "name": "Financial Metrics",
+    "name": "Context",
     "questions": [
       {
         "id": "3a",
-        "nested": {
-          "id": "a) ",
-          "question": "Revenue Streams"
-        },
-        "question": "What are your main revenue streams?",
+        "nested": { "id": "a)", "question": "Industry and Market Niche" },
+        "question": "What industry does your business operate in, and what specific market niche do you target?",
         "type": "open-ended"
       },
       {
         "id": "3b",
-        "nested": {
-          "id": "b) ",
-          "question": "Profit Margins"
-        },
-        "question": "What are your profit margins, and how do they compare to industry standards?",
+        "nested": { "id": "b)", "question": "Market Trends" },
+        "question": "What current and emerging trends are impacting your industry?",
         "type": "open-ended"
       },
       {
         "id": "3c",
-        "nested": {
-          "id": "c) ",
-          "question": "Cost Structure"
-        },
-        "question": "What are your major cost components, and how can they be optimized?",
+        "nested": { "id": "c)", "question": "Operational Challenges" },
+        "question": "What operational challenges does your business face?",
         "type": "open-ended"
       },
       {
         "id": "3d",
-        "nested": {
-          "id": "d) ",
-          "question": "Historical Performance"
-        },
-        "question": "How has your business performed financially over the past few years?",
+        "nested": { "id": "d)", "question": "How has your business adapted to recent market disruptions?" },
+     
         "type": "open-ended"
       },
       {
         "id": "3e",
-        "nested": {
-          "id": "e) ",
-          "question": "Financial Ratios"
-        },
-        "question": "What key financial ratios do you track, and what do they indicate about your business?",
+        "nested": { "id": "e)", "question": "What regulatory changes are impacting or might impact your industry?" },
+   
         "type": "open-ended"
       },
       {
         "id": "3f",
-        "nested": {
-          "id": "f) ",
-          "question": "Growth Rates"
-        },
-        "question": "What are your growth rates, and how do they compare to industry averages?",
+        "nested": { "id": "f)", "question": "How do you stay informed about emerging technologies relevant to your industry?" },
+        
+        "type": "open-ended"
+      },
+      {
+        "id": "3g",
+        "nested": { "id": "g)", "question": "What geopolitical or economic factors most affect your business?" },
+      
+        "type": "open-ended"
+      },
+      {
+        "id": "3h",
+        "nested": { "id": "h)", "question": "How do you assess and prepare for potential industry disruptions?" },
+   
         "type": "open-ended"
       }
     ]
   },
   {
-    "id": 4,
-    "name": "Operational & Technological Insights",
-    "questions": [
-      {
-        "id": "4a",
-        "nested": {
-          "id": "a) ",
-          "question": "Technology Infrastructure"
+  "id": 4,
+  "name": "Core",
+  "questions": [
+    {
+      "id": "4a",
+      "nested": { "id": "a)", "question": "Revenue Streams" },
+      "question": "What are your main revenue streams?",
+      "type": "open-ended"
+    },
+    {
+      "id": "4b",
+      "nested": { "id": "b)", "question": "Profit Margins" },
+      "question": "What are your profit margins, and how do they compare to industry standards?",
+      "type": "open-ended"
+    },
+    {
+      "id": "4c",
+      "nested": { "id": "c)", "question": "Cost Structure" },
+      "question": "What are your major cost components, and how can they be optimized?",
+      "type": "open-ended"
+    },
+    {
+      "id": "4d",
+      "nested": { "id": "d)", "question": "Historical Performance" },
+      "question": "How has your business performed financially over the past few years?",
+      "type": "open-ended"
+    },
+    {
+      "id": "4e",
+      "nested": { "id": "e)", "question": "Financial Ratios" },
+      "question": "What key financial ratios do you track, and what do they indicate about your business?",
+      "type": "open-ended"
+    },
+    {
+      "id": "4f",
+      "nested": { "id": "f)", "question": "Growth Rates" },
+      "question": "What are your growth rates, and how do they compare to industry averages?",
+      "type": "open-ended"
+    },
+    {
+      "id": "4g",
+      "nested": { "id": "g)", "question": "How do you measure return on invested capital (ROIC), and how does it compare to your cost of capital?" },
+      "type": "open-ended"
+    },
+    {
+      "id": "4h",
+      "nested": { "id": "h)", "question": "What is your economic value added (EVA)?" },
+      "type": "open-ended"
+    },
+    {
+      "id": "4i",
+      "nested": { "id": "i)", "question": "How do you allocate capital across different business units or projects?" },
+      "type": "open-ended"
+    },
+    {
+      "id": "4j",
+      "nested": { "id": "j)", "question": "What cost optimization strategies are you currently implementing?" },
+      "type": "open-ended"
+    },
+    {
+      "id": "4k",
+      "nested": { "id": "k)", "question": "How do you balance short-term financial results with long-term investments?" },
+      "type": "open-ended"
+    },
+    {
+          "id": "4l",
+          "nested": { "id": "l)", "question": "Product/Service Description" },
+          "question": "Provide a detailed description of your products or services",
+          "type": "open-ended"
         },
-        "question": "How would you rate your current technology infrastructure?",
-        "type": "options",
-        "options": ["Advanced", "Moderate", "Early stages", "Other"]
-      },
-      {
-        "id": "4b",
-        "nested": {
-          "id": "b) ",
-          "question": "Production Processe"
+        {
+          "id": "4m",
+          "nested": { "id": "m)", "question": "Technology Infrastructure" },
+          "question": "How would you rate your current technology infrastructure?",
+          "type": "open-ended"
         },
-        "question": "Describe your production processes and how they contribute to your operations.",
-        "type": "open-ended"
-      },
-      {
-        "id": "4c",
-        "nested": {
-          "id": "c) ",
-          "question": "Innovation Capabilities"
+        {
+          "id": "4n",
+          "nested": { "id": "n)", "question": "Production Processes" },
+          "question": "Describe your production processes and how they contribute to your operations.",
+          "type": "open-ended"
         },
-        "question": "How would you rate your company's ability to innovate, and what processes are in place to drive innovation?",
-        "type": "open-ended"
-      },
-      {
-        "id": "4d",
-        "nested": {
-          "id": "d) ",
-          "question": "Operational Challenges"
+        {
+          "id": "4o",
+          "nested": { "id": "o)", "question": "Innovation Capabilities" },
+          "question": "How would you rate your company's ability to innovate, and what processes are in place to drive innovation?",
+          "type": "open-ended"
         },
-        "question": "What operational challenges does your business face?",
-        "type": "options",
-        "options": ["Supply chain issues", "Regulatory compliance", "Skill gaps", "Other"]
-      },
-      {
-        "id": "4e",
-        "nested": {
-          "id": "e) ",
-          "question": "Skill Gaps"
+        {
+          "id": "4p",
+          "nested": { "id": "p)", "question": "Skill Gaps" },
+          "question": "Are there any skill gaps within your organization that could hinder your strategic goals?",
+          "type": "open-ended"
         },
-        "question": "Are there any skill gaps within your organization that could hinder your strategic goals?",
-        "type": "open-ended"
-      }
-    ]
-  },
+        {
+          "id": "4q",
+          "nested": { "id": "q)", "question": "How does your organization foster a culture of innovation and experimentation?" },
+          "type": "open-ended"
+        },
+        {
+          "id": "4r",
+          "nested": { "id": "r)", "question": "How agile is your decision-making process?" },
+          "type": "open-ended"
+        },
+        {
+          "id": "4s",
+          "nested": { "id": "s)", "question": "How do you leverage data analytics for strategic decision-making?" },
+          "type": "open-ended"
+        },
+        {
+          "id": "4t",
+          "nested": { "id": "t)", "question": "What technologies are you implementing to enhance your operational efficiency?" },
+          "type": "open-ended"
+        },
+        {
+          "id": "4u",
+          "nested": { "id": "u)", "question": "How do you implement continuous improvement in your organization?" },
+          "type": "open-ended"
+        },
+        {
+          "id": "4v",
+          "nested": { "id": "v)", "question": "How do you measure and improve your organization's adaptability to change?" },
+          "type": "open-ended"
+        },
+        {
+          "id": "4w",
+          "nested": { "id": "w)", "question": "How do you monitor and respond to competitors' strategies and market moves?" },
+          "type": "open-ended"
+        },
+        {
+          "id": "4x",
+          "nested": { "id": "x)", "question": "How do you benchmark your performance against industry leaders? " },
+          "type": "open-ended"
+        }
+  ]
+},
+
+
   {
     "id": 5,
-    "name": "Strategic Goals & Challenges",
+    "name": "Current Strategy and monitoring",
     "questions": [
       {
         "id": "5a",
-        "nested": {
-          "id": "a) ",
-          "question": "Short-Term Objectives"
-        },
-        "question": "What are your short-term strategic goals?",
+        "nested": { "id": "a)", "question": "Business Model" },
+        "question": "How would you describe your business model?",
         "type": "open-ended"
       },
       {
         "id": "5b",
-        "nested": {
-          "id": "b) ",
-          "question": "Long-Term Objectives"
-        },
-        "question": "What are your long-term strategic goals?",
+        "nested": { "id": "a)", "question": "Mission/Vision" },
+        "question": "What is your company's mission, and how does it align with your vision?",
         "type": "open-ended"
       },
       {
         "id": "5c",
-        "nested": {
-          "id": "c) ",
-          "question": "Areas for Improvement"
-        },
-        "question": "What areas require improvement or present new growth opportunities?",
+        "nested": { "id": "b)", "question": "Core Values" },
+        "question": "What are your company's core values, and how do they influence your operations?",
         "type": "open-ended"
       },
       {
         "id": "5d",
-        "nested": {
-          "id": "d) ",
-          "question": "Growth Opportunities"
-        },
+        "nested": { "id": "c)", "question": "Short-Term Objectives" },
+        "question": "What are your short-term strategic goals?",
+        "type": "open-ended"
+      },
+      {
+        "id": "5e",
+        "nested": { "id": "d)", "question": "Long-Term Objectives" },
+        "question": "What are your long-term strategic goals?",
+        "type": "open-ended"
+      },
+      {
+        "id": "5f",
+        "nested": { "id": "e)", "question": "Areas for Improvement" },
+        "question": "What areas require improvement or present new growth opportunities?",
+        "type": "open-ended"
+      },
+      {
+        "id": "5g",
+        "nested": { "id": "f)", "question": "Growth Opportunities" },
         "question": "What new growth opportunities are you considering?",
+        "type": "open-ended"
+      },
+      {
+        "id": "5h",
+        "nested": { "id": "g)", "question": "How do you translate your strategic vision into actionable tactics?" },
+        "type": "open-ended"
+      },
+      {
+        "id": "5i",
+        "nested": { "id": "h)", "question": "How do you ensure alignment between strategic goals and daily operations?" },
+        "type": "open-ended"
+      },
+      {
+        "id": "5j",
+        "nested": { "id": "h)", "question": "What frameworks do you use for setting and tracking strategic goals (e.g., OKRs)?" },
+        "type": "open-ended"
+      },
+      {
+        "id": "5k",
+        "nested": { "id": "h)", "question": "How do you foster a strategic mindset throughout your organization?" },
+        "type": "open-ended"
+      },
+      {
+        "id": "5l",
+        "nested": { "id": "h)", "question": "How do you balance agility with long-term strategic planning?" },
+        "type": "open-ended"
+      },
+      {
+        "id": "5m",
+        "nested": { "id": "h)", "question": "How do you evaluate the success of your strategic initiatives?" },
+        "type": "open-ended"
+      },
+      {
+        "id": "5n",
+        "nested": { "id": "h)", "question": "What competitive advantages do you possess, and how do you maintain them?" },
         "type": "open-ended"
       }
     ]
