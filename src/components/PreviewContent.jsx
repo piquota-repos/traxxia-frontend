@@ -1,25 +1,25 @@
 import { useState, useEffect } from "react";
-import { Modal, Button, Card, Collapse } from "react-bootstrap";  
-import { ChevronDown, ChevronUp } from "react-bootstrap-icons";  
+import { Modal, Button, Card, Collapse } from "react-bootstrap";
+import { ChevronDown, ChevronUp } from "react-bootstrap-icons";
 
 const PreviewContent = ({ showModal, onHide, categories, answers }) => {
-  const [openCards, setOpenCards] = useState({});  
+  const [openCards, setOpenCards] = useState({});
   useEffect(() => {
     const initialOpenState = categories.reduce((acc, category) => {
       category.questions.forEach((question) => {
-        acc[question.id] = true;  
+        acc[question.id] = true;
       });
       return acc;
     }, {});
 
-    setOpenCards(initialOpenState);  
+    setOpenCards(initialOpenState);
   }, [categories]);
 
   const handleToggle = (event, cardId) => {
-    event.preventDefault();  
-    setOpenCards(prevState => ({
+    event.preventDefault();
+    setOpenCards((prevState) => ({
       ...prevState,
-      [cardId]: !prevState[cardId]  
+      [cardId]: !prevState[cardId],
     }));
   };
 
@@ -33,15 +33,19 @@ const PreviewContent = ({ showModal, onHide, categories, answers }) => {
             <Card key={question.id} className="mb-3 preview-card">
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">
-                  <p className="preview-question">{question.question}</p>
+                  <p className="preview-question">
+                    {question.question ||
+                      question.nested?.question ||
+                      "No question provided"}
+                  </p>
                   <button
                     className="btn btn-link p-0"
-                    onClick={(e) => handleToggle(e, question.id)} 
+                    onClick={(e) => handleToggle(e, question.id)}
                   >
                     {openCards[question.id] ? (
-                      <ChevronUp size={20} />  
+                      <ChevronUp size={20} />
                     ) : (
-                      <ChevronDown size={20} />  
+                      <ChevronDown size={20} />
                     )}
                   </button>
                 </div>

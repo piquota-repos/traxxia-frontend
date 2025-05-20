@@ -38,6 +38,11 @@
         "type": "open-ended"
       },
       {
+        "id": "1f",
+        "nested": { "id": "f)", "question": "How do you incorporate customer feedback into your product/service development process?" },
+        "type": "open-ended"
+      },
+      {
         "id": "1g",
         "nested": { "id": "g)", "question": "What digital channels do you use to engage with and understand your customers?" },
         "type": "open-ended"
