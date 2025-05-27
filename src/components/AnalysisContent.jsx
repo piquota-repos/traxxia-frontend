@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useEffect,useState} from 'react';
 import { ProgressBar } from 'react-bootstrap';
 import {
   Activity,
@@ -8,6 +8,7 @@ import {
   BarChart,
   Network,
   Link,
+  ChartColumnBig,
   Grid
 } from 'lucide-react';  
 import ValueChainMatrix from './ValueChainMatrix';
@@ -18,6 +19,7 @@ import StrategicAcronym from './StrategicAcronym';
 
 // Constants
 const ANALYSIS_ICONS = {
+  strategic: ChartColumnBig,
   swot: Activity,
   pestle: Briefcase,
   noise: Bell,
@@ -31,24 +33,29 @@ const ANALYSIS_ICONS = {
 // Analysis section configuration for different analysis types
 const ANALYSIS_CONFIG = { 
   swot: {
-    mainPattern: /\*\*\s*SWOT Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-    sectionPattern: /\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Strengths|Weaknesses|Opportunities|Threats|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+    mainPattern: /\*\*\s*SWOT Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$)/i,
+    sectionPattern: /\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Strengths|Weaknesses|Opportunities|Threats|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
     title: "SWOT Analysis Table"
   }, 
   porter: {
-    mainPattern: /\*\*\s*Porter(?:'s)? Five Forces Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-    sectionPattern: /\*\*\s*(Supplier Power|Buyer Power|Competitive Rivalry|Threat of Substitution|Threat of New Entry)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Supplier Power|Buyer Power|Competitive Rivalry|Threat of Substitution|Threat of New Entry|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+    mainPattern: /\*\*\s*Porter(?:'s)? Five Forces Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$)/i,
+    sectionPattern: /\*\*\s*(Supplier Power|Buyer Power|Competitive Rivalry|Threat of Substitution|Threat of New Entry)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Supplier Power|Buyer Power|Competitive Rivalry|Threat of Substitution|Threat of New Entry|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
     title: "Porter's Five Forces Analysis"
   },
   valuechain: {
-    mainPattern: /\*\*\s*Value Chain Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-    sectionPattern: /\*\*\s*(Primary Activities|Support Activities|Margin Analysis)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Primary Activities|Support Activities|Margin Analysis|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+    mainPattern: /\*\*\s*Value Chain Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$)/i,
+    sectionPattern: /\*\*\s*(Primary Activities|Support Activities|Margin Analysis)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Primary Activities|Support Activities|Margin Analysis|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
     title: "Value Chain Analysis"
   },
   bcg: {
-    mainPattern: /\*\*\s*BCG Matrix Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|STRATEGIC Acronym|Next Steps|Recommendations)\s*:\*\*|$)/i,
-    sectionPattern: /\*\*\s*(Stars|Cash Cows|Question Marks|Dogs)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Stars|Cash Cows|Question Marks|Dogs|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+    mainPattern: /\*\*\s*BCG Matrix Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$)/i,
+    sectionPattern: /\*\*\s*(Stars|Cash Cows|Question Marks|Dogs)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Stars|Cash Cows|Question Marks|Dogs|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
     title: "BCG Matrix Analysis"
+  },
+  strategic: {
+    mainPattern: /\*\*\s*STRATEGIC Acronym\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$)/i,
+    sectionPattern: /\*\*\s*(S|T|R|A|T|E|G|I|C)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(S|T|R|A|T|E|G|I|C|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi,
+    title: "STRATEGIC Acronym Analysis"
   }
 };
 
@@ -277,7 +284,6 @@ const renderAnalysisBoxes = (content, label, analysisType) => {
     });
 };
 
-// Main component
 const AnalysisContent = ({
   loading,
   selectedAnalysisType,
@@ -288,8 +294,18 @@ const AnalysisContent = ({
   onResetAnalysisResult,
   onClose
 }) => {
+  const [initialAnalysisTriggered, setInitialAnalysisTriggered] = useState(false);
+
+    useEffect(() => {
+    if (!selectedAnalysisType) {
+      onAnalysisTypeSelect('swot'); // Default type
+    } else if (!analysisResult || analysisResult.trim() === '') {
+      onAnalyzeResponses(); // Only call if we don’t have a result yet
+    }
+  }, [selectedAnalysisType, analysisResult, onAnalysisTypeSelect, onAnalyzeResponses]);
+
   const handleAnalysisTypeSelect = (typeId) => {
-    onResetAnalysisResult();
+    onResetAnalysisResult(); // Clear old results when changing type
     onAnalysisTypeSelect(typeId);
   };
 
@@ -310,6 +326,9 @@ const AnalysisContent = ({
     } else if (selectedAnalysisType === 'swot') {
       return <SwotAnalysis analysisResult={analysisResult} />;
     }
+    else if (selectedAnalysisType === 'strategic') {
+      return <StrategicAcronym analysisResult={analysisResult} />;
+    }
 
     // Use generic renderer for all other analysis types
     return <GenericAnalysisRenderer
@@ -326,11 +345,7 @@ const AnalysisContent = ({
             onTypeSelect={handleAnalysisTypeSelect}
           />
 
-          <AnalysisButton
-            selectedType={selectedAnalysisType}
-            onClick={onAnalyzeResponses}
-            loading={loading}
-          />
+
       {loading ? (
         <LoadingIndicator />
       ) : (

@@ -49,7 +49,7 @@ const SwotAnalysis = ({ analysisResult }) => {
         </>
       )}
 
-      <StrategicAcronym analysisResult={analysisResult} />
+      {/*<StrategicAcronym analysisResult={analysisResult} />*/}
 
       {conclusionText && (
         <div className="mt-3 conclusion-text">

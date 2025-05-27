@@ -118,7 +118,7 @@ const PorterMatrix = ({ porterText }) => {
         </div>
       </div>
 
-      <StrategicAcronym analysisResult={porterText} />
+      {/*<StrategicAcronym analysisResult={porterText} />*/}
 
       {getConclusionText() && (
         <div className="mt-3 conclusion-text">{getConclusionText()}</div>

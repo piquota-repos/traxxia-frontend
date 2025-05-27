@@ -41,6 +41,11 @@ export const ANALYSIS_TYPES = [
       id: "valuechain",
       name: "Value Chain",
       icon: "BarChart",
+    },
+    {
+      id:"strategic",
+      name: "Strategic Acronym",
+      icon: "ChartColumnBig"
     }
   ];
   

@@ -185,8 +185,8 @@ const ValueChainMatrix = ({ analysisResult }) => {
       </div>
 
       {/* Strategic Acronym */}
-      <StrategicAcronym analysisResult={analysisResult} />
-      
+      {/*<StrategicAcronym analysisResult={analysisResult} />*/}
+
       {/* Conclusion */}
       {getConclusionText() && (
         <div className="mt-3 conclusion-text">

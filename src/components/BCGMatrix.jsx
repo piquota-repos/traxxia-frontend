@@ -120,7 +120,7 @@ const BCGMatrix = ({ analysisResult }) => {
           <div className="matrix-label-x">Low</div>
         </div>
       </div>
-      <StrategicAcronym analysisResult={analysisResult} />
+      {/* <StrategicAcronym analysisResult={analysisResult} /> */}
       {getConclusionText() && (
         <div className="mt-3 conclusion-text">
           {getConclusionText()}
