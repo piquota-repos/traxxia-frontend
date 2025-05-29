@@ -121,11 +121,11 @@ const BCGMatrix = ({ analysisResult }) => {
         </div>
       </div>
       {/* <StrategicAcronym analysisResult={analysisResult} /> */}
-      {getConclusionText() && (
+      {/* {getConclusionText() && (
         <div className="mt-3 conclusion-text">
           {getConclusionText()}
         </div>
-      )}
+      )} */}
     </div>
   );
 };

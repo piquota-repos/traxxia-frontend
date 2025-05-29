@@ -51,11 +51,11 @@ const SwotAnalysis = ({ analysisResult }) => {
 
       {/*<StrategicAcronym analysisResult={analysisResult} />*/}
 
-      {conclusionText && (
+      {/* {conclusionText && (
         <div className="mt-3 conclusion-text">
           {conclusionText}
         </div>
-      )}
+      )} */}
     </>
   );
 };

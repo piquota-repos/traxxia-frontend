@@ -123,23 +123,80 @@ const useSurveyData = (questionsData) => {
     return category.questions.every((question) => isQuestionCompleted(question.id));
   }, [isQuestionCompleted]);
 
-  // Calculate the percentage of completed questions
+  // UPDATED: Calculate progress based ONLY on 14 frontend questions
   const getProgressPercentage = useCallback(() => {
-    if (Object.keys(answers).length === 0) return 0;
+    // Define your 14 frontend question IDs (from your questions.json)
+    const frontendQuestionIds = [
+      "1a", "1b", "1c",
+      "2a", "2b", 
+      "3a", "3b", "3c",
+      "4a", "4b", "4c",
+      "5a", "5b", "5c"
+    ];
 
-    const completedCount = Object.keys(answers).filter((questionId) =>
-      isQuestionCompleted(questionId)
-    ).length;
+    // Count how many of these 14 questions are completed
+    const completedQuestions = frontendQuestionIds.filter(questionId => {
+      const answer = answers[questionId];
+      if (!answer) {
+        console.log(`❌ Question ${questionId}: No answer object found`);
+        return false;
+      }
+      
+      // Check if question has meaningful content
+      const cleanDescription = answer.description ? 
+        answer.description.replace(/<(.|\n)*?>/g, "").trim() : "";
+      
+      const hasValidDescription = cleanDescription && cleanDescription.length > 10;
+      const hasValidOption = answer.selectedOption && answer.selectedOption !== "";
+      
+      const isCompleted = hasValidDescription || hasValidOption;
+      
+      // Debug logging for incomplete questions
+      if (!isCompleted) {
+        console.log(`❌ Question ${questionId} NOT completed:`, {
+          hasDescription: !!answer.description,
+          cleanDescriptionLength: cleanDescription.length,
+          cleanDescriptionPreview: cleanDescription.substring(0, 50) + "...",
+          hasSelectedOption: hasValidOption,
+          selectedOption: answer.selectedOption
+        });
+      } else {
+        console.log(`✅ Question ${questionId} completed`);
+      }
+      
+      return isCompleted;
+    });
 
-    return Math.round((completedCount / Object.keys(answers).length) * 100);
-  }, [answers, isQuestionCompleted]);
+    console.log(`Progress: ${completedQuestions.length}/14 frontend questions completed`);
+    
+    return Math.round((completedQuestions.length / 14) * 100);
+  }, [answers]);
 
-  // Check if all questions are answered
+  // UPDATED: Check if all 14 frontend questions are answered
   const allQuestionsAnswered = useCallback(() => {
-    return categories.every((category) =>
-      category.questions.every((question) => isQuestionCompleted(question.id))
-    );
-  }, [categories, isQuestionCompleted]);
+    // Same 14 frontend question IDs
+    const frontendQuestionIds = [
+      "1a", "1b", "1c",
+      "2a", "2b", 
+      "3a", "3b", "3c",
+      "4a", "4b", "4c",
+      "5a", "5b", "5c"
+    ];
+
+    // Check if ALL 14 questions are completed
+    return frontendQuestionIds.every(questionId => {
+      const answer = answers[questionId];
+      if (!answer) return false;
+      
+      const cleanDescription = answer.description ? 
+        answer.description.replace(/<(.|\n)*?>/g, "").trim() : "";
+      
+      const hasValidDescription = cleanDescription && cleanDescription.length > 10;
+      const hasValidOption = answer.selectedOption && answer.selectedOption !== "";
+      
+      return hasValidDescription || hasValidOption;
+    });
+  }, [answers]);
 
   // Handle option change
   const handleOptionChange = useCallback((questionId, option) => {
@@ -180,20 +237,33 @@ const useSurveyData = (questionsData) => {
       });
 
       if (response.data && response.data.answers) {
+        // UPDATED: Only load answers for the 14 frontend questions
+        const frontendQuestionIds = [
+          "1a", "1b", "1c",
+          "2a", "2b", 
+          "3a", "3b", "3c",
+          "4a", "4b", "4c",
+          "5a", "5b", "5c"
+        ];
+
         const savedAnswers = {};
 
         Object.entries(response.data.answers).forEach(([questionId, answer]) => {
-          // Data is already decrypted on the server side
-          savedAnswers[questionId] = {
-            description: answer.description || "",
-            selectedOption: answer.selectedOption || ""
-          };
+          // Only load answers for questions that exist in our frontend questions.json
+          if (frontendQuestionIds.includes(questionId)) {
+            savedAnswers[questionId] = {
+              description: answer.description || "",
+              selectedOption: answer.selectedOption || ""
+            };
+          }
         });
         
         setAnswers(prevAnswers => ({
           ...prevAnswers,
           ...savedAnswers
         }));
+
+        console.log(`Loaded ${Object.keys(savedAnswers).length} saved answers for frontend questions`);
       }
     } catch (error) {
       console.error("Error fetching saved answers:", error);
@@ -201,27 +271,57 @@ const useSurveyData = (questionsData) => {
     }
   }, []);
 
-  // Save all answers to API - Updated to work with server-side encryption
+  // UPDATED: Save all answers - only save questions with actual content
   const saveAllAnswers = useCallback(async (showToaster = false) => {
     try {
-      const answersToSave = Object.entries(answers).map(([questionId, answer]) => {
-        let categoryId = "";
-        for (const category of categories) {
-          const foundQuestion = category.questions.find(q => q.id === questionId);
-          if (foundQuestion) {
-            categoryId = category.id;
-            break;
-          }
-        }
+      // Define the 14 frontend questions
+      const frontendQuestionIds = [
+        "1a", "1b", "1c",
+        "2a", "2b", 
+        "3a", "3b", "3c",
+        "4a", "4b", "4c",
+        "5a", "5b", "5c"
+      ];
 
-        // The backend will handle encryption, so we just send the raw data
-        return {
-          question_id: questionId,
-          category_id: categoryId,
-          selectedOption: answer.selectedOption || "",
-          description: answer.description || ""
-        };
-      });
+      // Only save frontend questions that have content
+      const answersToSave = frontendQuestionIds
+        .filter(questionId => {
+          const answer = answers[questionId];
+          if (!answer) return false;
+          
+          // Only save if there's actual content
+          const hasDescription = answer.description && 
+            answer.description.replace(/<(.|\n)*?>/g, "").trim() !== "";
+          const hasSelectedOption = answer.selectedOption && 
+            answer.selectedOption !== "";
+          
+          return hasDescription || hasSelectedOption;
+        })
+        .map(questionId => {
+          const answer = answers[questionId];
+          let categoryId = "";
+          
+          for (const category of categories) {
+            const foundQuestion = category.questions.find(q => q.id === questionId);
+            if (foundQuestion) {
+              categoryId = category.id;
+              break;
+            }
+          }
+
+          return {
+            question_id: questionId,
+            category_id: categoryId,
+            selectedOption: answer.selectedOption || "",
+            description: answer.description || ""
+          };
+        });
+
+      console.log(`Saving ${answersToSave.length} answers with content out of 14 frontend questions`);
+
+      if (answersToSave.length === 0) {
+        return { message: "No answers to save" };
+      }
 
       const response = await axios.post(
         `${API_BASE_URL}/api/survey/answers`,
