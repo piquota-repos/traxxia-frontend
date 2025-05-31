@@ -19,7 +19,16 @@ const Login = () => {
       const res = await axios.post(`${API_BASE_URL}/api/login`, {
         email,
         password,
-      }); 
+      });
+      
+      // Store all user data in sessionStorage
+      sessionStorage.setItem('token', res.data.token);
+      sessionStorage.setItem('userId', res.data.user.id);
+      sessionStorage.setItem('userName', res.data.user.name);
+      sessionStorage.setItem('userEmail', res.data.user.email);
+      sessionStorage.setItem('userRole', res.data.user.role);
+      sessionStorage.setItem('latestVersion', res.data.latest_version || '');
+      sessionStorage.setItem('isAdmin', res.data.user.role === 'admin' ? 'true' : 'false');
       
       // Navigate based on role
       // if (res.data.user.role === 'admin') {
