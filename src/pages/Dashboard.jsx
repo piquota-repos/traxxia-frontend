@@ -546,17 +546,14 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* Action buttons */}
+        {/* Action buttons - removed Save Progress from here */}
         <div className="d-flex justify-content-between mb-3">
           <Button variant="primary" onClick={() => updateState({ showPreview: true })}>
             <Eye size={18} className="me-2" />
             Preview
           </Button>
 
-          <Button variant="success" onClick={handlers.saveAndShowToast}>
-            Save Progress
-          </Button>
-
+          {/* Only show Continue to Analysis button in Phase 2 */}
           {state.activeTab === TABS.PHASE_2 && (
             <Button
               variant="primary"
@@ -577,19 +574,37 @@ const Dashboard = () => {
         {/* Phase description */}
         <div className="mb-3 p-3 bg-light rounded">
           {state.activeTab === TABS.PHASE_1 ? (
-            <div>
-              <h6>Phase 1: Core Business Foundation</h6>
-              <p className="mb-0 text-muted">
-                Questions about your industry, business model, customer segments, pain points,
-                competitors, objectives, and margins.
-              </p>
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <h6>Phase 1: Core Business Foundation</h6>
+                <p className="mb-0 text-muted">
+                  Questions about your industry, business model, customer segments, pain points,
+                  competitors, objectives, and margins.
+                </p>
+              </div>
+              <Button
+                variant="success"
+                onClick={handlers.saveAndShowToast}
+                className="ms-3"
+              >
+                Save Progress
+              </Button>
             </div>
           ) : (
-            <div>
-              <h6>Phase 2: Strategic Deep Dive</h6>
-              <p className="mb-0 text-muted">
-                Advanced questions about strategy, operations, technology, and future planning.
-              </p>
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <h6>Phase 2: Strategic Deep Dive</h6>
+                <p className="mb-0 text-muted">
+                  Advanced questions about strategy, operations, technology, and future planning.
+                </p>
+              </div>
+              <Button
+                variant="success"
+                onClick={handlers.saveAndShowToast}
+                className="ms-3"
+              >
+                Save Progress
+              </Button>
             </div>
           )}
         </div>
