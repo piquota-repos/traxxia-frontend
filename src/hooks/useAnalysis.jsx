@@ -66,12 +66,24 @@ Your response MUST follow this exact format:
 **${analysisType.toUpperCase()} Analysis:**
 ${getAnalysisFormatInstructions(analysisType)}
 
-3. End with a conclusion paragraph.
+3. Format the STRATEGIC acronym section exactly like this:
+**STRATEGIC Acronym:**
+**S** - [Strategy]: [Description of action item]
+**T** - [Tactics]: [Description of action item]
+**R** - [Resources]: [Description of action item]
+**A** - [Analytics]: [Description of action item]
+**T** - [Technology]: [Description of action item]
+**E** - [Execution]: [Description of action item]
+**G** - [Governance]: [Description of action item]
+**I** - [Innovation]: [Description of action item]
+**C** - [Culture]: [Description of action item]
+
+4. End with a conclusion paragraph starting with "By following the STRATEGIC acronym..."
 
 DO NOT deviate from this format as it will break the component rendering the analysis.`;
 
     const selectedAnalysis = analysisNames[analysisType] || "SWOT analysis";
-    return `${baseContent} ${selectedAnalysis} based on the book and the question answers. This will help the user understand their business situation and competitive landscape. Be as detailed as possible. ${formatInstructions}`;
+    return `${baseContent} ${selectedAnalysis} based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
   }, []);
 
   const getAnalysisFormatInstructions = (analysisType) => {
