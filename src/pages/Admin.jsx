@@ -9,13 +9,14 @@ const Admin = () => {
   const [success, setSuccess] = useState('');
   const [questionsJson, setQuestionsJson] = useState('');
   const [uploadLoading, setUploadLoading] = useState(false);
+  const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
   // Fetch all users
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('token'); // Changed from sessionStorage to sessionStorage
-      const response = await fetch('http://localhost:5000/api/admin/users', {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -38,8 +39,8 @@ const Admin = () => {
   // Download CSV for a specific user
   const downloadUserCSV = async (userId, version) => {
     try {
-      const token = sessionStorage.getItem('token'); // Changed from sessionStorage to sessionStorage
-      const response = await fetch(`http://localhost:5000/api/download-csv/${userId}?version=${version}`, {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/download-csv/${userId}?version=${version}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -71,10 +72,10 @@ const Admin = () => {
     setSuccess('');
 
     try {
-      const token = sessionStorage.getItem('token'); // Changed from sessionStorage to sessionStorage
+      const token = sessionStorage.getItem('token');
       const questionsData = JSON.parse(questionsJson);
 
-      const response = await fetch('http://localhost:5000/api/admin/upload-questions', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/upload-questions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
