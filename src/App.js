@@ -5,7 +5,9 @@ import Home from './components/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import About from './pages/About'; 
+import About from './pages/About';
+import Admin from './pages/Admin';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => (
   <Router>
@@ -14,7 +16,15 @@ const App = () => (
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<Dashboard />} /> 
-      <Route path="/about" element={<About />} /> 
+      <Route path="/about" element={<About />} />
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <Admin />
+          </ProtectedRoute>
+        } 
+      />
     </Routes>
   </Router>
 );

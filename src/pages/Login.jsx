@@ -13,13 +13,29 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    sessionStorage.clear(); // Clear any existing session data
     setIsLoading(true);
     try {
-      const res = await axios.post(`${API_BASE_URL}/login`, {
+      const res = await axios.post(`${API_BASE_URL}/api/login`, {
         email,
         password,
       });
-      localStorage.setItem('token', res.data.token);
+      
+      // Store all user data in sessionStorage
+      sessionStorage.setItem('token', res.data.token);
+      sessionStorage.setItem('userId', res.data.user.id);
+      sessionStorage.setItem('userName', res.data.user.name);
+      sessionStorage.setItem('userEmail', res.data.user.email);
+      sessionStorage.setItem('userRole', res.data.user.role);
+      sessionStorage.setItem('latestVersion', res.data.latest_version || '');
+      sessionStorage.setItem('isAdmin', res.data.user.role === 'admin' ? 'true' : 'false');
+      
+      // Navigate based on role
+      // if (res.data.user.role === 'admin') {
+      //   navigate('/admin-dashboard');
+      // } else {
+      //   navigate('/dashboard');
+      // }
       navigate('/dashboard');
     } catch (err) {
       console.error(err.response?.data || err.message);
@@ -92,7 +108,6 @@ const Login = () => {
                   <i className={`eye-icon ${showPassword ? "eye-open" : "eye-closed"}`}></i>
                 </button>
               </div>
-              {/* <a href="/forgot-password" className="forgot-password">Forgot Password?</a> */}
             </div>
             
             <button

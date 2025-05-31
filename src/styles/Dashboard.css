@@ -164,6 +164,20 @@ body {
   transition: var(--transition);
 }
 
+.dropdown-item-modern{
+border-radius: 0px;
+margin:0px;
+
+}
+.dropdown-item-modern.active {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white; 
+}
+
+.dropdown-item-modern.active:hover {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    opacity: 0.9;
+}
 .dropdown-item:hover {
   background-color: rgba(84, 58, 183, 0.1);
 }
@@ -242,6 +256,11 @@ body {
 #dropdown-user {
   --bs-btn-color: none;
   text-decoration: none;
+}
+.dropdown .modern-dropdown {
+  margin:0px !important;
+  padding:0px !important;
+
 }
 
 /* Glass Card */
@@ -871,8 +890,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 17%;
-  height: 120px;
+  width: 15%;
+  height: 100px;
   margin: 0 10px;
   background-color: #f1f3f5;
   transition: all 0.3s ease;
@@ -1948,3 +1967,20 @@ body {
   margin-top: 1%;
 }
 
+.bg-success{
+  margin-right: 10px;
+}
+
+.answer-textarea:focus,
+.nested-answer-textarea:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Ensure text areas don't have pointer-events disabled */
+.answer-textarea,
+.nested-answer-textarea {
+  pointer-events: auto;
+  user-select: text;
+}

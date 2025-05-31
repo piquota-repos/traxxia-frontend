@@ -5,7 +5,9 @@ export const extractStrategicItems = (strategicContent) => {
   if (!strategicContent) return [];
 
   const acronymSequence = ['S', 'T', 'R', 'A', 'T', 'E', 'G', 'I', 'C'];
-  const strategicRegex = /\*\*\s*STRATEGIC Acronym\s*:\*\*([\s\S]*?)(?=\*\*\s*(Areas for Improvement|Next Steps|Recommendations|By following)\s*:|$)/i;
+  
+  // Updated regex to match "STRATEGIC Analysis:" format
+  const strategicRegex = /\*\*STRATEGIC Analysis:\*\*([\s\S]*?)(?=By following the STRATEGIC|$)/i;
   const match = strategicRegex.exec(strategicContent);
   
   if (!match) return [];
@@ -14,27 +16,29 @@ export const extractStrategicItems = (strategicContent) => {
   const lines = content.split('\n').filter(line => line.trim() !== '');
   const parsedItems = [];
 
-  // Match lines that start with a letter + dash format
-  const regex = /^\*?\s*\*?\*?([A-Z])\*?\*?\s*-\s*(?:\*\*([^:*]+)\*\*|([^:*]+))?:?\s*(.*)/i;
-
+  // Parse each line that contains strategic items
   lines.forEach(line => {
-    const match = line.trim().match(regex);
+    const trimmedLine = line.trim();
+    
+    // Match the format: **S** - **Strategy**: Description
+    const match = trimmedLine.match(/\*\*([STRATEGIC])\*\*\s*-\s*\*\*([^*]+)\*\*:\s*(.*)/i);
+    
     if (match) {
       const acronym = match[1].toUpperCase();
-      const keyword = (match[2] || match[3] || '').trim();
-      const description = match[4].trim();
+      const keyword = match[2].trim();
+      const description = match[3].trim();
       parsedItems.push({ acronym, keyword, description });
     }
   });
 
-  // Track usage of each acronym letter (to support duplicates like 'T')
+  // Map parsed items to the correct sequence
   const letterUsage = {};
-
+  
   const result = acronymSequence.map(letter => {
     const usedCount = letterUsage[letter] || 0;
     const matches = parsedItems.filter(item => item.acronym === letter);
     const match = matches[usedCount] || null;
-
+    
     letterUsage[letter] = usedCount + 1;
     return match;
   });
@@ -58,13 +62,15 @@ const STRATEGIC_COLUMN_STYLES = [
 const StrategicAcronym = ({ analysisResult }) => {
   const strategicItems = extractStrategicItems(analysisResult);
   
-  if (!strategicItems || strategicItems.length === 0) return null;
+  if (!strategicItems || strategicItems.length === 0 || strategicItems.every(item => item === null)) {
+    return null;
+  }
 
   const acronymLetters = ['S', 'T', 'R', 'A', 'T', 'E', 'G', 'I', 'C'];
 
   return (
     <>
-      <h5 className="mt-4 mb-3"><strong>STRATEGIC Acronym</strong></h5>
+      <h5 className="mt-4 mb-3"><strong>STRATEGIC Analysis</strong></h5>
       <div className="table-responsive mb-4">
         <table className="table table-bordered">
           <thead className="table-light">
@@ -86,9 +92,11 @@ const StrategicAcronym = ({ analysisResult }) => {
                   <td className="p-2">
                     {item ? (
                       <div className={`strategic-item ${styleClass}`}>
-                        {item.keyword && <strong>{item.keyword}:</strong>} {item.description}
+                        <strong>{item.keyword}:</strong> {item.description}
                       </div>
-                    ) : ""}
+                    ) : (
+                      <div className="text-muted">No data available</div>
+                    )}
                   </td>
                 </tr>
               );

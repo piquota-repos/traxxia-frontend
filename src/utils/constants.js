@@ -52,8 +52,7 @@ export const ANALYSIS_TYPES = [
   // Add other constants as needed
   export const API_ENDPOINTS = {
     SURVEY_ANSWERS: '/api/survey/answers',
-    SURVEY_ANSWER: '/api/survey/answer',
-    DASHBOARD: '/dashboard',
+    SURVEY_ANSWER: '/api/survey/answer', 
     LOGIN: '/login'
   };
 

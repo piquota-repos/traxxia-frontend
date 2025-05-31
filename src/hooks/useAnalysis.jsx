@@ -25,22 +25,21 @@ const useAnalysis = (categories, answers, strategicPlanningBook) => {
     swot: "SWOT analysis",
     porter: "Porter's Five Forces analysis",
     valuechain: "Value Chain analysis",
-    bcg: "BCG Matrix analysis"
+    bcg: "BCG Matrix analysis",
+    strategic: "STRATEGIC analysis"
   };
 
   const getAnalysisSystemContent = useCallback((analysisType) => {
     const baseContent = "You are a strategic analyst. You should read the \"Strategic Planning Book\" given by the user and analyze the set of question answers and provide detailed";
-    const formatInstructions = `
+    
+    if (analysisType === 'strategic') {
+      const strategicFormatInstructions = `
 Your response MUST follow this exact format:
 
-1. Start with a brief introduction paragraph.
+1. Start with a brief introduction paragraph about strategic planning.
 
-2. Format the analysis section like this:
-**${analysisType.toUpperCase()} Analysis:**
-${getAnalysisFormatInstructions(analysisType)}
-
-3. Format the STRATEGIC acronym section exactly like this:
-**STRATEGIC Acronym:**
+2. Format the STRATEGIC acronym section exactly like this:
+**STRATEGIC Analysis:**
 **S** - [Strategy]: [Description of action item]
 **T** - [Tactics]: [Description of action item]
 **R** - [Resources]: [Description of action item]
@@ -51,12 +50,28 @@ ${getAnalysisFormatInstructions(analysisType)}
 **I** - [Innovation]: [Description of action item]
 **C** - [Culture]: [Description of action item]
 
-4. End with a conclusion paragraph starting with "By following the STRATEGIC acronym..."
+3. End with a conclusion paragraph starting with "By following the STRATEGIC framework..."
+
+DO NOT deviate from this format as it will break the component rendering the analysis.`;
+
+      return `${baseContent} STRATEGIC analysis based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process using the STRATEGIC acronym framework. Be as detailed as possible. ${strategicFormatInstructions}`;
+    }
+
+    const formatInstructions = `
+Your response MUST follow this exact format:
+
+1. Start with a brief introduction paragraph.
+
+2. Format the analysis section like this:
+**${analysisType.toUpperCase()} Analysis:**
+${getAnalysisFormatInstructions(analysisType)}
+
+3. End with a conclusion paragraph.
 
 DO NOT deviate from this format as it will break the component rendering the analysis.`;
 
     const selectedAnalysis = analysisNames[analysisType] || "SWOT analysis";
-    return `${baseContent} ${selectedAnalysis} based on the book and the question answers. This will help the user understand the next steps they have to take in their strategic planning process. Use the STRATEGIC acronym at the end to provide specific actionable items. Be as detailed as possible. ${formatInstructions}`;
+    return `${baseContent} ${selectedAnalysis} based on the book and the question answers. This will help the user understand their business situation and competitive landscape. Be as detailed as possible. ${formatInstructions}`;
   }, []);
 
   const getAnalysisFormatInstructions = (analysisType) => {
@@ -66,14 +81,14 @@ DO NOT deviate from this format as it will break the component rendering the ana
         **Weaknesses:** [List the weaknesses identified]
         **Opportunities:** [List the opportunities identified]
         **Threats:** [List the threats identified]`;
-              case "porter":
-                return `**Supplier Power:** [Supplier power analysis]
+      case "porter":
+        return `**Supplier Power:** [Supplier power analysis]
         **Buyer Power:** [Buyer power analysis]
         **Competitive Rivalry:** [Competitive rivalry analysis]
         **Threat of Substitution:** [Threat of substitution analysis]
         **Threat of New Entry:** [Threat of new entry analysis]`;
-        case "valuechain":
-  return `**Primary Activities:** [Provide a concise overview of how the primary activities create value]
+      case "valuechain":
+        return `**Primary Activities:** [Provide a concise overview of how the primary activities create value]
 
 - Inbound Logistics: [Analyze how materials and resources are received, stored, and distributed within the organization]
 - Operations: [Evaluate the processes that transform inputs into outputs/products/services]

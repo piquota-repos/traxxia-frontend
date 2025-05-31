@@ -292,19 +292,33 @@ const AnalysisContent = ({
   onAnalysisTypeSelect,
   onAnalyzeResponses,
   onResetAnalysisResult,
-  onClose
+  onClose,
+  activeTab // New prop to determine which tab is active
 }) => {
-  const [initialAnalysisTriggered, setInitialAnalysisTriggered] = useState(false);
+  const [lastActiveTab, setLastActiveTab] = useState(activeTab);
+  const [hasUserSelectedType, setHasUserSelectedType] = useState(false);
 
-    useEffect(() => {
-    if (!selectedAnalysisType) {
-      onAnalysisTypeSelect('swot'); // Default type
+  useEffect(() => {
+    // Only set default when tab changes, not when user manually selects a type
+    if (activeTab !== lastActiveTab) {
+      const defaultType = activeTab === 'tab1' ? 'swot' : 'strategic';
+      
+      onResetAnalysisResult(); // Clear old results when switching tabs
+      onAnalysisTypeSelect(defaultType);
+      setLastActiveTab(activeTab);
+      setHasUserSelectedType(false); // Reset user selection flag when tab changes
+    } else if (!selectedAnalysisType) {
+      // Set initial default only if no type is selected
+      const defaultType = activeTab === 'tab1' ? 'swot' : 'strategic';
+      onAnalysisTypeSelect(defaultType);
     } else if (!analysisResult || analysisResult.trim() === '') {
-      onAnalyzeResponses(); // Only call if we don’t have a result yet
+      // Generate analysis if we have a type but no result
+      onAnalyzeResponses();
     }
-  }, [selectedAnalysisType, analysisResult, onAnalysisTypeSelect, onAnalyzeResponses]);
+  }, [activeTab, lastActiveTab, selectedAnalysisType, analysisResult, onAnalysisTypeSelect, onAnalyzeResponses, onResetAnalysisResult]);
 
   const handleAnalysisTypeSelect = (typeId) => {
+    setHasUserSelectedType(true); // Mark that user has manually selected a type
     onResetAnalysisResult(); // Clear old results when changing type
     onAnalysisTypeSelect(typeId);
   };
@@ -338,13 +352,12 @@ const AnalysisContent = ({
   };
 
   return (
-    <div className="analysis-container p-4">
+    <div className="analysis-container">
        <AnalysisTypeSelector
             analysisTypes={analysisTypes}
             selectedType={selectedAnalysisType}
             onTypeSelect={handleAnalysisTypeSelect}
           />
-
 
       {loading ? (
         <LoadingIndicator />
