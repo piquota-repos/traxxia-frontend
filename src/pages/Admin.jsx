@@ -14,7 +14,7 @@ const Admin = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('token'); // Changed from localStorage to sessionStorage
+      const token = sessionStorage.getItem('token'); // Changed from sessionStorage to sessionStorage
       const response = await fetch('http://localhost:5000/api/admin/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -38,7 +38,7 @@ const Admin = () => {
   // Download CSV for a specific user
   const downloadUserCSV = async (userId, version) => {
     try {
-      const token = sessionStorage.getItem('token'); // Changed from localStorage to sessionStorage
+      const token = sessionStorage.getItem('token'); // Changed from sessionStorage to sessionStorage
       const response = await fetch(`http://localhost:5000/api/download-csv/${userId}?version=${version}`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -71,7 +71,7 @@ const Admin = () => {
     setSuccess('');
 
     try {
-      const token = sessionStorage.getItem('token'); // Changed from localStorage to sessionStorage
+      const token = sessionStorage.getItem('token'); // Changed from sessionStorage to sessionStorage
       const questionsData = JSON.parse(questionsJson);
 
       const response = await fetch('http://localhost:5000/api/admin/upload-questions', {

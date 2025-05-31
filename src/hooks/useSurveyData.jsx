@@ -223,7 +223,7 @@ const useSurveyData = (questionsData) => {
   // Fetch saved answers from API - Updated to handle encrypted data from server
   const fetchSavedAnswers = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!token) {
         console.error("No token found");
         return;
@@ -328,7 +328,7 @@ const useSurveyData = (questionsData) => {
         { answers: answersToSave },
         {
           headers: {
-            'Authorization': localStorage.getItem('token'),
+            'Authorization': sessionStorage.getItem('token'),
             'Content-Type': 'application/json'
           }
         }

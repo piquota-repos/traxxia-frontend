@@ -173,8 +173,8 @@ const Dashboard = () => {
         }
       });
 
-      // Backup to localStorage
-      localStorage.setItem(`survey_answers_${userId}`, JSON.stringify(answers));
+      // Backup to sessionStorage
+      sessionStorage.setItem(`survey_answers_${userId}`, JSON.stringify(answers));
 
       if (showSuccessToast) {
         setToastMessage("Survey answers saved successfully!");
