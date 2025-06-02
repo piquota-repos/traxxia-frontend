@@ -1,28 +1,28 @@
 import React from 'react';
-import StrategicAcronym from './StrategicAcronym';
 
 const SwotAnalysis = ({ analysisResult }) => {
   const introRegex = /^(.*?)(?=\*\*SWOT Analysis)/s;
   const introMatch = introRegex.exec(analysisResult);
   const introText = introMatch ? introMatch[1].trim() : "";
 
-  const swotRegex = /\*\*\s*SWOT Analysis\s*:\*\*([\s\S]*?)(?=\*\*\s*STRATEGIC Acronym\s*:\*\*|$)/i;
+  const swotRegex = /\*\*\s*SWOT Analysis\s*:\*\*([\s\S]*?)(?=In conclusion|To address|By embracing|$)/i;
   const swotMatch = swotRegex.exec(analysisResult);
   const swotContent = swotMatch ? swotMatch[1].trim() : "";
 
-  const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
+  const conclusionRegex = /(In conclusion[\s\S]*?$|To address the weaknesses[\s\S]*?$|By embracing[\s\S]*?$)/i;
   const conclusionMatch = conclusionRegex.exec(analysisResult);
   const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
 
-  const sectionPattern = /\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Strengths|Weaknesses|Opportunities|Threats|STRATEGIC Acronym|Areas for Improvement|Next Steps|Recommendations)\s*:\*\*|$))/gi;
+  const sectionPattern = /\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*|In conclusion|To address|By embracing|$))/gi;
   const swotData = extractAnalysisSections(swotContent, sectionPattern);
   const labels = Object.keys(swotData);
 
   return (
     <>
-    <h4 className="text-center mt-4"><strong>SWOT Analysis</strong></h4>
+      <h4 className="text-center mt-4"><strong>SWOT Analysis</strong></h4>
+      
       {introText && <div className="mb-3">{introText}</div>}
-
+      
       {labels.length > 0 && (
         <>
           <h5 className="mb-3">
@@ -48,14 +48,12 @@ const SwotAnalysis = ({ analysisResult }) => {
           </div>
         </>
       )}
-
-      {/*<StrategicAcronym analysisResult={analysisResult} />*/}
-
-      {/* {conclusionText && (
+      
+      {conclusionText && (
         <div className="mt-3 conclusion-text">
-          {conclusionText}
+          <div dangerouslySetInnerHTML={{ __html: conclusionText.replace(/\n/g, "<br/>") }} />
         </div>
-      )} */}
+      )}
     </>
   );
 };
@@ -86,10 +84,10 @@ const renderAnalysisBoxes = (content, label) => {
     .split(/<br\s*\/?>\s*(?=<br\s*\/?>|[^<])/i)
     .map((para) => para.trim())
     .filter((para) => 
-      para !== "" && 
-      para !== "*" && 
-      para !== "<br/>*" && 
-      para !== "<br />*" && 
+      para !== "" &&
+      para !== "*" &&
+      para !== "<br/>*" &&
+      para !== "<br />*" &&
       !/^\*+$/.test(para) // removes any line that's just multiple `*`
     )
     .map((para, idx) => {

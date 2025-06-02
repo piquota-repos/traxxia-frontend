@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/Dashboard.css';
-import StrategicAcronym from './StrategicAcronym';
 
 const PorterMatrix = ({ porterText }) => {
   const [forces, setForces] = useState({
@@ -31,7 +30,7 @@ const PorterMatrix = ({ porterText }) => {
       const pattern = new RegExp(
         `\\*\\*\\s*${force}\\s*:\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*\\s*(?:${
           Object.keys(result).join('|')
-        }|STRATEGIC Acronym)\\s*:\\*\\*|$)`,
+        })\\s*:\\*\\*|In conclusion|To stay competitive|Actionable recommendations|$)`,
         'i'
       );
 
@@ -62,7 +61,7 @@ const PorterMatrix = ({ porterText }) => {
 
   const getConclusionText = () => {
     if (!porterText) return "";
-    const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
+    const conclusionRegex = /(In conclusion[\s\S]*?$|To stay competitive[\s\S]*?$|Actionable recommendations[\s\S]*?$)/i;
     const conclusionMatch = conclusionRegex.exec(porterText);
     return conclusionMatch ? conclusionMatch[0] : "";
   };
@@ -118,11 +117,11 @@ const PorterMatrix = ({ porterText }) => {
         </div>
       </div>
 
-      {/*<StrategicAcronym analysisResult={porterText} />*/}
-
-      {/* {getConclusionText() && (
-        <div className="mt-3 conclusion-text">{getConclusionText()}</div>
-      )} */}
+      {getConclusionText() && (
+        <div className="mt-4 conclusion-text">
+          <div dangerouslySetInnerHTML={{ __html: getConclusionText().replace(/\n/g, "<br/>") }} />
+        </div>
+      )}
     </div>
   );
 };

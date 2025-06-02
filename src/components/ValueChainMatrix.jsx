@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/Dashboard.css';
-import StrategicAcronym from './StrategicAcronym';
 
 const ValueChainMatrix = ({ analysisResult }) => {
   const [sections, setSections] = useState({
@@ -59,19 +58,19 @@ const ValueChainMatrix = ({ analysisResult }) => {
       const primaryContent = primaryMatch[1].trim();
       
       // Extract individual activities using bullet point pattern
-      const inboundMatch = primaryContent.match(/- \*\*Inbound Logistics:\*\*([\s\S]*?)(?=- \*\*Operations:|$)/i);
+      const inboundMatch = primaryContent.match(/- Inbound Logistics:\*\*([\s\S]*?)(?=- Operations:|$)/i);
       if (inboundMatch) result.primaryActivities.inboundLogistics = inboundMatch[1].trim();
       
-      const operationsMatch = primaryContent.match(/- \*\*Operations:\*\*([\s\S]*?)(?=- \*\*Outbound Logistics:|$)/i);
+      const operationsMatch = primaryContent.match(/- Operations:\*\*([\s\S]*?)(?=- Outbound Logistics:|$)/i);
       if (operationsMatch) result.primaryActivities.operations = operationsMatch[1].trim();
       
-      const outboundMatch = primaryContent.match(/- \*\*Outbound Logistics:\*\*([\s\S]*?)(?=- \*\*Marketing (?:\u0026|&) Sales:|$)/i);
+      const outboundMatch = primaryContent.match(/- Outbound Logistics:\*\*([\s\S]*?)(?=- Marketing (?:\u0026|&) Sales:|$)/i);
       if (outboundMatch) result.primaryActivities.outboundLogistics = outboundMatch[1].trim();
       
-      const marketingMatch = primaryContent.match(/- \*\*Marketing (?:\u0026|&) Sales:\*\*([\s\S]*?)(?=- \*\*Service:|$)/i);
+      const marketingMatch = primaryContent.match(/- Marketing (?:\u0026|&) Sales:\*\*([\s\S]*?)(?=- Service:|$)/i);
       if (marketingMatch) result.primaryActivities.marketingSales = marketingMatch[1].trim();
       
-      const serviceMatch = primaryContent.match(/- \*\*Service:\*\*([\s\S]*?)(?=$)/i);
+      const serviceMatch = primaryContent.match(/- Service:\*\*([\s\S]*?)(?=$)/i);
       if (serviceMatch) result.primaryActivities.service = serviceMatch[1].trim();
     }
 
@@ -82,16 +81,16 @@ const ValueChainMatrix = ({ analysisResult }) => {
       const supportContent = supportMatch[1].trim();
       
       // Extract individual support activities
-      const infraMatch = supportContent.match(/- \*\*Firm Infrastructure:\*\*([\s\S]*?)(?=- \*\*Human Resource Management:|$)/i);
+      const infraMatch = supportContent.match(/- Firm Infrastructure:\*\*([\s\S]*?)(?=- Human Resource Management:|$)/i);
       if (infraMatch) result.supportActivities.firmInfrastructure = infraMatch[1].trim();
       
-      const hrMatch = supportContent.match(/- \*\*Human Resource Management:\*\*([\s\S]*?)(?=- \*\*Technology Development:|$)/i);
+      const hrMatch = supportContent.match(/- Human Resource Management:\*\*([\s\S]*?)(?=- Technology Development:|$)/i);
       if (hrMatch) result.supportActivities.hrManagement = hrMatch[1].trim();
       
-      const techMatch = supportContent.match(/- \*\*Technology Development:\*\*([\s\S]*?)(?=- \*\*Procurement:|$)/i);
+      const techMatch = supportContent.match(/- Technology Development:\*\*([\s\S]*?)(?=- Procurement:|$)/i);
       if (techMatch) result.supportActivities.techDevelopment = techMatch[1].trim();
       
-      const procurementMatch = supportContent.match(/- \*\*Procurement:\*\*([\s\S]*?)(?=$)/i);
+      const procurementMatch = supportContent.match(/- Procurement:\*\*([\s\S]*?)(?=$)/i);
       if (procurementMatch) result.supportActivities.procurement = procurementMatch[1].trim();
     }
 
@@ -102,7 +101,7 @@ const ValueChainMatrix = ({ analysisResult }) => {
     }
 
     // Parse Linkages section
-    const linkagesMatch = text.match(/\*\*Linkages:\*\*([\s\S]*?)(?=\*\*STRATEGIC Acronym:|$)/i);
+    const linkagesMatch = text.match(/\*\*Linkages:\*\*([\s\S]*?)(?=In conclusion|To apply these principles|By embracing|$)/i);
     if (linkagesMatch) {
       result.linkages.summary = linkagesMatch[1].trim();
     }
@@ -113,7 +112,7 @@ const ValueChainMatrix = ({ analysisResult }) => {
   const getConclusionText = () => {
     if (!analysisResult) return "";
 
-    const conclusionRegex = /By following the STRATEGIC acronym[\s\S]*?$/i;
+    const conclusionRegex = /(In conclusion[\s\S]*?$|To apply these principles[\s\S]*?$|By embracing these recommendations[\s\S]*?$)/i;
     const conclusionMatch = conclusionRegex.exec(analysisResult);
     return conclusionMatch ? conclusionMatch[0] : "";
   };
@@ -184,15 +183,12 @@ const ValueChainMatrix = ({ analysisResult }) => {
         
       </div>
 
-      {/* Strategic Acronym */}
-      {/*<StrategicAcronym analysisResult={analysisResult} />*/}
-
       {/* Conclusion */}
-      {/* {getConclusionText() && (
-        <div className="mt-3 conclusion-text">
-          {getConclusionText()}
+      {getConclusionText() && (
+        <div className="mt-4 conclusion-text">
+          <div dangerouslySetInnerHTML={{ __html: getConclusionText().replace(/\n/g, "<br/>") }} />
         </div>
-      )} */}
+      )}
     </div>
   );
 };

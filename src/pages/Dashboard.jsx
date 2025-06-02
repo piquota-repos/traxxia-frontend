@@ -31,6 +31,7 @@ import useAnalysis from "../hooks/useAnalysis";
 
 // Utils & Data
 import strategicPlanningBook from "../utils/strategicPlanningBook.js";
+import strategicPlanningBook1 from "../utils/strategicPlanningBook1.js";
 import { ANALYSIS_TYPES } from "../utils/constants";
 import { getAuthData, isAuthenticated, logout, redirectIfNotAuthenticated } from "../utils/auth";
 
@@ -117,7 +118,7 @@ const Dashboard = () => {
     handleAnalyzeResponses,
     resetAnalysisResult,
     isLoading,
-  } = useAnalysis(state.allQuestions, state.answers, strategicPlanningBook);
+  } = useAnalysis(state.allQuestions, state.answers, strategicPlanningBook,strategicPlanningBook1);
 
   // Update state helper
   const updateState = useCallback((updates) => {

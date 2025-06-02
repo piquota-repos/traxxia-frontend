@@ -48,45 +48,31 @@ const PreviewContent = ({ categories, answers }) => {
   return (
     <div className="preview-content">
       {/* Overall Statistics */}
-      <Card className="mb-4 border-primary">
-        <Card.Header className="bg-primary text-white">
-          <h5 className="mb-0">📊 Survey Progress Overview</h5>
+      <Card className="border-info">
+        <Card.Header className="bg-info text-white">
+          <h6 className="mb-0">📋 Summary</h6>
         </Card.Header>
         <Card.Body>
           <Row>
-            <Col md={4}>
-              <div className="text-center">
-                <h3 className="text-primary">{answeredQuestions}</h3>
-                <small className="text-muted">Answered</small>
-              </div>
+            <Col md={6}>
+              <ul className="list-unstyled">
+                <li><strong>Total Questions:</strong> {totalQuestions}</li>
+                <li><strong>Answered Questions:</strong> {answeredQuestions}</li>
+                <li><strong>Pending Questions:</strong> {totalQuestions - answeredQuestions}</li>
+              </ul>
             </Col>
-            <Col md={4}>
-              <div className="text-center">
-                <h3 className="text-warning">{totalQuestions - answeredQuestions}</h3>
-                <small className="text-muted">Remaining</small>
-              </div>
-            </Col>
-            <Col md={4}>
-              <div className="text-center">
-                <h3 className="text-success">{completionPercentage}%</h3>
-                <small className="text-muted">Complete</small>
-              </div>
+            <Col md={6}>
+              <ul className="list-unstyled">
+                <li><strong>Completion Rate:</strong> {completionPercentage}%</li>
+                <li><strong>Categories:</strong> {categories.length}</li>
+                <li><strong>Status:</strong> 
+                  <Badge bg={completionPercentage === 100 ? "success" : "warning"} className="ms-2">
+                    {completionPercentage === 100 ? "Complete" : "In Progress"}
+                  </Badge>
+                </li>
+              </ul>
             </Col>
           </Row>
-          <div className="mt-3">
-            <div className="progress">
-              <div 
-                className="progress-bar bg-success" 
-                role="progressbar" 
-                style={{ width: `${completionPercentage}%` }}
-                aria-valuenow={completionPercentage} 
-                aria-valuemin="0" 
-                aria-valuemax="100"
-              >
-                {completionPercentage}%
-              </div>
-            </div>
-          </div>
         </Card.Body>
       </Card>
 
@@ -212,35 +198,7 @@ const PreviewContent = ({ categories, answers }) => {
           </Card>
         );
       })}
-
-      {/* Summary Section */}
-      <Card className="border-info">
-        <Card.Header className="bg-info text-white">
-          <h6 className="mb-0">📋 Summary</h6>
-        </Card.Header>
-        <Card.Body>
-          <Row>
-            <Col md={6}>
-              <ul className="list-unstyled">
-                <li><strong>Total Questions:</strong> {totalQuestions}</li>
-                <li><strong>Answered Questions:</strong> {answeredQuestions}</li>
-                <li><strong>Pending Questions:</strong> {totalQuestions - answeredQuestions}</li>
-              </ul>
-            </Col>
-            <Col md={6}>
-              <ul className="list-unstyled">
-                <li><strong>Completion Rate:</strong> {completionPercentage}%</li>
-                <li><strong>Categories:</strong> {categories.length}</li>
-                <li><strong>Status:</strong> 
-                  <Badge bg={completionPercentage === 100 ? "success" : "warning"} className="ms-2">
-                    {completionPercentage === 100 ? "Complete" : "In Progress"}
-                  </Badge>
-                </li>
-              </ul>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
+      
     </div>
   );
 };

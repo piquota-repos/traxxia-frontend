@@ -5,45 +5,54 @@ export const extractStrategicItems = (strategicContent) => {
   if (!strategicContent) return [];
 
   const acronymSequence = ['S', 'T', 'R', 'A', 'T', 'E', 'G', 'I', 'C'];
-  
-  // Updated regex to match "STRATEGIC Analysis:" format
-  const strategicRegex = /\*\*STRATEGIC Analysis:\*\*([\s\S]*?)(?=By following the STRATEGIC|$)/i;
-  const match = strategicRegex.exec(strategicContent);
-  
-  if (!match) return [];
-  
-  const content = match[1].trim();
-  const lines = content.split('\n').filter(line => line.trim() !== '');
   const parsedItems = [];
 
-  // Parse each line that contains strategic items
-  lines.forEach(line => {
-    const trimmedLine = line.trim();
-    
-    // Match the format: **S** - **Strategy**: Description
-    const match = trimmedLine.match(/\*\*([STRATEGIC])\*\*\s*-\s*\*\*([^*]+)\*\*:\s*(.*)/i);
+  // Updated regex patterns to match the new GROQ response format
+  acronymSequence.forEach(letter => {
+    // Match patterns like: **S = Strategy: Description**
+    const pattern = new RegExp(`\\*\\*${letter}\\s*=\\s*([^*]+?)\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*[STRATEGIC]\\s*=|In conclusion|$)`, 'i');
+    const match = pattern.exec(strategicContent);
     
     if (match) {
-      const acronym = match[1].toUpperCase();
-      const keyword = match[2].trim();
-      const description = match[3].trim();
-      parsedItems.push({ acronym, keyword, description });
+      const fullTitle = match[1].trim();
+      let content = match[2].trim();
+      
+      // Extract keyword from title (everything before the colon)
+      const titleParts = fullTitle.split(':');
+      const keyword = titleParts[0].trim();
+      
+      // If there's a description after the colon in the title, use that
+      let description = '';
+      if (titleParts.length > 1) {
+        description = titleParts.slice(1).join(':').trim();
+      }
+      
+      // Extract bullet points from content
+      const bulletPoints = [];
+      const lines = content.split('\n').filter(line => line.trim() !== '');
+      
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        // Match bullet points (starting with * or -)
+        if (trimmedLine.match(/^[\*\-]\s+/)) {
+          const bulletText = trimmedLine.replace(/^[\*\-]\s+/, '').trim();
+          bulletPoints.push(bulletText);
+        }
+      });
+      
+      // Store the bullet points separately for better rendering
+      parsedItems.push({ 
+        acronym: letter, 
+        keyword, 
+        description,
+        bulletPoints: bulletPoints.length > 0 ? bulletPoints : null
+      });
+    } else {
+      parsedItems.push(null);
     }
   });
 
-  // Map parsed items to the correct sequence
-  const letterUsage = {};
-  
-  const result = acronymSequence.map(letter => {
-    const usedCount = letterUsage[letter] || 0;
-    const matches = parsedItems.filter(item => item.acronym === letter);
-    const match = matches[usedCount] || null;
-    
-    letterUsage[letter] = usedCount + 1;
-    return match;
-  });
-
-  return result;
+  return parsedItems;
 };
 
 // Define the style classes for STRATEGIC table columns
@@ -93,6 +102,16 @@ const StrategicAcronym = ({ analysisResult }) => {
                     {item ? (
                       <div className={`strategic-item ${styleClass}`}>
                         <strong>{item.keyword}:</strong> {item.description}
+                        {item.bulletPoints && (
+                          <div className="mt-2">
+                            <strong>Key actions:</strong>
+                            <ul className="mb-0 mt-1">
+                              {item.bulletPoints.map((bullet, bulletIndex) => (
+                                <li key={bulletIndex} className="mb-1">{bullet}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="text-muted">No data available</div>

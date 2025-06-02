@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import '../styles/Dashboard.css';
-import StrategicAcronym from './StrategicAcronym';
 
 const BCGMatrix = ({ analysisResult }) => {
   const matrixData = useMemo(() => {
@@ -22,11 +21,10 @@ const BCGMatrix = ({ analysisResult }) => {
     const extractedData = {};
 
     quadrantLabels.forEach(label => {
-      // Pattern to match each quadrant section
-      // Handles both (High Share / High Growth) format and other potential variants
+      // Pattern to match each quadrant section - Updated to stop at conclusion text
       const pattern = new RegExp(
         `\\*\\*\\s*${label}\\s*(?:\\(.*?\\))?\\s*:\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*\\s*(?:${quadrantLabels.join('|')
-        }|STRATEGIC Acronym)\\s*(?:\\(.*?\\))?\\s*:\\*\\*|$)`,
+        })\\s*(?:\\(.*?\\))?\\s*:\\*\\*|Given the incomplete|In conclusion|To drive success|Actionable recommendations|$)`,
         'i'
       );
 
@@ -53,7 +51,7 @@ const BCGMatrix = ({ analysisResult }) => {
   const getConclusionText = () => {
     if (!analysisResult) return "";
 
-    const conclusionRegex = /By following (?:the STRATEGIC acronym|these (?:recommendations|actionable items))[\s\S]*?$/i;
+    const conclusionRegex = /(Given the incomplete survey responses[\s\S]*?$|In conclusion[\s\S]*?$|To drive success[\s\S]*?$|Actionable recommendations[\s\S]*?$)/i;
     const conclusionMatch = conclusionRegex.exec(analysisResult);
     return conclusionMatch ? conclusionMatch[0] : "";
   };
@@ -120,12 +118,13 @@ const BCGMatrix = ({ analysisResult }) => {
           <div className="matrix-label-x">Low</div>
         </div>
       </div>
-      {/* <StrategicAcronym analysisResult={analysisResult} /> */}
-      {/* {getConclusionText() && (
-        <div className="mt-3 conclusion-text">
-          {getConclusionText()}
+
+      {/* Conclusion */}
+      {getConclusionText() && (
+        <div className="mt-4 conclusion-text">
+          <div dangerouslySetInnerHTML={{ __html: getConclusionText().replace(/\n/g, "<br/>") }} />
         </div>
-      )} */}
+      )}
     </div>
   );
 };
