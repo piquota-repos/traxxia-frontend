@@ -137,8 +137,7 @@ const useSurveyData = (questionsData) => {
     // Count how many of these 14 questions are completed
     const completedQuestions = frontendQuestionIds.filter(questionId => {
       const answer = answers[questionId];
-      if (!answer) {
-        console.log(`❌ Question ${questionId}: No answer object found`);
+      if (!answer) { 
         return false;
       }
       
@@ -149,25 +148,10 @@ const useSurveyData = (questionsData) => {
       const hasValidDescription = cleanDescription && cleanDescription.length > 10;
       const hasValidOption = answer.selectedOption && answer.selectedOption !== "";
       
-      const isCompleted = hasValidDescription || hasValidOption;
-      
-      // Debug logging for incomplete questions
-      if (!isCompleted) {
-        console.log(`❌ Question ${questionId} NOT completed:`, {
-          hasDescription: !!answer.description,
-          cleanDescriptionLength: cleanDescription.length,
-          cleanDescriptionPreview: cleanDescription.substring(0, 50) + "...",
-          hasSelectedOption: hasValidOption,
-          selectedOption: answer.selectedOption
-        });
-      } else {
-        console.log(`✅ Question ${questionId} completed`);
-      }
+      const isCompleted = hasValidDescription || hasValidOption;     
       
       return isCompleted;
-    });
-
-    console.log(`Progress: ${completedQuestions.length}/14 frontend questions completed`);
+    }); 
     
     return Math.round((completedQuestions.length / 14) * 100);
   }, [answers]);
@@ -262,8 +246,7 @@ const useSurveyData = (questionsData) => {
           ...prevAnswers,
           ...savedAnswers
         }));
-
-        console.log(`Loaded ${Object.keys(savedAnswers).length} saved answers for frontend questions`);
+ 
       }
     } catch (error) {
       console.error("Error fetching saved answers:", error);
@@ -316,8 +299,6 @@ const useSurveyData = (questionsData) => {
             description: answer.description || ""
           };
         });
-
-      console.log(`Saving ${answersToSave.length} answers with content out of 14 frontend questions`);
 
       if (answersToSave.length === 0) {
         return { message: "No answers to save" };

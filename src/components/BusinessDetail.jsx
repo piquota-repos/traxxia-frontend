@@ -1,298 +1,85 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import axios from "axios";
-import {
-  Button,
-  Container,
-  Row,
-  Col,
-  Card,
-  Badge,
-  ProgressBar,
-  Nav,
-  Form,
-  Collapse,
-  Spinner,
-  Alert,
-} from "react-bootstrap";
-import {
-  ArrowLeft,
-  ChevronDown,
-  ChevronRight,
-  CheckCircle,
-  Circle,
-  BarChart3,
-  Target,
-  TrendingUp,
-  Users,
-  Zap,
-} from "lucide-react";
+// BusinessDetail.jsx - Main Component
+import React, { useState, useCallback } from "react";
+import { Button, Card, Row, Col, Nav, Alert } from "react-bootstrap";
+import { ArrowLeft } from "lucide-react";
 
-// Utils & Auth
-import { getAuthData } from "../utils/auth";
+// Custom Hooks
+import { useBusinessData } from "../hooks/useBusinessData";
+import { useAnalysisData } from "../hooks/useAnalysisData";
+import { useProgressTracking } from "../hooks/useProgressTracking";
+
+// Components
+import LoadingState from "../components/LoadingState";
+import ErrorState from "../components/ErrorState";
+import ProgressSection from "../components/ProgressSection";
+import CategoryItem from "../components/CategoryItem";
+import AnalysisItem from "../components/AnalysisItem";
+import ExpandedAnalysisView from "../components/ExpandedAnalysisView";
+
+// Utils
+import { getAnalysisType } from "../utils/analysisHelpers";
+import { apiService } from "../utils/apiService";
+import strategicPlanningBook from "../utils/strategicPlanningBook.js";
+import strategicPlanningBook1 from "../utils/strategicPlanningBook1.js";
 
 // Styles
 import "../styles/business-detail.css";
+import "../styles/analysis-components.css";
 
 const BusinessDetail = ({ businessName, onBack }) => {
+  // State Management
   const [activeTab, setActiveTab] = useState("questions");
   const [analysisTab, setAnalysisTab] = useState("analysis");
   const [expandedCategories, setExpandedCategories] = useState({});
-  const [businessData, setBusinessData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Get auth data and API URL
-  const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
-  const { userName, userId, latestVersion, isAdmin, token } = getAuthData();
+  // Full-screen analysis state
+  const [isFullScreenAnalysis, setIsFullScreenAnalysis] = useState(false);
+  const [activeAnalysisItem, setActiveAnalysisItem] = useState(null);
+  const [fullScreenAnalysisTab, setFullScreenAnalysisTab] = useState("analysis");
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState(null);
 
-  // Add critical CSS to prevent scrolling issues
-  useEffect(() => {
-    // Create style element
-    const styleId = 'business-detail-fixes';
-    let style = document.getElementById(styleId);
-    
-    if (!style) {
-      style = document.createElement('style');
-      style.id = styleId;
-      document.head.appendChild(style);
-    }
-    
-    style.textContent = `
-      /* Critical fixes */
-      html, body, * {
-        scroll-behavior: auto !important;
-      }
-      
-      .App {
-        text-align: left !important;
-      }
-      
-      .business-detail-container,
-      .business-detail-container * {
-        text-align: left !important;
-        scroll-behavior: auto !important;
-      }
-      
-      .answer-textarea {
-        width: 100% !important;
-        min-height: 80px !important;
-        padding: 10px !important;
-        border: 1px solid #ced4da !important;
-        border-radius: 0.375rem !important;
-        font-size: 16px !important;
-        font-family: inherit !important;
-        resize: vertical !important;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
-        text-align: left !important;
-        outline: none !important;
-      }
-      
-      .answer-textarea:focus {
-        border-color: #86b7fe !important;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-      }
-    `;
+  // Strategic planning books state
+  const [strategicBooks, setStrategicBooks] = useState({
+    part1: strategicPlanningBook,
+    part2: strategicPlanningBook1 // Fixed: was strategicPlanningBook, should be strategicPlanningBook1
+  });
 
-    return () => {
-      const element = document.getElementById(styleId);
-      if (element) {
-        element.remove();
-      }
-    };
-  }, []);
+  // Custom Hooks
+  const { businessData, setBusinessData, loading, error } = useBusinessData(businessName);
+  const { analysisData, analysisLoading, generateAnalysis } = useAnalysisData();
+  const {
+    progressData,
+    isCategoryComplete,
+    getAnsweredQuestionsInCategory,
+    areAllQuestionsAnswered
+  } = useProgressTracking(businessData);
 
-  // Fetch data from API
-  useEffect(() => {
-    const fetchBusinessData = async () => {
-      try {
-        setLoading(true);
-        
-        const response = await axios.post(`${API_BASE_URL}/api/get-user-response`, {
-          user_id: userId,
-          version: latestVersion || '1.0'
-        }, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        const data = response.data;
-        
-        const transformedData = {
-          name: data.user?.company || businessName || "Business Name",
-          totalQuestions: data.survey?.total_questions || 0,
-          categories: data.categories?.map(category => ({
-            id: `category-${category.category_id}`,
-            name: category.category_name,
-            questions: category.questions?.map(question => ({
-              id: question.question_id,
-              title: question.question_text,
-              placeholder: question.nested?.question || question.question_text,
-              answer: question.user_answer?.answer || ""
-            })) || []
-          })) || [],
-          analysisItems: [
-            {
-              id: "swot",
-              title: "SWOT",
-              subtitle: "Strengths, weaknesses, opportunities, and threats",
-              icon: <Target size={20} />,
-              category: "analysis"
-            },
-            {
-              id: "porters",
-              title: "Porter's Five Forces",
-              subtitle: "Industry analysis framework",
-              icon: <BarChart3 size={20} />,
-              category: "analysis"
-            },
-            {
-              id: "bcg",
-              title: "BCG Matrix",
-              subtitle: "Portfolio analysis tool for strategic planning",
-              icon: <TrendingUp size={20} />,
-              category: "analysis"
-            },
-            {
-              id: "value-chain",
-              title: "Value Chain",
-              subtitle: "Activities that create value in your organization",
-              icon: <Zap size={20} />,
-              category: "analysis"
-            },
-            {
-              id: "strategic",
-              title: "STRATEGIC Framework", 
-              subtitle: "Comprehensive strategic analysis",
-              icon: <Users size={20} />,
-              category: "strategic"
-            }
-          ]
-        };
-        
-        setBusinessData(transformedData);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching business data:', err);
-        
-        if (err.response?.status === 404) {
-          setError('No survey responses found. Please complete the survey first.');
-        } else if (err.response?.status === 401 || err.response?.status === 403) {
-          setError('Authentication failed. Please log in again.');
-        } else {
-          setError(err.response?.data?.message || 'Failed to load business data. Please try again.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBusinessData();
-  }, [businessName, userId, latestVersion, token, API_BASE_URL]);
-
-  // SIMPLE: Handle answer change with immediate update
+  // Event Handlers
   const handleAnswerChange = useCallback((questionId, value) => {
     setBusinessData(prevData => ({
       ...prevData,
       categories: prevData.categories.map(category => ({
         ...category,
-        questions: category.questions.map(question => 
-          question.id === questionId 
+        questions: category.questions.map(question =>
+          question.id === questionId
             ? { ...question, answer: value }
             : question
         )
       }))
     }));
-  }, []);
+  }, [setBusinessData]);
 
-  // Manual save function
-  const saveAnswers = async () => {
+  const saveAnswers = useCallback(async () => {
     try {
       setIsSaving(true);
-      
-      const answersArray = [];
-      
-      businessData.categories.forEach(category => {
-        category.questions.forEach(question => {
-          answersArray.push({
-            question_id: question.id,
-            answer: question.answer || '',
-            selected_option: '',
-            selected_options: [],
-            rating: null
-          });
-        });
-      });
-
-      await axios.post(`${API_BASE_URL}/api/survey/submit`, {
-        version: latestVersion || '1.0',
-        answers: answersArray
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      console.log('Answers saved successfully!');
-      
+      await apiService.saveAnswers(businessData); 
     } catch (error) {
       console.error('Error saving answers:', error);
     } finally {
       setIsSaving(false);
     }
-  };
-
-  // Calculate answered questions and progress
-  const progressData = useMemo(() => {
-    if (!businessData) return { answeredQuestions: 0, totalQuestions: 0, progress: 0 };
-    
-    let totalAnswered = 0;
-    
-    businessData.categories.forEach(category => {
-      category.questions.forEach(question => {
-        if (question.answer && question.answer.trim() !== '') {
-          totalAnswered++;
-        }
-      });
-    });
-    
-    const progress = businessData.totalQuestions > 0 
-      ? Math.round((totalAnswered / businessData.totalQuestions) * 100)
-      : 0;
-    
-    return {
-      answeredQuestions: totalAnswered,
-      totalQuestions: businessData.totalQuestions,
-      progress: progress
-    };
-  }, [businessData]);
-
-  // Check if all questions in a category are answered
-  const isCategoryComplete = useCallback((category) => {
-    return category.questions.every(question => 
-      question.answer && question.answer.trim() !== ''
-    );
-  }, []);
-
-  // Count answered questions in a category
-  const getAnsweredQuestionsInCategory = useCallback((category) => {
-    return category.questions.filter(question => 
-      question.answer && question.answer.trim() !== ''
-    ).length;
-  }, []);
-
-  // Check if all questions across all categories are answered
-  const areAllQuestionsAnswered = useCallback(() => {
-    if (!businessData || !businessData.categories) return false;
-    
-    return businessData.categories.every(category => 
-      category.questions.every(question => 
-        question.answer && question.answer.trim() !== ''
-      )
-    );
   }, [businessData]);
 
   const toggleCategory = useCallback((categoryId) => {
@@ -302,42 +89,92 @@ const BusinessDetail = ({ businessName, onBack }) => {
     }));
   }, []);
 
-  // Show loading spinner while fetching data
+  // Analysis Handlers
+  const handleAnalysisItemClick = useCallback(async (item) => {
+    setActiveAnalysisItem(item);
+    setIsAnimating(true);
+
+    const analysisType = getAnalysisType(item.id);
+    setSelectedAnalysisType(analysisType);
+
+    // Start animation
+    setTimeout(() => {
+      setIsFullScreenAnalysis(true);
+      setIsAnimating(false);
+    }, 1000);
+
+    // Auto-generate analysis
+    const cacheKey = `${item.id}-${analysisType}`;
+    if (!analysisData[cacheKey]) {
+      await generateAnalysis(analysisType, item.id, businessData, strategicBooks);
+    }
+  }, [analysisData, generateAnalysis, businessData, strategicBooks]);
+
+  // Handle framework tab click in expanded view with FORCED refresh
+  const handleFrameworkTabClick = useCallback(async (item, forceRefresh = false) => {
+    setActiveAnalysisItem(item);
+
+    const analysisType = getAnalysisType(item.id);
+    setSelectedAnalysisType(analysisType);
+
+    // ALWAYS call generateAnalysis when forceRefresh is true, regardless of cache
+    if (forceRefresh) { 
+      await generateAnalysis(analysisType, item.id, businessData, strategicBooks, true);
+    } else {
+      // Normal behavior - check cache first
+      const cacheKey = `${item.id}-${analysisType}`;
+      if (!analysisData[cacheKey]) { 
+        await generateAnalysis(analysisType, item.id, businessData, strategicBooks, false);
+      }
+    }
+  }, [analysisData, generateAnalysis, businessData, strategicBooks]);
+
+  // Handle analysis type selection with FORCED refresh
+  const handleAnalysisTypeSelect = useCallback(async (analysisType, forceRefresh = false) => {
+    if (!activeAnalysisItem) return;
+
+    setSelectedAnalysisType(analysisType);
+
+    // ALWAYS call generateAnalysis when forceRefresh is true, regardless of cache
+    if (forceRefresh) { 
+      await generateAnalysis(analysisType, activeAnalysisItem.id, businessData, strategicBooks, true);
+    } else {
+      // Normal behavior - check cache first
+      const cacheKey = `${activeAnalysisItem.id}-${analysisType}`;
+      if (!analysisData[cacheKey]) { 
+        await generateAnalysis(analysisType, activeAnalysisItem.id, businessData, strategicBooks, false);
+      }
+    }
+  }, [activeAnalysisItem, analysisData, generateAnalysis, businessData, strategicBooks]);
+
+  // Handle close expanded view
+  const handleCloseExpandedView = useCallback(() => { 
+
+    setIsAnimating(true);
+    setIsFullScreenAnalysis(false);
+
+    // Reset after animation
+    setTimeout(() => {
+      setActiveAnalysisItem(null);
+      setSelectedAnalysisType(null);
+      setIsAnimating(false); 
+    }, 1000);
+  }, []);
+
+  // Handle regenerate analysis
+  const handleRegenerateAnalysis = useCallback(async (analysisType, frameworkId) => { 
+    await generateAnalysis(analysisType, frameworkId, businessData, strategicBooks, true);
+  }, [generateAnalysis, businessData, strategicBooks]);
+
+  // Render States
   if (loading) {
-    return (
-      <div className="business-detail-container">
-        <Card className="text-center p-4">
-          <Card.Body>
-            <Spinner animation="border" role="status" className="mb-3">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-            <p>Loading business data...</p>
-          </Card.Body>
-        </Card>
-      </div>
-    );
+    return <LoadingState />;
   }
 
-  // Show error message if API call failed
   if (error) {
-    return (
-      <div className="business-detail-container">
-        <Card>
-          <Card.Body>
-            <Alert variant="danger">
-              <Alert.Heading>Error Loading Data</Alert.Heading>
-              <p>{error}</p>
-              <Button variant="outline-danger" onClick={() => window.location.reload()}>
-                Try Again
-              </Button>
-            </Alert>
-          </Card.Body>
-        </Card>
-      </div>
-    );
+    return <ErrorState error={error} onRetry={() => window.location.reload()} />;
   }
 
-  // Show message if no data available
   if (!businessData) {
     return (
       <div className="business-detail-container">
@@ -353,294 +190,208 @@ const BusinessDetail = ({ businessName, onBack }) => {
     );
   }
 
-  const { answeredQuestions, totalQuestions, progress } = progressData;
-
-  const OverallProgressSection = () => (
-    <div className="progress-section">
-      <h6 className="progress-section-title">Information</h6>
-      
-      <div className="progress-label">
-        Progress: {progress}% - {answeredQuestions} of {totalQuestions} questions answered.
-      </div>
-      
-      <ProgressBar 
-        now={progress}
-        className="progress-bar-custom"
-      />
-      
-      <p className="progress-help-text">
-        Please complete the remaining questions to continue. The more questions you answer, the more accurate and personalized your results will be.
-      </p>
-      
-      <div className="mt-3">
-        <Button 
-          variant="success" 
-          onClick={saveAnswers}
-          size="sm"
-          disabled={isSaving}
-        >
-          {isSaving ? (
-            <>
-              <Spinner size="sm" className="me-1" />
-              Saving...
-            </>
-          ) : (
-            'Save Progress'
-          )}
-        </Button>
-      </div>
-    </div>
-  );
-
-  const CategoryItem = ({ category }) => {
-    const isExpanded = expandedCategories[category.id];
-    const isComplete = isCategoryComplete(category);
-    const answeredCount = getAnsweredQuestionsInCategory(category);
-    
-    return (
-      <div className="category-accordion-item">
-        <div 
-          onClick={() => toggleCategory(category.id)}
-          className="category-header"
-        >
-          <div className={`category-chevron ${isExpanded ? 'expanded' : 'collapsed'}`}>
-            {isExpanded ? (
-              <ChevronDown size={20} />
-            ) : (
-              <ChevronRight size={20} />
-            )}
-          </div>
-          
-          <div className="category-name">
-            <span className="category-name-text">
-              {category.name}
-            </span>
-          </div>
-          
-          <div>
-            {isComplete ? (
-              <CheckCircle size={20} className="category-status-icon completed" />
-            ) : (
-              <div className="category-status-number">
-                {answeredCount}
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <Collapse in={isExpanded}>
-          <div>
-            <div className="category-content-wrapper">
-              {category.questions.map((question) => (
-                <div key={question.id} className="question-item">
-                  <label className="question-label" htmlFor={`question-${question.id}`}>
-                    {question.title}
-                  </label>
-                  <Form.Control
-                    as="textarea"
-                    rows={4}
-                    id={`question-${question.id}`}
-                    name={`question-${question.id}`} 
-                    value={question.answer || ""}
-                    onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-                    className="answer-textarea"
-                    autoComplete="off"
-                    spellCheck="true"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </Collapse>
-      </div>
-    );
+  // Component Props
+  const progressSectionProps = {
+    progressData,
+    saveAnswers,
+    isSaving
   };
 
-  const AnalysisItem = ({ item }) => (
-    <div className="analysis-item">
-      <div className="analysis-item-content">
-        <div className="analysis-item-left">
-          <div className="analysis-icon">
-            {item.icon}
-          </div>
-          <div>
-            <h6 className="analysis-item-title">
-              {item.title}
-            </h6>
-            <p className="analysis-item-subtitle">
-              {item.subtitle}
-            </p>
-          </div>
-        </div>
-        <ChevronDown size={16} className="analysis-chevron" />
-      </div>
-    </div>
-  );
+  const categoryItemProps = (category) => ({
+    category,
+    isExpanded: expandedCategories[category.id],
+    isComplete: isCategoryComplete(category),
+    answeredCount: getAnsweredQuestionsInCategory(category),
+    onToggle: () => toggleCategory(category.id),
+    onAnswerChange: handleAnswerChange
+  });
 
-  const MobileTabContent = () => {
-    if (activeTab === "questions") {
-      return (
-        <div className="mobile-tab-content">
-          <OverallProgressSection />          
-          <div>
-            {businessData.categories.map(category => (
-              <CategoryItem key={category.id} category={category} />
-            ))}
-          </div>
-        </div>
-      );
-    } else if (activeTab === "analysis") {
-      const analysisItems = businessData.analysisItems.filter(item => item.category === "analysis");
-      return (
-        <div className="analysis-tab-content">
-          <h6 className="analysis-section-title">
-            Analysis
-          </h6>
-          <div>
-            {analysisItems.map(item => (
-              <AnalysisItem key={item.id} item={item} />
-            ))}
-          </div>
-        </div>
-      );
-    } else {
-      const strategicItems = businessData.analysisItems.filter(item => item.category === "strategic");
-      return (
-        <div className="analysis-tab-content">
-          <h6 className="analysis-section-title">
-            STRATEGIC
-          </h6>
-          <div>
-            {strategicItems.map(item => (
-              <AnalysisItem key={item.id} item={item} />
-            ))}
-          </div>
-        </div>
-      );
-    }
-  };
+  const analysisItemProps = (item) => ({
+    item,
+    onClick: () => handleAnalysisItemClick(item)
+  });
 
-  const DesktopLeftSide = () => (
-    <div className="desktop-left-side">
-      <OverallProgressSection />
-       
-      <div>
-        {businessData.categories.map(category => (
-          <CategoryItem key={category.id} category={category} />
-        ))}
-      </div>
-    </div>
-  );
-
-  const DesktopRightSide = () => {
-    const allAnswered = areAllQuestionsAnswered();
-    
-    return (
-      <div 
-        className={`desktop-right-side ${!allAnswered ? 'blurred-section' : ''}`}
-      >
-        {!allAnswered && (
-          <div className="completion-overlay">
-            <h6 className="completion-overlay-title">
-              Complete All Questions
-            </h6>
-            <p className="completion-overlay-text">
-              Please answer all questions to unlock the analysis section
-            </p>
-          </div>
-        )}
-
-        <div className="d-flex justify-content-center mb-3">
-          <Button
-            variant={analysisTab === "analysis" ? "primary" : "outline-primary"}
-            className="mx-2"
-            onClick={() => setAnalysisTab("analysis")}
-          >
-            Analysis
-          </Button>
-          <Button
-            variant={analysisTab === "strategic" ? "primary" : "outline-primary"}
-            className="mx-2"
-            onClick={() => setAnalysisTab("strategic")}
-          >
-            STRATEGIC
-          </Button>
-        </div>
-
-        <h6 className="analysis-section-title">
-          {analysisTab === "analysis" ? "Analysis" : "STRATEGIC"}
-        </h6>
-        <div>
-          {businessData.analysisItems
-            .filter(item => item.category === analysisTab)
-            .map(item => (
-              <AnalysisItem key={item.id} item={item} />
-            ))
-          }
-        </div>
-      </div>
-    );
+  const expandedAnalysisProps = {
+    businessData,
+    activeAnalysisItem,
+    fullScreenAnalysisTab,
+    setFullScreenAnalysisTab,
+    selectedAnalysisType,
+    analysisData,
+    analysisLoading,
+    onFrameworkTabClick: handleFrameworkTabClick,
+    onAnalysisTypeSelect: handleAnalysisTypeSelect,
+    onCloseExpandedView: handleCloseExpandedView,
+    onRegenerateAnalysis: handleRegenerateAnalysis
   };
 
   return (
-    <div className="business-detail-container">
-      {/* Mobile View */}
-      <Card className="mobile-business-detail d-md-none">
-        <Card.Header className="mobile-business-header">
-          <Button 
-            variant="link" 
-            onClick={onBack}
-            className="back-button"
+    <>
+      <div className="business-detail-container">
+        {/* Mobile View */}
+        <MobileView
+          businessData={businessData}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onBack={onBack}
+          progressSectionProps={progressSectionProps}
+          categoryItemProps={categoryItemProps}
+          analysisItemProps={analysisItemProps}
+        />
+
+        {/* Desktop View */}
+        <DesktopView
+          businessData={businessData}
+          analysisTab={analysisTab}
+          setAnalysisTab={setAnalysisTab}
+          onBack={onBack}
+          isFullScreenAnalysis={isFullScreenAnalysis}
+          isAnimating={isAnimating}
+          areAllQuestionsAnswered={areAllQuestionsAnswered()}
+          progressSectionProps={progressSectionProps}
+          categoryItemProps={categoryItemProps}
+          analysisItemProps={analysisItemProps}
+          expandedAnalysisProps={expandedAnalysisProps}
+        />
+      </div>
+    </>
+  );
+};
+
+// Mobile View Component
+const MobileView = ({
+  businessData,
+  activeTab,
+  setActiveTab,
+  onBack,
+  progressSectionProps,
+  categoryItemProps,
+  analysisItemProps
+}) => (
+  <Card className="mobile-business-detail d-md-none">
+    <Card.Header className="mobile-business-header">
+      <Button
+        variant="link"
+        onClick={onBack}
+        className="back-button"
+      >
+        <ArrowLeft size={20} />
+      </Button>
+      <h6 className="business-name">
+        {businessData.name}
+      </h6>
+    </Card.Header>
+
+    <div className="mobile-tabs-container">
+      <Nav variant="tabs" className="mobile-tabs">
+        <Nav.Item>
+          <Nav.Link
+            active={activeTab === "questions"}
+            onClick={() => setActiveTab("questions")}
+            className={`mobile-tab ${activeTab === "questions" ? "active" : ""}`}
           >
-            <ArrowLeft size={20} />
-          </Button>
-          <h6 className="business-name">
-            {businessData.name}
-          </h6>
-        </Card.Header>
+            Questions
+          </Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link
+            active={activeTab === "analysis"}
+            onClick={() => setActiveTab("analysis")}
+            className={`mobile-tab ${activeTab === "analysis" ? "active" : ""}`}
+          >
+            Analysis
+          </Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link
+            active={activeTab === "strategic"}
+            onClick={() => setActiveTab("strategic")}
+            className={`mobile-tab ${activeTab === "strategic" ? "active" : ""}`}
+          >
+            STRATEGIC
+          </Nav.Link>
+        </Nav.Item>
+      </Nav>
+    </div>
 
-        <div className="mobile-tabs-container">
-          <Nav variant="tabs" className="mobile-tabs">
-            <Nav.Item>
-              <Nav.Link 
-                active={activeTab === "questions"}
-                onClick={() => setActiveTab("questions")}
-                className={`mobile-tab ${activeTab === "questions" ? "active" : ""}`}
-              >
-                Questions
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link 
-                active={activeTab === "analysis"}
-                onClick={() => setActiveTab("analysis")}
-                className={`mobile-tab ${activeTab === "analysis" ? "active" : ""}`}
-              >
-                Analysis
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link 
-                active={activeTab === "strategic"}
-                onClick={() => setActiveTab("strategic")}
-                className={`mobile-tab ${activeTab === "strategic" ? "active" : ""}`}
-              >
-                STRATEGIC
-              </Nav.Link>
-            </Nav.Item>
-          </Nav>
+    <Card.Body className="mobile-tab-body">
+      <MobileTabContent
+        activeTab={activeTab}
+        businessData={businessData}
+        progressSectionProps={progressSectionProps}
+        categoryItemProps={categoryItemProps}
+        analysisItemProps={analysisItemProps}
+      />
+    </Card.Body>
+  </Card>
+);
+
+// Mobile Tab Content Component
+const MobileTabContent = ({
+  activeTab,
+  businessData,
+  progressSectionProps,
+  categoryItemProps,
+  analysisItemProps
+}) => {
+  if (activeTab === "questions") {
+    return (
+      <div className="mobile-tab-content">
+        <ProgressSection {...progressSectionProps} />
+        <div>
+          {businessData.categories.map(category => (
+            <CategoryItem key={category.id} {...categoryItemProps(category)} />
+          ))}
         </div>
-        
-        <Card.Body className="mobile-tab-body">
-          <MobileTabContent />
-        </Card.Body>
-      </Card>
+      </div>
+    );
+  } else if (activeTab === "analysis") {
+    const analysisItems = businessData.analysisItems.filter(item => item.category === "analysis");
+    return (
+      <div className="analysis-tab-content">
+        <h6 className="analysis-section-title">Analysis</h6>
+        <div>
+          {analysisItems.map(item => (
+            <AnalysisItem key={item.id} {...analysisItemProps(item)} />
+          ))}
+        </div>
+      </div>
+    );
+  } else {
+    const strategicItems = businessData.analysisItems.filter(item => item.category === "strategic");
+    return (
+      <div className="analysis-tab-content">
+        <h6 className="analysis-section-title">STRATEGIC</h6>
+        <div>
+          {strategicItems.map(item => (
+            <AnalysisItem key={item.id} {...analysisItemProps(item)} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+};
 
-      {/* Desktop View */}
-      <Card className="desktop-business-detail d-none d-md-block">
+// Desktop View Component
+const DesktopView = ({
+  businessData,
+  analysisTab,
+  setAnalysisTab,
+  onBack,
+  isFullScreenAnalysis,
+  isAnimating,
+  areAllQuestionsAnswered,
+  progressSectionProps,
+  categoryItemProps,
+  analysisItemProps,
+  expandedAnalysisProps
+}) => (
+  <Card className="desktop-business-detail d-none d-md-block">
+    {!isFullScreenAnalysis ? (
+      <>
         <Card.Header className="desktop-business-header">
-          <Button 
-            variant="link" 
+          <Button
+            variant="link"
             onClick={onBack}
             className="back-button"
           >
@@ -650,20 +401,109 @@ const BusinessDetail = ({ businessName, onBack }) => {
             {businessData.name}
           </h5>
         </Card.Header>
-        
+
         <Card.Body className="desktop-business-body">
           <Row className="desktop-business-row">
-            <Col md={6} className="desktop-left-column">
-              <DesktopLeftSide />
+            <Col
+              md={6}
+              className={`desktop-left-column ${isAnimating && !isFullScreenAnalysis ? 'slide-out-left' : ''} ${isAnimating && isFullScreenAnalysis ? 'slide-in-left' : ''}`}
+            >
+              <DesktopLeftSide
+                businessData={businessData}
+                progressSectionProps={progressSectionProps}
+                categoryItemProps={categoryItemProps}
+              />
             </Col>
-            <Col md={6} className="desktop-right-column">
-              <DesktopRightSide />
+            <Col
+              md={6}
+              className="desktop-right-column"
+            >
+              <DesktopRightSide
+                businessData={businessData}
+                analysisTab={analysisTab}
+                setAnalysisTab={setAnalysisTab}
+                areAllQuestionsAnswered={areAllQuestionsAnswered}
+                analysisItemProps={analysisItemProps}
+              />
             </Col>
           </Row>
         </Card.Body>
-      </Card>
+      </>
+    ) : (
+      <div className="desktop-expanded-analysis">
+        <ExpandedAnalysisView {...expandedAnalysisProps} />
+      </div>
+    )}
+  </Card>
+);
+
+// Desktop Left Side Component
+const DesktopLeftSide = ({
+  businessData,
+  progressSectionProps,
+  categoryItemProps
+}) => (
+  <div className="desktop-left-side">
+    <ProgressSection {...progressSectionProps} />
+    <div>
+      {businessData.categories.map(category => (
+        <CategoryItem key={category.id} {...categoryItemProps(category)} />
+      ))}
     </div>
-  );
-};
+  </div>
+);
+
+// Desktop Right Side Component
+const DesktopRightSide = ({
+  businessData,
+  analysisTab,
+  setAnalysisTab,
+  areAllQuestionsAnswered,
+  analysisItemProps
+}) => (
+  <div
+    className={`desktop-right-side ${!areAllQuestionsAnswered ? 'blurred-section' : ''}`}
+  >
+    {!areAllQuestionsAnswered && (
+      <div className="completion-overlay">
+        <h6 className="completion-overlay-title">
+          Complete All Questions
+        </h6>
+        <p className="completion-overlay-text">
+          Please answer all questions to unlock the analysis section
+        </p>
+      </div>
+    )}
+
+    <div className="d-flex justify-content-center mb-3">
+      <Button
+        variant={analysisTab === "analysis" ? "primary" : "outline-primary"}
+        className="mx-2"
+        onClick={() => setAnalysisTab("analysis")}
+      >
+        Analysis
+      </Button>
+      <Button
+        variant={analysisTab === "strategic" ? "primary" : "outline-primary"}
+        className="mx-2"
+        onClick={() => setAnalysisTab("strategic")}
+      >
+        STRATEGIC
+      </Button>
+    </div>
+
+    <h6 className="analysis-section-title">
+      {analysisTab === "analysis" ? "Analysis" : "STRATEGIC"}
+    </h6>
+    <div>
+      {businessData.analysisItems
+        .filter(item => item.category === analysisTab)
+        .map(item => (
+          <AnalysisItem key={item.id} {...analysisItemProps(item)} />
+        ))
+      }
+    </div>
+  </div>
+);
 
 export default BusinessDetail;

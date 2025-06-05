@@ -1,15 +1,3 @@
-/* Dashboard Responsive Styles - Fixed Scrolling Version */
-/* Import the CSS variables file before using this */
-/* @import 'path/to/css-variables.css'; */
-
-/* Allow proper scrolling */
-html, body {
-  overflow-x: hidden;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
 .dashboard-layout {
   min-height: 100vh;
   display: flex;
@@ -532,3 +520,8 @@ html, body {
   min-height: calc(100vh - 60px);
   overflow: auto;
 }
+
+
+
+
+

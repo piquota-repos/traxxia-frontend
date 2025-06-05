@@ -5,19 +5,16 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   const token = sessionStorage.getItem('token');
   const isAdmin = sessionStorage.getItem('isAdmin');
  
-  if (!token) {
-    console.log('No token found, redirecting to login');
+  if (!token) { 
     return <Navigate to="/login" replace />;
   }
 
   if (adminOnly) {
-    if (isAdmin !== 'true') {
-      console.log('User is not admin, redirecting to dashboard');
+    if (isAdmin !== 'true') { 
       return <Navigate to="/dashboard" replace />;
     }
   }
-
-  console.log('Access granted');
+ 
   return children;
 };
 
