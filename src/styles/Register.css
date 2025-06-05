@@ -10,7 +10,7 @@
   --white: #ffffff;
   --error: #e53e3e;
   --success: #38a169;
-  --border: #e2e8f0;
+  --border: #C5C6CC;
   --shadow: rgba(0, 0, 0, 0.1);
   --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
   --transition: all 0.3s ease;
@@ -30,28 +30,26 @@ body {
 }
 
 .register-container {
-  min-height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  position: relative;
+  height: 100vh;
   overflow: hidden;
 }
 
-.register-card {
+.register-form {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+}
+.register-wrapper {
   width: 100%;
-  max-width: 550px;
-  background-color: var(--white);
-  border-radius: 16px;
-  box-shadow: var(--card-shadow);
-  overflow: hidden;
-  z-index: 10;
-  position: relative;
+  max-width: 450px;
+}
+.form-group {
+  margin-bottom: 10px; 
 }
 
 .register-header {
-  padding: 2rem;
+  padding: 1rem 0;
   text-align: center;
   border-bottom: 1px solid var(--border);
 }
@@ -105,55 +103,112 @@ body {
 }
 
 .form-step {
-  padding: 1.5rem 0;
+  padding: 0.75rem 0;
 }
 
 .step-title {
   font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   color: var(--text-dark);
 }
 
 .step-description {
   color: var(--text-light);
   margin-bottom: 1.5rem;
-  font-size: 0.95rem;
+  font-size: 0.75rem;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
+.form-group1 label {
   display: block;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
   color: var(--text-dark);
 }
 
-.register-container .form-group input[type="text"],
+.form-group1 + .form-group1 {
+  margin-top: 16px; /* or whatever spacing you prefer */
+}
+.register-container .form-group1 input[type="text"],
 .register-group input[type="email"],
 .register-group input[type="password"],
 .form-group textarea {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 6px 10px ; 
   border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 1rem;
   color: var(--text-dark);
   background-color: var(--bg-light);
   transition: var(--transition);
+  box-shadow: 0 0 0 2px #C5C6CC;
+}
+.register-container .form-group1 input[type="email"], .form-group1 input[type="password"] {
+  width: 100%;
+  padding: 6px 10px ; 
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  color: var(--text-dark);
+  background-color: var(--bg-light);
+  transition: var(--transition);
+  box-shadow: 0 0 0 2px #C5C6CC;
+}
+.REGISTER-left-section {
+  flex: 1;
+  background: url('../assets/71d46d88977b8f5269d03ea65a25e6dff7c73d30.png');
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden; 
+}
+.form-group1 input[type="text"]:focus,
+.form-group1 input[type="email"]:focus,
+.form-group1 input[type="password"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(19, 109, 180, 1);
 }
 
+.register-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background-color: var(--white);
+}
+.company-branding {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 600px;
+}
+
+.logo-container {
+  
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.logo{
+  width: 55%;
+  height: auto;
+  object-fit: contain;
+}
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
 }
-
+.form-group input {
+  padding: 6px 10px; 
+  font-size: 14px;
+}
 .form-group input.error,
 .form-group textarea.error {
   border-color: var(--error);
@@ -209,24 +264,23 @@ body {
   display: flex;
   align-items: center;
   position: relative;
-  padding-left: 30px;
+  
   cursor: pointer;
   font-size: 0.95rem;
 }
 
 .checkbox-container input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
+  width: 25px;
+  height: 25px;
+  margin-right: 8px;
+  accent-color: #007bff;
 }
 
 .checkmark {
   position: absolute;
   top: 0;
   left: 0;
-  height: 20px;
+  height: 25px;
   width: 20px;
   background-color: var(--bg-light);
   border: 1px solid var(--border);
@@ -279,7 +333,7 @@ body {
 .button-container {
   display: flex;
   justify-content: space-between;
-  margin-top: 2rem;
+  margin-top: 1rem;
   gap: 1rem;
 }
 
@@ -408,9 +462,10 @@ body {
 
 /* Responsive design */
 @media (max-width: 576px) {
-  .register-container {
-    padding: 1rem;
+  .REGISTER-left-section{
+    display: none; 
   }
+  
   
   .register-card {
     box-shadow: none;
@@ -502,7 +557,10 @@ body {
     transform: translateY(0);
   }
 }
-
+input[type="text"]::placeholder{
+  position: relative;
+  left: 10px;
+}
 .success-icon {
   width: 60px;
   height: 60px;
@@ -558,4 +616,15 @@ body {
 .success-modal {
   position: relative;
   /* other existing styles */
+}
+.register-title {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* spacing between icon and text */
+  margin-bottom: 0.5rem;
+}
+.back-icon {
+  font-size: 2rem; /* adjust icon size */
+  cursor: pointer;
+  color: rgb(75, 128, 203);
 }

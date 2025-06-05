@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
-
+import { MdTranslate } from 'react-icons/md'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
+import logo from '../assets/01a2750def81a5872ec67b2b5ec01ff5e9d69d0e.png';
+import facebook from '../assets/facebook (1).png';
+import social from '../assets/social.png';
+import apple from '../assets/apple.png'; 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,10 +60,8 @@ const Login = () => {
       <div className="login-left-section">
         <div className="company-branding">
           <div className="logo-container">
-            <div className="logo-circle"></div>
-            <h1>Traxxia</h1>
+           <img src={logo} alt="Traxxia Logo" className="logo" />
           </div>
-          <p className="tagline">Empowering your business with smart solutions.</p>
           <div className="decoration-shapes">
             <div className="shape shape-1"></div>
             <div className="shape shape-2"></div>
@@ -68,48 +72,51 @@ const Login = () => {
       
       <div className="login-right-section">
         <div className="login-box">
-          <h2>Welcome Back</h2>
-          <p className="login-subtitle">Enter your credentials to access your account</p>
-          
+          <h2>Welcome!</h2>
+        <div className='converter'>
+          <MdTranslate size={25} title="Translate (EN/ES)" />
+        </div>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Email Address</label>
+              
               <div className="input-container">
-                <i className="input-icon email-icon"></i>
+                
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@company.com"
+                  placeholder="Email Address"
                   required
                 />
               </div>
             </div>
             
             <div className="form-group">
-              <div className="password-header">
-                <label>Password</label>
-              </div>
+              
               <div className="input-container">
-                <i className="input-icon password-icon"></i>
+                
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Password"
                   required
                 />
-                <button 
+                  <button 
                   type="button"
                   className="toggle-password"
                   onClick={togglePasswordVisibility}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  <i className={`eye-icon ${showPassword ? "eye-open" : "eye-closed"}`}></i>
+                  <FontAwesomeIcon
+                    icon={showPassword ? faEye : faEyeSlash }
+                    className="eye-icon"
+                    style={{ color: '#8F9098', fontSize: '20px' }} 
+                  />
                 </button>
               </div>
             </div>
-            
+            {/*<a className='forget_password' href="/forgot-password">Forgot Password?</a>*/}
             <button
               type="submit"
               className={`login-button ${isLoading ? 'loading' : ''}`}
@@ -120,8 +127,21 @@ const Login = () => {
           </form>
           
           <div className="login-footer">
-            <p>Don't have an account? <a href="/register">Sign up</a></p>
+            <p>Not a member? <a href="/register">Register now</a></p>
           </div>
+          <hr className='divider' />
+          <p>Or continue with</p>
+          <div className='social-login'>
+          <a href="https://google.com" target="_blank" rel="noopener noreferrer">
+            <img src={social} alt="Google" />
+          </a>
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+            <img src={apple} alt="Apple" />
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+            <img src={facebook} alt="Facebook" />
+          </a>
+        </div>
         </div>
       </div>
     </div>
