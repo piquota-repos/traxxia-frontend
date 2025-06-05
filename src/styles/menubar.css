@@ -137,6 +137,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 68px;
 }
 
 /* Dropdown Toggle Arrows - Hide them */
