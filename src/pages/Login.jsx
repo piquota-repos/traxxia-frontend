@@ -16,6 +16,13 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+  const [showDropdown, setShowDropdown] = useState(false);
+const [selectedOption, setSelectedOption] = useState('Option 1');
+
+const toggleDropdown = () => {
+  setShowDropdown(prev => !prev);
+  if (!showDropdown) setSelectedOption('English'); 
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,7 +81,23 @@ const Login = () => {
         <div className="login-box">
           <h2>Welcome!</h2>
         <div className='converter'>
-          <MdTranslate size={25} title="Translate (EN/ES)" />
+          <MdTranslate size={25} onClick={toggleDropdown} title="Translate (EN/ES)" />
+          {showDropdown && (
+            <div className="dropdown">
+              <div
+                className={`dropdown-option ${selectedOption === 'English' ? 'selected' : ''}`}
+                onClick={() => setSelectedOption('English')}
+              >
+                English
+              </div>
+              <div
+                className={`dropdown-option ${selectedOption === 'Spanish' ? 'selected' : ''}`}
+                onClick={() => setSelectedOption('Spanish')}
+              >
+                Español
+              </div>
+            </div>
+          )}
         </div>
           <form onSubmit={handleSubmit}>
             <div className="form-group">

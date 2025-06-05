@@ -154,7 +154,7 @@
   --breakpoint-xxl: 1400px;
 }
 
-/* Dark mode variables (optional for future use) */
+/* Dark mode variables (optional for future use) 
 @media (prefers-color-scheme: dark) {
   :root {
     --color-text-primary: #f8f9fa;
@@ -166,7 +166,7 @@
     --color-border-light: #495057;
     --color-border-medium: #6c757d;
   }
-}
+}*/
 
 /* Base font settings for the entire application */
 * {

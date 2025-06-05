@@ -5,8 +5,7 @@ import { FaEye, FaEyeSlash, FaTimes } from 'react-icons/fa';
 import { FaAngleLeft } from 'react-icons/fa';
 import '../styles/Register.css';
 import logo from '../assets/01a2750def81a5872ec67b2b5ec01ff5e9d69d0e.png';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+
 import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
@@ -38,51 +37,31 @@ const Register = () => {
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
 
-  const validate = () => {
-  const newErrors = {};
-
-  if (!form.name.trim()) {
-    newErrors.name = 'First name is required';
-    toast.error(newErrors.name);
-  }
-  if (!form.lastName.trim()) {
-    newErrors.lastName = 'Last name is required';
-    toast.error(newErrors.lastName);
-  }
-  
-  if (!form.email.trim()) {
-    newErrors.email = 'Email is required';
-    toast.error(newErrors.email);
-  } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-    newErrors.email = 'Email address is invalid';
-    toast.error(newErrors.email);
-  }
-
-  if (!form.password) {
-    newErrors.password = 'Password is required';
-    toast.error(newErrors.password);
-  } else if (form.password.length < 6) {
-    newErrors.password = 'Password must be at least 6 characters';
-    toast.error(newErrors.password);
-  }
-
-  if (!form.confirmPassword) {
-    newErrors.confirmPassword = 'Please confirm your password';
-    toast.error(newErrors.confirmPassword);
-  } else if (form.password !== form.confirmPassword) {
-    newErrors.confirmPassword = 'Passwords do not match';
-    toast.error(newErrors.confirmPassword);
-  }
-
-  if (!form.terms) {
-    newErrors.terms = 'You must agree to the terms';
-    toast.error(newErrors.terms);
-  }
-
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
-};
-
+   const validate = () => {
+    const newErrors = {};
+    if (!form.name.trim()) newErrors.name = 'First name is required';
+    if (!form.lastName.trim()) newErrors.lastName = 'Last name is required';
+    if (!form.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+      newErrors.email = 'Email address is invalid';
+    }
+    if (!form.password) {
+      newErrors.password = 'Password is required';
+    } else if (form.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    if (!form.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    if (!form.terms) {
+      newErrors.terms = 'You must agree to the terms';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const closeModal = () => {
     setShowSuccessModal(false);
@@ -145,21 +124,26 @@ const Register = () => {
             <div className="form-group1">
               <label>First Name</label>
               <input type="text" name="name" placeholder='Enter your first name' value={form.name} onChange={handleChange} className={errors.name ? 'error' : ''} />
+              {errors.name && <div className="error-message">{errors.name}</div>}
             </div>
             <div className="form-group1">
               <label>Last Name</label>
               <input type="text" name="lastName" placeholder='Enter your last name' value={form.lastName} onChange={handleChange} className={errors.lastName ? 'error' : ''} />
+              {errors.lastName && <div className="error-message">{errors.lastName}</div>}
             </div>
             <div className="form-group1">
               <label>Email</label>
               <input type="email" name="email"  placeholder='Enter your e-mail address' value={form.email} onChange={handleChange} className={errors.email ? 'error' : ''} />
+              {errors.email && <div className="error-message">{errors.email}</div>}
             </div>
             <div className="form-group1">
               <label>Password</label>
               <div className="password-input-container">
                 <input type={showPassword ? 'text' : 'password'} name="password" placeholder='Create a password' value={form.password} onChange={handleChange} className={errors.password ? 'error' : ''} />
                 <button type="button" className="password-toggle-button" onClick={togglePasswordVisibility}>{showPassword ? <FaEyeSlash /> : <FaEye />}</button>
+                
               </div>
+              {errors.password && <div className="error-message">{errors.password}</div>}
             </div>
             <div className="form-group1">
 
@@ -167,12 +151,15 @@ const Register = () => {
                 <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder='Confirm password' value={form.confirmPassword} onChange={handleChange} className={errors.confirmPassword ? 'error' : ''} />
                 <button type="button" className="password-toggle-button" onClick={toggleConfirmPasswordVisibility}>{showConfirmPassword ? <FaEyeSlash /> : <FaEye />}</button>
               </div>
+              {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
+
             </div>
             <div className=" checkbox-group">
               <label className="checkbox-container">
                 <input type="checkbox" name="terms" checked={form.terms} onChange={handleChange} />
                 <span className="checkbox-label">I've read and agree with the  <a href="#terms">Terms and Conditions</a> and the <a href="#privacy">Privacy Policy</a></span>
               </label>
+              {errors.terms && <div className="error-message">{errors.terms}</div>}
             </div>
             <button type="submit" className={`submit-button ${isSubmitting ? 'loading' : ''}`} disabled={isSubmitting}>
               {isSubmitting ? 'Creating Account...' : 'Create Account'}
@@ -197,7 +184,6 @@ const Register = () => {
           </div>
         )}
       </div>
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
     </div>
   );

@@ -138,7 +138,7 @@ body {
   padding: 6px 10px ; 
   border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 13px;
   color: var(--text-dark);
   background-color: var(--bg-light);
   transition: var(--transition);
@@ -149,7 +149,7 @@ body {
   padding: 6px 10px ; 
   border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 13px;
   color: var(--text-dark);
   background-color: var(--bg-light);
   transition: var(--transition);
@@ -215,11 +215,17 @@ body {
 }
 
 .error-message {
-  color: var(--error);
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
+  color: #d9534f; /* Bootstrap's danger red */
+  font-size: 0.875rem;
+  margin-top: 4px;
+  padding-left: 4px;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .radio-group {
   display: flex;
   gap: 1rem;
@@ -375,6 +381,7 @@ body {
 
 .submit-button {
   position: relative;
+  top:10px;
 }
 
 .submit-button.loading {
@@ -463,10 +470,25 @@ body {
 /* Responsive design */
 @media (max-width: 576px) {
   .REGISTER-left-section{
-    display: none; 
+     flex: 0 0 auto;
+    width: 100%;
+    border-radius: var(--card-border-radius) var(--card-border-radius) 0 0;
+    
+    height: 100px;
+    order: 1;
   }
-  
-  
+  .register-right {
+    align-items: center;
+  }
+  .register-container {
+    flex-direction: column;
+    height: auto;
+  }
+  .register-right {
+    width: 100%;
+    height: auto;
+    order: 2;
+  }
   .register-card {
     box-shadow: none;
     max-width: 100%;
@@ -559,7 +581,7 @@ body {
 }
 input[type="text"]::placeholder{
   position: relative;
-  left: 10px;
+  
 }
 .success-icon {
   width: 60px;
