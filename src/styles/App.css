@@ -1,5 +1,18 @@
+/* Emergency fix for App.css */
 .App {
-  text-align: center;
+  text-align: left !important;
+}
+ 
+.business-detail-container textarea,
+.business-detail-container .form-control {
+  text-align: left !important;
+  scroll-behavior: auto !important;
+  transition: none !important;
+}
+
+/* Disable all smooth scrolling */
+* {
+  scroll-behavior: auto !important;
 }
 
 .App-logo {

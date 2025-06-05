@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import '../styles/Dashboard.css';
+import '../styles/dashboard.css';
 
 const BCGMatrix = ({ analysisResult }) => {
   const matrixData = useMemo(() => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import '../styles/Dashboard.css';
+import '../styles/dashboard.css';
 
 const PorterMatrix = ({ porterText }) => {
   const [forces, setForces] = useState({

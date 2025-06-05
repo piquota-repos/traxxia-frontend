@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import '../styles/Dashboard.css';
+import '../styles/dashboard.css';
 
 const ValueChainMatrix = ({ analysisResult }) => {
   const [sections, setSections] = useState({
