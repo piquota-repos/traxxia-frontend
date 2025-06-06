@@ -1,23 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Nav, Tab, Table, Button, Form, Alert, Spinner, InputGroup } from 'react-bootstrap';
+import { Container, Row, Col, Card, Table, Button, Form, Alert, Spinner, OverlayTrigger, Tooltip, Pagination } from 'react-bootstrap';
 import MenuBar from '../components/MenuBar';
-import { MdArrowUpward, MdArrowDownward, MdUnfoldMore } from 'react-icons/md';
-
+import { MdArrowUpward, MdArrowDownward, MdUnfoldMore, MdRefresh, MdDownload } from 'react-icons/md';
 
 const Admin = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [questionsJson, setQuestionsJson] = useState('');
-  const [uploadLoading, setUploadLoading] = useState(false);
-  const [filterText, setFilterText] = useState('');  // filter by name or email
-  const [filterDate, setFilterDate] = useState(''); // filter by date
-  const [sortOrder, setSortOrder] = useState(null); // 'asc' | 'desc' filter
+  const [filterText, setFilterText] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+  const [sortOrder, setSortOrder] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 10;
 
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
-  // Fetch all users
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -42,21 +40,15 @@ const Admin = () => {
     }
   };
 
-  // Download CSV for a specific user
   const downloadUserCSV = async (userId, version) => {
     try {
       const token = sessionStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/download-csv/${userId}?version=${version}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to download CSV');
-      }
+      if (!response.ok) throw new Error('Failed to download CSV');
 
-      // Create blob and download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -71,109 +63,46 @@ const Admin = () => {
     }
   };
 
-  // Upload questions
-  const uploadQuestions = async () => {
-    setUploadLoading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const token = sessionStorage.getItem('token');
-      const questionsData = JSON.parse(questionsJson);
-
-      const response = await fetch(`${API_BASE_URL}/api/admin/upload-questions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(questionsData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload questions');
-      }
-
-      const result = await response.json();
-      setSuccess(`Questions uploaded successfully! Version: ${result.version}, Categories: ${result.totalCategories}, Questions: ${result.totalQuestions}`);
-      setQuestionsJson('');
-    } catch (err) {
-      if (err instanceof SyntaxError) {
-        setError('Invalid JSON format. Please check your JSON syntax.');
-      } else {
-        setError(err.message);
-      }
-    } finally {
-      setUploadLoading(false);
-    }
-  };
-
-  // Load sample JSON
-  const loadSampleJson = () => {
-    const sampleJson = {
-      "version": "1.0",
-      "questions": [
-        {
-          "id": 1,
-          "name": "Customer",
-          "questions": [
-            {
-              "id": "1a",
-              "nested": { "id": "a)", "question": "Target Demographics" },
-              "question": "Who are your target demographics?",
-              "type": "open-ended"
-            }
-          ]
-        }
-      ]
-    };
-    setQuestionsJson(JSON.stringify(sampleJson, null, 2));
-  };
-
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  //Filter and sort functionality
   const filteredUsers = users
     .filter(user =>
       (user.name.toLowerCase().includes(filterText.toLowerCase()) ||
-      user.email.toLowerCase().includes(filterText.toLowerCase()))
+        user.email.toLowerCase().includes(filterText.toLowerCase()))
     )
     .filter(user => {
       if (!filterDate) return true;
-      const userDate = new Date(user.created_at).toISOString().split('T')[0]; // format yyyy-mm-dd
-      return userDate === filterDate;
+      const userDate = new Date(user.created_at);
+      const selectedDate = new Date(filterDate);
+      return userDate.toDateString() === selectedDate.toDateString();
     });
 
   const sortedUsers = [...filteredUsers];
   if (sortOrder) {
     sortedUsers.sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a.total_responses - b.total_responses;
-      } else {
-        return b.total_responses - a.total_responses;
-      }
+      if (sortOrder === 'asc') return a.total_responses - b.total_responses;
+      return b.total_responses - a.total_responses;
     });
   }
 
   const toggleSortOrder = () => {
-    if (sortOrder === 'asc') {
-      setSortOrder('desc');
-    } 
-     else {
-      setSortOrder('asc');
-    }
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
   };
 
-  // Arrow icon 
   const renderSortArrow = () => {
-  const iconStyle = { marginLeft: 5, fontSize: '20px' };
-  if (sortOrder === 'asc') return <MdArrowUpward style={iconStyle} />;
-  if (sortOrder === 'desc') return <MdArrowDownward style={iconStyle} />;
-  return <MdUnfoldMore style={{ ...iconStyle, opacity: 0.5 }} />;
-};
+    const iconStyle = { marginLeft: 5, fontSize: '20px' };
+    if (sortOrder === 'asc') return <MdArrowUpward style={iconStyle} />;
+    if (sortOrder === 'desc') return <MdArrowDownward style={iconStyle} />;
+    return <MdUnfoldMore style={{ ...iconStyle, opacity: 0.5 }} />;
+  };
 
+  // Pagination
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
 
   return (
     <>
@@ -181,200 +110,120 @@ const Admin = () => {
       <Container className="mt-4">
         <Row>
           <Col>
-            <h2>Admin Panel</h2>
+           <h3 className="mb-4">Admin Panel - Users Management</h3>
 
             {error && <Alert variant="danger" dismissible onClose={() => setError('')}>{error}</Alert>}
             {success && <Alert variant="success" dismissible onClose={() => setSuccess('')}>{success}</Alert>}
 
-            <Tab.Container defaultActiveKey="users">
-              <Nav variant="tabs" className="mb-3">
-                <Nav.Item>
-                  <Nav.Link eventKey="users">Users Management</Nav.Link>
-                </Nav.Item>
-                {/* <Nav.Item>
-                  <Nav.Link eventKey="questions">Upload Questions</Nav.Link>
-                </Nav.Item> */}
-              </Nav>
+            <Card>
+              <Card.Header>
+                <div className="d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">All Users</h5>
+                  <Button variant="outline-primary" onClick={fetchUsers} disabled={loading}>
+                    {loading ? <Spinner size="sm" /> : <MdRefresh size={20} />}
+                  </Button>
+                </div>
+              </Card.Header>
 
-              <Tab.Content>
-                {/* Users Management Tab */}
-                <Tab.Pane eventKey="users">
-                  <Card>
-                    <Card.Header>
-                      <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="mb-0">All Users</h5>
-                        <Button variant="outline-primary" onClick={fetchUsers} disabled={loading}>
-                          {loading ? <Spinner size="sm" /> : 'Refresh'}
-                        </Button>
-                      </div>
-                    </Card.Header>
-                    <Card.Body>
-                      <Row className="mb-3">
-                        <Col md={6} sm={12}>
-                          <Form.Control
-                            type="text"
-                            placeholder="Filter by name or email..."
-                            value={filterText}
-                            onChange={(e) => setFilterText(e.target.value)}
-                            style={{ minWidth: '250px' }}
-                          />
-                        </Col>
-                        <Col md={3} sm={12}>
-                          <Form.Control
-                            type="date"
-                            value={filterDate}
-                            onChange={(e) => setFilterDate(e.target.value)}
-                            placeholder="Filter by date"
-                          />
-                        </Col>
-                      </Row>
+              <Card.Body>
+                <Row className="mb-3">
+                  <Col md={6} sm={12}>
+                    <Form.Control
+                      type="text"
+                      placeholder="Filter by name or email..."
+                      value={filterText}
+                      onChange={(e) => setFilterText(e.target.value)}
+                    />
+                  </Col>
+                  <Col md={3} sm={12}>
+                    <Form.Control
+                      type="date"
+                      value={filterDate}
+                      onChange={(e) => setFilterDate(e.target.value)}
+                    />
+                  </Col>
+                </Row>
 
-                      {loading ? (
-                        <div className="text-center">
-                          <Spinner animation="border" />
-                        </div>
-                      ) : (
-                        <Table responsive striped hover>
-                          <thead>
-                            <tr>
-                              <th>Name</th>
-                              <th>Email</th>
-                              <th>Company</th>
-                              <th>Created At</th>
-                              <th
-                                role="button"
-                                onClick={toggleSortOrder}
-                                style={{ userSelect: 'none', cursor: 'pointer' }}
-                                title="Sort by Total Responses"
-                              >
-                                Total Responses {renderSortArrow()}
-                              </th>
-                              <th>Latest Response</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {sortedUsers.map((user) => (
-                              <tr key={user.id}>
-                                <td>{user.name}</td>
-                                <td>{user.email}</td>
-                                <td>{user.company}</td>
-                                <td>{new Date(user.created_at).toLocaleDateString()}</td>
-                                <td>{user.total_responses}</td>
-                                <td>
-                                  {user.latest_response ? (
-                                    <div>
-                                      <small>
-                                        v{user.latest_response.version}<br />
-                                        {new Date(user.latest_response.submitted_at).toLocaleDateString()}
-                                      </small>
-                                    </div>
-                                  ) : (
-                                    <span className="text-muted">No responses</span>
-                                  )}
-                                </td>
-                                <td>
-                                  {user.latest_response && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline-success"
-                                      onClick={() => downloadUserCSV(user.id, user.latest_response.version)}
-                                    >
-                                      Download CSV
-                                    </Button>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </Table>
-                      )}
-
-                      {!loading && sortedUsers.length === 0 && (
-                        <div className="text-center text-muted">
-                          <p>No users found</p>
-                        </div>
-                      )}
-                    </Card.Body>
-                  </Card>
-                </Tab.Pane>
-
-                {/* Upload Questions Tab */}
-                <Tab.Pane eventKey="questions">
-                  <Card>
-                    <Card.Header>
-                      <h5 className="mb-0">Upload Questions</h5>
-                    </Card.Header>
-                    <Card.Body>
-                      <Form>
-                        <Form.Group className="mb-3">
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <Form.Label>Questions JSON</Form.Label>
-                            <Button variant="outline-secondary" size="sm" onClick={loadSampleJson}>
-                              Load Sample
-                            </Button>
-                          </div>
-                          <Form.Control
-                            as="textarea"
-                            rows={15}
-                            value={questionsJson}
-                            onChange={(e) => setQuestionsJson(e.target.value)}
-                            placeholder="Paste your questions JSON here..."
-                            style={{ fontFamily: 'monospace', fontSize: '14px' }}
-                          />
-                          <Form.Text className="text-muted">
-                            Upload questions in JSON format. The JSON should include version and questions array.
-                          </Form.Text>
-                        </Form.Group>
-
-                        <div className="d-grid">
-                          <Button
-                            variant="primary"
-                            size="lg"
-                            onClick={uploadQuestions}
-                            disabled={!questionsJson.trim() || uploadLoading}
+                {loading ? (
+                  <div className="text-center">
+                    <Spinner animation="border" />
+                  </div>
+                ) : (
+                  <>
+                    <Table responsive striped hover>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Company</th>
+                          <th>Created At</th>
+                          <th
+                            role="button"
+                            onClick={toggleSortOrder}
+                            style={{ userSelect: 'none', cursor: 'pointer' }}
+                            title="Sort by Total Responses"
                           >
-                            {uploadLoading ? (
-                              <>
-                                <Spinner size="sm" className="me-2" />
-                                Uploading...
-                              </>
-                            ) : (
-                              'Upload Questions'
-                            )}
-                          </Button>
-                        </div>
-                      </Form>
+                            Total Responses {renderSortArrow()}
+                          </th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentUsers.map((user) => (
+                          <tr key={user.id}>
+                            <td>{user.name}</td>
+                            <td>{user.email}</td>
+                            <td>{user.company}</td>
+                            <td>{new Date(user.created_at).toLocaleDateString('en-US')}</td>
+                            <td>{user.total_responses}</td>
+                            <td>
+                              {user.latest_response && (
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={<Tooltip>Download CSV</Tooltip>}
+                                >
+                                  <Button
+                                    size="sm"
+                                    variant="outline-success"
+                                    onClick={() =>
+                                      downloadUserCSV(user.id, user.latest_response.version)
+                                    }
+                                  >
+                                    <MdDownload size={18} />
+                                  </Button>
+                                </OverlayTrigger>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
 
-                      <hr className="my-4" />
-
-                      <div className="bg-light p-3 rounded">
-                        <h6>JSON Format Example:</h6>
-                        <pre className="mb-0" style={{ fontSize: '12px' }}>
-{`{
-  "version": "1.0",
-  "questions": [
-    {
-      "id": 1,
-      "name": "Customer",
-      "questions": [
-        {
-          "id": "1a",
-          "nested": { "id": "a)", "question": "Target Demographics" },
-          "question": "Who are your target demographics?",
-          "type": "open-ended"
-        }
-      ]
-    }
-  ]
-}`}
-                        </pre>
+                    {sortedUsers.length > usersPerPage && (
+                      <div className="d-flex justify-content-center">
+                        <Pagination>
+                          {[...Array(totalPages).keys()].map(page => (
+                            <Pagination.Item
+                              key={page + 1}
+                              active={page + 1 === currentPage}
+                              onClick={() => setCurrentPage(page + 1)}
+                            >
+                              {page + 1}
+                            </Pagination.Item>
+                          ))}
+                        </Pagination>
                       </div>
-                    </Card.Body>
-                  </Card>
-                </Tab.Pane>
-              </Tab.Content>
-            </Tab.Container>
+                    )}
+                  </>
+                )}
+
+                {!loading && currentUsers.length === 0 && (
+                  <div className="text-center text-muted">
+                    <p>No users found</p>
+                  </div>
+                )}
+              </Card.Body>
+            </Card>
           </Col>
         </Row>
       </Container>

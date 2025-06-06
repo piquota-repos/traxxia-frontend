@@ -245,6 +245,31 @@
     min-height: auto; /* Allow natural height on mobile */
     padding: var(--spacing-3xl) var(--spacing-xl);
   }
+
+  
+.blue-triangle-container {
+  width: 100%;
+  overflow: visible; 
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.blue-triangle {
+  display: flex;
+  flex-wrap: wrap; 
+}
+
+
+.margin-analysis, 
+.linkages-analysis {
+  flex: 1 1 48%;
+  min-width: 300px; 
+  color: rgb(8, 8, 8);
+  padding: 1rem;
+  box-sizing: border-box;
+  border-radius: 8px;
+  transform: none !important;
+}
 }
 
 /* Desktop screens */
