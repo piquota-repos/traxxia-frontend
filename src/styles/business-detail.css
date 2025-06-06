@@ -2019,3 +2019,37 @@
     padding: 0 20px;
   }
 }
+
+
+
+
+
+.expanded-analysis-view {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.expanded-analysis-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.expanded-analysis-main {
+  flex: 1;
+  overflow-y: auto; 
+}
+
+.expanded-analysis-main::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+.expanded-analysis-main {
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}
