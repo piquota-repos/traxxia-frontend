@@ -1,5 +1,5 @@
 // BusinessDetail.jsx - Main Component
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback,useEffect,useRef } from "react";
 import { Button, Card, Row, Col, Nav, Alert } from "react-bootstrap";
 import { ArrowLeft } from "lucide-react";
 
@@ -32,6 +32,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
   const [analysisTab, setAnalysisTab] = useState("analysis");
   const [expandedCategories, setExpandedCategories] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('');
 
   // Full-screen analysis state
   const [isFullScreenAnalysis, setIsFullScreenAnalysis] = useState(false);
@@ -55,9 +56,10 @@ const BusinessDetail = ({ businessName, onBack }) => {
     getAnsweredQuestionsInCategory,
     areAllQuestionsAnswered
   } = useProgressTracking(businessData);
-
+  
+  const saveTimerRef = useRef(null);
   // Event Handlers
-  const handleAnswerChange = useCallback((questionId, value) => {
+ const handleAnswerChange = useCallback((questionId, value) => {
     setBusinessData(prevData => ({
       ...prevData,
       categories: prevData.categories.map(category => ({
@@ -72,16 +74,44 @@ const BusinessDetail = ({ businessName, onBack }) => {
   }, [setBusinessData]);
 
   const saveAnswers = useCallback(async () => {
+    if (!businessData || isSaving) return;
+    setIsSaving(true);
+    setSaveStatus('Saving...');
     try {
       setIsSaving(true);
-      await apiService.saveAnswers(businessData); 
+      await apiService.saveAnswers(businessData);
+      setSaveStatus('Save successful!');
+      console.log('Progress saved automatically!');
     } catch (error) {
       console.error('Error saving answers:', error);
     } finally {
       setIsSaving(false);
+      setTimeout(() => setSaveStatus(''), 3000);
     }
-  }, [businessData]);
+  }, [businessData, isSaving]);
+   
+  useEffect(() => {
+    // Clear any existing timer to reset the debounce
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
 
+    // Set a new timer to call saveAnswers after a delay
+    // This only fires if businessData hasn't changed for 1 second
+    saveTimerRef.current = setTimeout(() => {
+      // Only attempt to save if businessData is loaded and not null
+      if (businessData && !loading && !error) {
+        saveAnswers();
+      }
+    }, 1000); // 1000ms = 1 second debounce time
+
+ 
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, [businessData, loading, error, saveAnswers]);
   const toggleCategory = useCallback((categoryId) => {
     setExpandedCategories(prev => ({
       ...prev,
@@ -212,7 +242,9 @@ const BusinessDetail = ({ businessName, onBack }) => {
   const progressSectionProps = {
     progressData,
     saveAnswers,
-    isSaving
+    isSaving,
+    businessData,
+    saveStatus
   };
 
   const categoryItemProps = (category) => ({

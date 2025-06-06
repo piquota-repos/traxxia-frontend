@@ -4,9 +4,15 @@ import { Badge, Card, Row, Col } from 'react-bootstrap';
 const PreviewContent = ({ categories=[], answers={} }) => {
   // Helper function to get answer text
   const getAnswerText = (questionId) => {
-    const answer = answers[questionId];
-    if (!answer) return '';
+     for (const category of categories) {
+            const question = category.questions.find(q => (q.question_id || q.id) === questionId);
+            if (question && question.answer) { 
+                return question.answer;
+            }
+          }
     
+    // Retrieve the answer object for the questionId
+    const answer = answers[questionId] || {};
     // Check for different answer types
     if (answer.selectedOption) return answer.selectedOption;
     if (answer.selectedOptions && answer.selectedOptions.length > 0) {
@@ -84,7 +90,8 @@ const PreviewContent = ({ categories=[], answers={} }) => {
         ).length;
         const categoryTotal = categoryQuestions.length;
         const categoryCompletion = categoryTotal > 0 ? Math.round((categoryAnswered / categoryTotal) * 100) : 0;
-
+        console.log("🚀 Categories Received:", categories);
+        console.log("🚀 Answers Received:", answers);
         return (
           <Card key={category.category_id || category.id} className="mb-4">
             <Card.Header className="d-flex justify-content-between align-items-center">
