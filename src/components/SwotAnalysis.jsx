@@ -21,13 +21,10 @@ const SwotAnalysis = ({ analysisResult }) => {
     <>
       <h4 className="text-center"><strong>SWOT Analysis</strong></h4>
       
-      {introText && <div className="mb-3">{introText}</div>}
+      {introText && <div className="mb-3 intro-text">{introText}</div>}
       
       {labels.length > 0 && (
-        <>
-          <h5 className="mb-3">
-            <strong>SWOT Analysis Table</strong>
-          </h5>
+        <> <br></br>
           <div className="table-responsive mb-4">
             <table className="table table-bordered table-striped">
               <thead className="table-light">

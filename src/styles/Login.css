@@ -270,7 +270,11 @@ body {
 .input-container {
   position: relative;
 }
-
+.input-container input::placeholder, .form-group1 input::placeholder{
+  font-size: 14px;
+  color: #8F9098;
+  font-weight: 400;
+}
 .eye-icon {
   color: #000 !important;
 }
