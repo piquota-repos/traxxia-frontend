@@ -3,7 +3,13 @@
   display: flex;
   flex-direction: column;
 }
-
+.preview-button{
+  
+  position: relative;
+  top: 30px;
+  left: 70%;
+  
+}
 .main-content {
   flex: 1;
   overflow: auto; /* Allow scrolling */

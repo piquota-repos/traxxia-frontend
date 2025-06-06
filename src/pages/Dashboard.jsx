@@ -40,6 +40,7 @@ const { businessData, loading: businessLoading, error: businessError } = useBusi
   const { progressData, areAllQuestionsAnswered } = useProgressTracking(businessData);
 
  const { answeredQuestions, totalQuestions, progress } = progressData;
+
   // Hardcoded insights content
   const hardcodedInsights = `
 Business Analysis Results:
@@ -73,7 +74,7 @@ Based on current trends, a 25-30% growth rate is achievable within the next 12 m
     }
    return [
       {
-        name: "InsightForge Inc", // Use actual business name if available
+        name: businessData.name || "InsightForge Inc",
         progress: progressData.progress,
         answeredQuestions: progressData.answeredQuestions,
         totalQuestions: progressData.totalQuestions,
