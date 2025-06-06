@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Nav, Tab, Table, Button, Form, Alert, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Nav, Tab, Table, Button, Form, Alert, Spinner, InputGroup } from 'react-bootstrap';
 import MenuBar from '../components/MenuBar';
+import { MdArrowUpward, MdArrowDownward, MdUnfoldMore } from 'react-icons/md';
+
 
 const Admin = () => {
   const [users, setUsers] = useState([]);
@@ -9,6 +11,10 @@ const Admin = () => {
   const [success, setSuccess] = useState('');
   const [questionsJson, setQuestionsJson] = useState('');
   const [uploadLoading, setUploadLoading] = useState(false);
+  const [filterText, setFilterText] = useState('');  // filter by name or email
+  const [filterDate, setFilterDate] = useState(''); // filter by date
+  const [sortOrder, setSortOrder] = useState(null); // 'asc' | 'desc' filter
+
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
   // Fetch all users
@@ -128,6 +134,47 @@ const Admin = () => {
     fetchUsers();
   }, []);
 
+  //Filter and sort functionality
+  const filteredUsers = users
+    .filter(user =>
+      (user.name.toLowerCase().includes(filterText.toLowerCase()) ||
+      user.email.toLowerCase().includes(filterText.toLowerCase()))
+    )
+    .filter(user => {
+      if (!filterDate) return true;
+      const userDate = new Date(user.created_at).toISOString().split('T')[0]; // format yyyy-mm-dd
+      return userDate === filterDate;
+    });
+
+  const sortedUsers = [...filteredUsers];
+  if (sortOrder) {
+    sortedUsers.sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.total_responses - b.total_responses;
+      } else {
+        return b.total_responses - a.total_responses;
+      }
+    });
+  }
+
+  const toggleSortOrder = () => {
+    if (sortOrder === 'asc') {
+      setSortOrder('desc');
+    } 
+     else {
+      setSortOrder('asc');
+    }
+  };
+
+  // Arrow icon 
+  const renderSortArrow = () => {
+  const iconStyle = { marginLeft: 5, fontSize: '20px' };
+  if (sortOrder === 'asc') return <MdArrowUpward style={iconStyle} />;
+  if (sortOrder === 'desc') return <MdArrowDownward style={iconStyle} />;
+  return <MdUnfoldMore style={{ ...iconStyle, opacity: 0.5 }} />;
+};
+
+
   return (
     <>
       <MenuBar />
@@ -135,7 +182,7 @@ const Admin = () => {
         <Row>
           <Col>
             <h2>Admin Panel</h2>
-            
+
             {error && <Alert variant="danger" dismissible onClose={() => setError('')}>{error}</Alert>}
             {success && <Alert variant="success" dismissible onClose={() => setSuccess('')}>{success}</Alert>}
 
@@ -162,6 +209,26 @@ const Admin = () => {
                       </div>
                     </Card.Header>
                     <Card.Body>
+                      <Row className="mb-3">
+                        <Col md={6} sm={12}>
+                          <Form.Control
+                            type="text"
+                            placeholder="Filter by name or email..."
+                            value={filterText}
+                            onChange={(e) => setFilterText(e.target.value)}
+                            style={{ minWidth: '250px' }}
+                          />
+                        </Col>
+                        <Col md={3} sm={12}>
+                          <Form.Control
+                            type="date"
+                            value={filterDate}
+                            onChange={(e) => setFilterDate(e.target.value)}
+                            placeholder="Filter by date"
+                          />
+                        </Col>
+                      </Row>
+
                       {loading ? (
                         <div className="text-center">
                           <Spinner animation="border" />
@@ -174,13 +241,20 @@ const Admin = () => {
                               <th>Email</th>
                               <th>Company</th>
                               <th>Created At</th>
-                              <th>Total Responses</th>
+                              <th
+                                role="button"
+                                onClick={toggleSortOrder}
+                                style={{ userSelect: 'none', cursor: 'pointer' }}
+                                title="Sort by Total Responses"
+                              >
+                                Total Responses {renderSortArrow()}
+                              </th>
                               <th>Latest Response</th>
                               <th>Actions</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {users.map((user) => (
+                            {sortedUsers.map((user) => (
                               <tr key={user.id}>
                                 <td>{user.name}</td>
                                 <td>{user.email}</td>
@@ -216,7 +290,7 @@ const Admin = () => {
                         </Table>
                       )}
 
-                      {!loading && users.length === 0 && (
+                      {!loading && sortedUsers.length === 0 && (
                         <div className="text-center text-muted">
                           <p>No users found</p>
                         </div>

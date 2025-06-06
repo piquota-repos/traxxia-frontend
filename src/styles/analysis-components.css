@@ -1737,8 +1737,7 @@ margin:0px;
 /* Inner text */
 .force span {
   display: block;
-  font-weight: normal;
-  font-size: 0.9em;
+  font-weight: normal; 
   margin-top: 5px;
   color: #444;
 }
