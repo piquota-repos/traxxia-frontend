@@ -143,7 +143,7 @@ const BCGMatrix = ({ analysisResult }) => {
 
   return (
     <div className="bcg-matrix-container">
-      <h4 className="text-center mt-4"><strong>BCG Matrix Analysis</strong></h4> 
+      <h4 className="text-center"><strong>BCG Matrix Analysis</strong></h4> 
       <div className="bcg-matrix-template">
         <div className="bcg-matrix-header">
           <div className="matrix-label-y">High</div>
@@ -202,7 +202,7 @@ const BCGMatrix = ({ analysisResult }) => {
           <div className="matrix-label-center">Relative Market Share</div>
           <div className="matrix-label-x">Low</div>
         </div>
-      </div>
+      </div><br></br>
 
       {/* Separate Conclusion Section */}
       {getConclusionText() && (

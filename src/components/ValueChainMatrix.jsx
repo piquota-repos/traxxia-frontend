@@ -183,10 +183,14 @@ const ValueChainMatrix = ({ analysisResult }) => {
         
       </div>
 
-      {/* Conclusion */}
-      {getConclusionText() && (
-        <div className="mt-4 conclusion-text">
-          <div dangerouslySetInnerHTML={{ __html: getConclusionText().replace(/\n/g, "<br/>") }} />
+     {getConclusionText() && (
+        <div className="mt-4 conclusion-section">
+          <h5><strong>Conclusion</strong></h5>
+          <div className="conclusion-text">
+            <div dangerouslySetInnerHTML={{ 
+              __html: getConclusionText().replace(/\n/g, "<br/>") 
+            }} />
+          </div>
         </div>
       )}
     </div>

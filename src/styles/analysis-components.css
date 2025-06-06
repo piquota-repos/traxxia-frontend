@@ -1212,7 +1212,7 @@ margin:0px;
 .navigating-bg,
 .need-bg {
   background-color: #ffe6ea !important;
-  border: 2px solid #ff99aa !important;
+  border: 1.5px solid #ff99aa !important;
 }
 
 .economic-bg,
@@ -1220,7 +1220,7 @@ margin:0px;
 .rare-bg,
 .learning-and-growth-bg {
   background-color: #e0f7fa !important;
-  border: 2px solid #4dd0e1 !important;
+  border: 1.5px solid #4dd0e1 !important;
 }
 
 .social-bg,
@@ -1229,7 +1229,7 @@ margin:0px;
 .expectation-bg,
 .internal-processes-bg {
   background-color: #f3e5f5 !important;
-  border: 2px solid #ce93d8 !important;
+  border: 1.5px solid #ce93d8 !important;
 }
 
 .technological-bg,
@@ -1238,7 +1238,7 @@ margin:0px;
 .issue-bg,
 .customer-bg {
   background-color: #fbe9e7 !important;
-  border: 2px solid #ffab91 !important;
+  border: 1.5px solid #ffab91 !important;
 }
 
 .legal-bg,
@@ -1247,13 +1247,13 @@ margin:0px;
 .opportunity-bg,
 .financial-bg {
   background-color: #e8f5e9 !important;
-  border: 2px solid #a5d6a7 !important;
+  border: 1.5px solid #a5d6a7 !important;
 }
 
 .environmental-bg,
 .solution-bg {
   background-color: #fff9c4 !important;
-  border: 2px solid #ffeb3b !important;
+  border: 1.5px solid #ffeb3b !important;
 }
 
 .environmental-bg,
@@ -1381,9 +1381,9 @@ margin:0px;
   max-width: 800px; */
   text-align: center; 
   text-align: center; 
-    background: #f8f9fa;
-    border: 1px solid #c6c7c8;
-    border-radius: 10px; 
+    background: #fff;
+    /* border: 1px solid #c6c7c8;
+    border-radius: 10px;  */
 }
 
 .bcg-matrix-header,
@@ -1458,16 +1458,14 @@ margin:0px;
 
 .value-chain-static {
   /* max-width: 995px; */
-  margin: 0;
-  padding: 20px;
+  margin: 0; 
 }
 
 .support-activities {
-  background-color: #f7f7f7;
+  background-color: #fff;
   margin-bottom: 20px;
   border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+  overflow: hidden; 
 }
 
 .support-row {
@@ -1483,8 +1481,7 @@ margin:0px;
   padding: 15px;
   text-align: center;
   font-weight: bold;
-  border-radius: 6px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  border-radius: 6px; 
   transition: transform 0.3s;
 }
 
@@ -1503,8 +1500,7 @@ margin:0px;
   flex-wrap: wrap;
   border-radius: 8px;
   overflow: hidden;
-  background-color: #fff;
-  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+  background-color: #fff; 
 }
 
 .primary-block {
@@ -1537,48 +1533,48 @@ margin:0px;
 /* --- SUPPORT ACTIVITIES --- */
 .infrastructure {
   background-color: #ffcccb;
-  border: 2px solid #e57373; /* darker red */
+  border: 1.5px solid #e57373; /* darker red */
 }
 
 .hr {
   background-color: #ffe0b2;
-  border: 2px solid #ffb74d; /* darker orange */
+  border: 1.5px solid #ffb74d; /* darker orange */
 }
 
 .tech {
   background-color: #dcedc8;
-  border: 2px solid #aed581; /* darker green */
+  border: 1.5px solid #aed581; /* darker green */
 }
 
 .procurement {
   background-color: #c5cae9;
-  border: 2px solid #7986cb; /* darker blue-purple */
+  border: 1.5px solid #7986cb; /* darker blue-purple */
 }
 
 /* --- PRIMARY ACTIVITIES --- */
 .inbound {
   background-color: #bbdefb;
-  border: 2px solid #64b5f6; /* darker blue */
+  border: 1.5px solid #64b5f6; /* darker blue */
 }
 
 .operations {
   background-color: #b2ebf2;
-  border: 2px solid #4dd0e1; /* darker teal */
+  border: 1.5px solid #4dd0e1; /* darker teal */
 }
 
 .outbound {
   background-color: #c8e6c9;
-  border: 2px solid #81c784; /* darker green */
+  border: 1.5px solid #81c784; /* darker green */
 }
 
 .marketing {
   background-color: #fff9c4;
-  border: 2px solid #fff176; /* darker yellow */
+  border: 1.5px solid #fff176; /* darker yellow */
 }
 
 .service {
   background-color: #f8bbd0;
-  border: 2px solid #f06292; /* darker pink */
+  border: 1.5px solid #f06292; /* darker pink */
 }
 
  /* Add this to your Dashboard.css file */
@@ -1710,8 +1706,7 @@ margin:0px;
 
 .porter-container { 
   /* max-width: 1100px; */
-  margin: 0 auto;
-  padding-top: 20px;
+  margin: 0 auto; 
   height: auto;
 }
 
@@ -1727,7 +1722,7 @@ margin:0px;
 
 .force {
   background-color: #e3f2fd;
-  padding: 10px;
+  padding: 7px;
   text-align: center;
   font-weight: bold;
   border-radius: 10px;
@@ -1868,8 +1863,7 @@ margin:0px;
 } */
 
 .bcg-matrix-container h5 {
-  text-align: center;
-  margin-bottom: 1.5rem;
+  text-align: left; 
   font-size: 1.4rem;
   color: #333;
 }
@@ -1939,28 +1933,28 @@ margin:0px;
   padding: 0.5rem 0.75rem;
   margin: 0.25rem 0;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size:14px;
   color: #333;
 }
 
 /* Quadrant specific backgrounds (light-themed) */
 .stars-bg {
-  border: 2px solid #38bdf8; /* Sky Blue */
+  border: 1.5px solid #38bdf8; /* Sky Blue */
   background-color: #e0f7ff;  /* Light Sky Blue */
 }
 
 .question-marks-bg {
-  border: 2px solid #a855f7; /* Violet */
+  border: 1.5px solid #a855f7; /* Violet */
   background-color: #f3e8fd;  /* Light Violet */
 }
 
 .cash-cows-bg {
-  border: 2px solid #10b981; /* Emerald */
+  border: 1.5px solid #10b981; /* Emerald */
   background-color: #e6f9f3;  /* Light Emerald */
 }
 
 .dogs-bg {
-  border: 2px solid #f97316; /* Orange */
+  border: 1.5px solid #f97316; /* Orange */
   background-color: #fff3e6;  /* Light Orange */
 }
 .analysis-type-pill{
@@ -2080,4 +2074,9 @@ margin:0px;
   .quantum-loader {
     height: 50px;
   }
+}
+
+.table>:not(caption)>*>*{
+  background: white;
+  box-shadow : none;
 }

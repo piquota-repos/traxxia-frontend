@@ -3,26 +3,15 @@ export const ANALYSIS_NAMES = {
   porter: "Porter's Five Forces",
   valuechain: "Value Chain",
   bcg: "BCG Matrix",
-  strategic: "STRATEGIC",
-  pestle: "PESTLE",
-  noise: "NOISE",
-  vrio: "VRIO",
-  bsc: "Balanced Scorecard"
+  strategic: "STRATEGIC"  
 };
 
 export const ANALYSIS_ICONS = {
   strategic: 'Users',
-  swot: 'Target',
-  pestle: 'Briefcase',
-  noise: 'Bell',
-  vrio: 'PieChart',
-  bsc: 'TrendingUp',
+  swot: 'Target',  
   porter: 'BarChart3',
   valuechain: 'Zap',
-  bcg: 'TrendingUp',
-  portfolio: 'TrendingUp',
-  competitive: 'BarChart3',
-  activities: 'Zap'
+  bcg: 'TrendingUp'
 };
 
 export const getAnalysisFormatInstructions = (analysisType) => {

@@ -150,8 +150,7 @@ const PorterMatrix = ({ porterText }) => {
 
       <div className="porter-forces">
         <div className="force top">
-          Threat of New Entry
-          <br />
+          <p className='top-center'>Threat of New Entry</p> 
           <span>{forces['Threat of New Entry'].summary}</span>
           {forces['Threat of New Entry'].items.map((item, i) => (
             <div key={`entry-${i}`} className="analysis-box">{item}</div>
@@ -159,35 +158,31 @@ const PorterMatrix = ({ porterText }) => {
         </div>
 
         <div className="force left">
-          Supplier Power
-          <br />
+          <p className='top-center'>Supplier Power</p> 
           <span>{forces['Supplier Power'].summary}</span>
           {forces['Supplier Power'].items.map((item, i) => (
             <div key={`supplier-${i}`} className="analysis-box">{item}</div>
           ))}
         </div>
 
-        <div className="force center">
-          Competitive Rivalry
-          <br />
+        <div className="force center"> 
+          <p className='top-center'>Competitive Rivalry</p> 
           <span>{forces['Competitive Rivalry'].summary}</span>
           {forces['Competitive Rivalry'].items.map((item, i) => (
             <div key={`rivalry-${i}`} className="analysis-box">{item}</div>
           ))}
         </div>
 
-        <div className="force right">
-          Buyer Power
-          <br />
+        <div className="force right"> 
+          <p className='top-center'>Buyer Power</p> 
           <span>{forces['Buyer Power'].summary}</span>
           {forces['Buyer Power'].items.map((item, i) => (
             <div key={`buyer-${i}`} className="analysis-box">{item}</div>
           ))}
         </div>
 
-        <div className="force bottom">
-          Threat of Substitution
-          <br />
+        <div className="force bottom"> 
+          <p className='top-center'>Threat of Substitution</p>           
           <span>{forces['Threat of Substitution'].summary}</span>
           {forces['Threat of Substitution'].items.map((item, i) => (
             <div key={`sub-${i}`} className="analysis-box">{item}</div>

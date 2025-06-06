@@ -91,10 +91,17 @@ const BusinessDetail = ({ businessName, onBack }) => {
 
   // Analysis Handlers
   const handleAnalysisItemClick = useCallback(async (item) => {
+    console.log('Analysis item clicked:', item);
+    
     setActiveAnalysisItem(item);
     setIsAnimating(true);
 
+    // Set the correct category tab based on the item's category
+    console.log('Setting fullScreenAnalysisTab to:', item.category);
+    setFullScreenAnalysisTab(item.category);
+
     const analysisType = getAnalysisType(item.id);
+    console.log('Setting selectedAnalysisType to:', analysisType);
     setSelectedAnalysisType(analysisType);
 
     // Start animation
@@ -111,10 +118,19 @@ const BusinessDetail = ({ businessName, onBack }) => {
   }, [analysisData, generateAnalysis, businessData, strategicBooks]);
 
   // Handle framework tab click in expanded view with FORCED refresh
-  const handleFrameworkTabClick = useCallback(async (item, forceRefresh = false) => {
+  const handleFrameworkTabClick = useCallback(async (item, forceRefresh = false, overrideAnalysisType = null) => {
+    console.log('Framework tab clicked:', item, 'forceRefresh:', forceRefresh, 'overrideAnalysisType:', overrideAnalysisType);
+    
     setActiveAnalysisItem(item);
 
-    const analysisType = getAnalysisType(item.id);
+    // Ensure the correct category tab is set
+    if (item.category !== fullScreenAnalysisTab) {
+      console.log('Correcting fullScreenAnalysisTab from', fullScreenAnalysisTab, 'to', item.category);
+      setFullScreenAnalysisTab(item.category);
+    }
+
+    const analysisType = overrideAnalysisType || getAnalysisType(item.id);
+    console.log('Setting selectedAnalysisType to:', analysisType);
     setSelectedAnalysisType(analysisType);
 
     // ALWAYS call generateAnalysis when forceRefresh is true, regardless of cache
@@ -127,12 +143,13 @@ const BusinessDetail = ({ businessName, onBack }) => {
         await generateAnalysis(analysisType, item.id, businessData, strategicBooks, false);
       }
     }
-  }, [analysisData, generateAnalysis, businessData, strategicBooks]);
+  }, [analysisData, generateAnalysis, businessData, strategicBooks, fullScreenAnalysisTab]);
 
   // Handle analysis type selection with FORCED refresh
   const handleAnalysisTypeSelect = useCallback(async (analysisType, forceRefresh = false) => {
     if (!activeAnalysisItem) return;
 
+    console.log('Analysis type selected:', analysisType, 'forceRefresh:', forceRefresh);
     setSelectedAnalysisType(analysisType);
 
     // ALWAYS call generateAnalysis when forceRefresh is true, regardless of cache
@@ -149,7 +166,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
 
   // Handle close expanded view
   const handleCloseExpandedView = useCallback(() => { 
-
+    console.log('Closing expanded view');
     setIsAnimating(true);
     setIsFullScreenAnalysis(false);
 
@@ -163,6 +180,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
 
   // Handle regenerate analysis
   const handleRegenerateAnalysis = useCallback(async (analysisType, frameworkId) => { 
+    console.log('Regenerating analysis:', analysisType, frameworkId);
     await generateAnalysis(analysisType, frameworkId, businessData, strategicBooks, true);
   }, [generateAnalysis, businessData, strategicBooks]);
 
@@ -254,6 +272,12 @@ const BusinessDetail = ({ businessName, onBack }) => {
           expandedAnalysisProps={expandedAnalysisProps}
         />
       </div>
+
+      {/* Expanded Analysis View - Shows on both mobile and desktop */}
+      <ExpandedAnalysisViewContainer 
+        isFullScreenAnalysis={isFullScreenAnalysis}
+        expandedAnalysisProps={expandedAnalysisProps}
+      />
     </>
   );
 };
@@ -437,6 +461,20 @@ const DesktopView = ({
   </Card>
 );
 
+// Expanded Analysis View Component (shows on both mobile and desktop when active)
+const ExpandedAnalysisViewContainer = ({ 
+  isFullScreenAnalysis, 
+  expandedAnalysisProps 
+}) => {
+  if (!isFullScreenAnalysis) return null;
+  
+  return (
+    <div className="expanded-analysis-container">
+      <ExpandedAnalysisView {...expandedAnalysisProps} />
+    </div>
+  );
+};
+
 // Desktop Left Side Component
 const DesktopLeftSide = ({
   businessData,
@@ -492,9 +530,9 @@ const DesktopRightSide = ({
       </Button>
     </div>
 
-    <h6 className="analysis-section-title">
+    {/* <h6 className="analysis-section-title">
       {analysisTab === "analysis" ? "Analysis" : "STRATEGIC"}
-    </h6>
+    </h6> */}
     <div>
       {businessData.analysisItems
         .filter(item => item.category === analysisTab)

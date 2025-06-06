@@ -19,7 +19,7 @@ const SwotAnalysis = ({ analysisResult }) => {
 
   return (
     <>
-      <h4 className="text-center mt-4"><strong>SWOT Analysis</strong></h4>
+      <h4 className="text-center"><strong>SWOT Analysis</strong></h4>
       
       {introText && <div className="mb-3">{introText}</div>}
       
@@ -49,9 +49,15 @@ const SwotAnalysis = ({ analysisResult }) => {
         </>
       )}
       
+       
       {conclusionText && (
-        <div className="mt-3 conclusion-text">
-          <div dangerouslySetInnerHTML={{ __html: conclusionText.replace(/\n/g, "<br/>") }} />
+        <div className="mt-4 conclusion-section">
+          <h5><strong>Conclusion</strong></h5>
+          <div className="conclusion-text">
+            <div dangerouslySetInnerHTML={{ 
+              __html: conclusionText.replace(/\n/g, "<br/>") 
+            }} />
+          </div>
         </div>
       )}
     </>
