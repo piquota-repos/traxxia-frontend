@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
@@ -14,32 +14,32 @@ import {
 
 // Components
 import MenuBar from "../components/MenuBar";
-import BusinessDetail from "../components/BusinessDetail";
+import  BusinessDetail from "../components/BusinessDetail";
 
 // Styles
 import "../styles/dashboard.css";
-
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+import ProgressSection from "../components/ProgressSection";
+import { useProgressTracking } from "../hooks/useProgressTracking";
+import { useBusinessData } from "../hooks/useBusinessData"; 
 // Constants
 const STEPS = {
   WELCOME: 1,
   INSIGHTS: 2,
   BUSINESS_DETAIL: 3
 };
-
 const Dashboard = () => {
-  const navigate = useNavigate();
-
-  // Simple state
+  const navigate = useNavigate();  // Simple state
   const [currentStep, setCurrentStep] = useState(STEPS.WELCOME);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState("");
 
-  // Hardcoded business data
-  const businesses = [
-    { name: "InsightForge Inc", progress: 30, remaining: 43, total: 58 },
-  ];
+const { businessData, loading: businessLoading, error: businessError } = useBusinessData("InsightForge Inc"); // Fetch data for the default business
+  const { progressData, areAllQuestionsAnswered } = useProgressTracking(businessData);
 
+ const { answeredQuestions, totalQuestions, progress } = progressData;
   // Hardcoded insights content
   const hardcodedInsights = `
 Business Analysis Results:
@@ -67,32 +67,77 @@ Your business operates in a competitive technology sector with significant growt
 5. Growth Projections:
 Based on current trends, a 25-30% growth rate is achievable within the next 12 months with proper execution of recommended strategies.
   `;
+ const businesses = useMemo(() => {
+    if (businessLoading || businessError || !businessData) {
+      return []; // Return empty if data is not ready
+    }
+   return [
+      {
+        name: "InsightForge Inc", // Use actual business name if available
+        progress: progressData.progress,
+        answeredQuestions: progressData.answeredQuestions,
+        totalQuestions: progressData.totalQuestions,
+        remaining: progressData.totalQuestions - progressData.answeredQuestions,
+        total: progressData.totalQuestions,
+      },
+    ];
+  }, [businessData, progressData, businessLoading, businessError]);
 
-  // Business List Component
-  const BusinessList = ({ businesses, viewType }) => (
+ const BusinessList = ({ businesses, viewType }) => (
     <div className={`business-list ${viewType}`}>
-      {businesses.map((business, index) => (
-        <div 
-          key={index} 
+      {/* Show loading spinner if businesses are still loading */}
+      {businessLoading && (
+        <div className="d-flex justify-content-center py-5">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading businesses...</span>
+          </Spinner>
+        </div>
+      )}
+      {/* Show error if there's an error */}
+      {businessError && (
+        <div className="text-center text-danger py-5">
+          Error loading business data.
+        </div>
+      )}
+      {/* Show businesses if loaded and no error */}
+      {!businessLoading && !businessError && businesses.length === 0 && (
+        <div className="text-center text-muted py-5">
+          No businesses found.
+        </div>
+      )}
+      {!businessLoading && !businessError && businesses.length > 0 && businesses.map((business, index) => (
+        <div
+          key={index}
           className="business-item d-flex align-items-center p-3 border-bottom"
           onClick={() => handleBusinessClick(business)}
-          style={{ cursor: 'pointer' }}
+          style={{ cursor: "pointer" }}
         >
-          <div className="progress-circle me-3">
-            <div className="progress-text">{business.progress}%</div>
+          <div style={{ width: 60, height: 60 }} className="progress-circle me-3">
+            <CircularProgressbar
+              value={business.progress}
+              text={`${business.progress}%`}
+              styles={buildStyles({
+                pathColor: "#28a745",
+                textColor: "#000",
+                trailColor: "#ffffff",
+                textSize: "30px",
+              })}
+            />
           </div>
           <div className="flex-grow-1">
             <h6 className="mb-1">{business.name}</h6>
-            <small className="text-muted">Questions remaining: {business.remaining} of {business.total}</small>
+            <small className="text-muted">
+              Questions remaining: {business.remaining} of {business.total}
+            </small>
           </div>
           <ArrowRight size={16} className="text-muted" />
         </div>
       ))}
     </div>
   );
-
   // Event Handlers
   const handleBusinessClick = (business) => {
+    
     setSelectedBusiness(business);
     setCurrentStep(STEPS.BUSINESS_DETAIL);
   };

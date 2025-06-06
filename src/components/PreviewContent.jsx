@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge, Card, Row, Col } from 'react-bootstrap';
 
-const PreviewContent = ({ categories, answers }) => {
+const PreviewContent = ({ categories=[], answers={} }) => {
   // Helper function to get answer text
   const getAnswerText = (questionId) => {
     const answer = answers[questionId];

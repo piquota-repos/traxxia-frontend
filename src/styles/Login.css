@@ -178,7 +178,7 @@ body {
   background-color: var(--white);
 }
 
-.dropdown {
+.dropdown1 {
   position: absolute;
   top: 35px;
   right: 0;
@@ -191,17 +191,17 @@ body {
   padding: 5px 0;
 }
 
-.dropdown-option {
+.dropdown1-option {
   padding: 10px 15px;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
-.dropdown-option:hover {
+.dropdown1-option:hover {
   background-color: #f0f0f0;
 }
 
-.dropdown-option.selected {
+.dropdown1-option.selected {
   background-color: #e6f7ff;
   font-weight: bold;
   color: #007bff;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
@@ -17,13 +17,18 @@ const Login = () => {
   const navigate = useNavigate();
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
   const [showDropdown, setShowDropdown] = useState(false);
-const [selectedOption, setSelectedOption] = useState('Option 1');
-
-const toggleDropdown = () => {
-  setShowDropdown(prev => !prev);
-  if (!showDropdown) setSelectedOption('English'); 
-};
-
+const [selectedOption, setSelectedOption] = useState('English');
+const toggleDropdown = () => setShowDropdown((prev) => !prev);
+const dropdownRef = useRef(null);
+useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const handleSubmit = async (e) => {
     e.preventDefault();
     sessionStorage.clear(); // Clear any existing session data
@@ -80,19 +85,22 @@ const toggleDropdown = () => {
       <div className="login-right-section">
         <div className="login-box">
           <h2>Welcome!</h2>
-        <div className='converter'>
-          <MdTranslate size={25} onClick={toggleDropdown} title="Translate (EN/ES)" />
+        <div className='converter' ref={dropdownRef}>
+          <div className='dropdown1-header' onClick={toggleDropdown}>
+          <MdTranslate size={25}  title="Translate (EN/ES)" />
+          <span className="selected-language">{selectedOption}</span>
+          </div>
           {showDropdown && (
-            <div className="dropdown">
+            <div className="dropdown1">
               <div
-                className={`dropdown-option ${selectedOption === 'English' ? 'selected' : ''}`}
-                onClick={() => setSelectedOption('English')}
+                className={`dropdown1-option ${selectedOption === 'English' ? 'selected' : ''}`}
+                onClick={() => {setSelectedOption('English'); setShowDropdown(false);}}
               >
                 English
               </div>
               <div
-                className={`dropdown-option ${selectedOption === 'Spanish' ? 'selected' : ''}`}
-                onClick={() => setSelectedOption('Spanish')}
+                className={`dropdown1-option ${selectedOption === 'Spanish' ? 'selected' : ''}`}
+                onClick={() => {setSelectedOption('Español'); setShowDropdown(false);}}
               >
                 Español
               </div>
