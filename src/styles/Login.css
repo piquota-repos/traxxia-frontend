@@ -281,26 +281,20 @@ body {
   padding: 0.9rem 1rem 0.9rem ;
   border-radius: var(--border-radius);
 
-  border: 1px solid var(--email-border);
+  border: 1px solid #C5C6CC;
   font-size: 1rem;
   transition: all 0.2s ease;
-  color: var(--text-dark);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  color: var(--text-dark); 
   font-weight: 500;
 }
-.form-group input[type="text"] {
-  background-color: var(--email-field);
-  border: 1px solid var(--email-border);
-  border-color: var(--email-border);
-  box-shadow: 0 0 0 2px #C5C6CC;
+.form-group input[type="text"] { 
+  border: 1px solid #C5C6CC;
+  border-color: var(--email-border); 
 }
 
 /* Email field styling */
-.form-group input[type="email"] {
-  background-color: var(--white);
-  border: 1px solid var(--email-border);
-  border-color: var(--email-border);
-  box-shadow: 0 0 0 2px #C5C6CC;
+.form-group input[type="email"] { 
+  border: 1px solid #C5C6CC; 
 
 }
 
@@ -314,9 +308,7 @@ body {
 .form-group input[type="password"], .form-group input[type="text"] {
 
   background-color: var(--password-field);
-  border: 1px solid var(--password-border);
-  border-color: var(--password-border);
-  box-shadow: 0 0 0 2px #C5C6CC;
+  border: 1px solid var(--password-border); 
 }
 
 .form-group input[type="password"]:focus, .form-group input[type="text"]:focus {
