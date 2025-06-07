@@ -74,7 +74,7 @@ Based on current trends, a 25-30% growth rate is achievable within the next 12 m
     }
    return [
       {
-        name: businessData.name || "InsightForge Inc",
+        name: "InsightForge Inc",
         progress: progressData.progress,
         answeredQuestions: progressData.answeredQuestions,
         totalQuestions: progressData.totalQuestions,

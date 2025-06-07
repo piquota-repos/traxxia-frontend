@@ -61,7 +61,7 @@ const Login = () => {
       document.head.appendChild(metaTranslate);
 
       // Force DOM mutation to trigger Chrome's detection
-      setTimeout(() => {
+      {/*setTimeout(() => {
         spanishContent.innerHTML += '<p>Contenido adicional para activar la detección automática de Chrome.</p>';
         
         // Change language back to English to trigger detection
@@ -71,7 +71,7 @@ const Login = () => {
         }, 1000);
       }, 500);
 
-      console.log('✅ Spanish content added to trigger Chrome auto-translate detection');
+      console.log('✅ Spanish content added to trigger Chrome auto-translate detection');*/}
     };
 
     // Trigger Chrome translate detection after component mounts

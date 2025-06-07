@@ -7,12 +7,13 @@ class ApiService {
     this.authData = getAuthData();
   }
 
-  getHeaders() {
-    return {
-      'Authorization': `Bearer ${this.authData.token}`,
-      'Content-Type': 'application/json'
-    };
-  }
+ getHeaders() {
+  const authData = getAuthData();
+  return {
+    'Authorization': `Bearer ${authData.token}`,
+    'Content-Type': 'application/json'
+  };
+}
 
   async saveAnswers(businessData) {
     const answersArray = [];

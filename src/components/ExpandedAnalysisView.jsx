@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import AnalysisTypeSelector from './AnalysisTypeSelector';
 import AnalysisRenderer from './AnalysisRenderer';
 import { getIconComponent } from '../utils/iconUtils';
-
+  
 // Helper function to get default analysis type for a category
 const getDefaultAnalysisType = (category, analysisItems) => {
   const categoryItems = analysisItems.filter(item => item.category === category);
