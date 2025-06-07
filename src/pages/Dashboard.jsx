@@ -187,8 +187,7 @@ ${t('growth_projection_details')}
               <div className="px-4 pb-4">
                 <Button 
                   variant="primary" 
-                  className="w-100 create-business-btn"
-                  onClick={goToInsights}
+                  className="w-100 create-business-btn" 
                 >
                   {t('create_business')}
                 </Button>
@@ -206,8 +205,7 @@ ${t('growth_projection_details')}
                     <p className="text-muted mb-4">{t('welcome_message')}</p>
                     <Button 
                       variant="primary" 
-                      className="create-business-btn"
-                      onClick={goToInsights}
+                      className="create-business-btn" 
                     >
                       {t('create_business')}
                     </Button>
