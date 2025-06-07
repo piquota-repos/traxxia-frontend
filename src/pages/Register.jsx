@@ -57,7 +57,7 @@ const Register = () => {
       newErrors.confirmPassword = t('passwords_do_not_match');
     }
     if (!form.terms) {
-      newErrors.terms = t('terms_must_be_accepted');
+      newErrors.terms = t('agree_terms');
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -118,7 +118,7 @@ const Register = () => {
               <FaAngleLeft size={34} onClick={() => navigate('/')} className="back-icon" />
               <h4>{t('sign_up')}</h4>
             </div>
-            <p className="register-subtitle">{t('create_account_to_get_started')}</p>
+            <p className="register-subtitle">{t('create_account_subtitle')}</p>
 
             <div className="form-group1">
               <label>{t('first_name')}</label>
@@ -225,11 +225,11 @@ const Register = () => {
                 <FaTimes />
               </button>
               <div className={`success-icon ${isError ? 'error-icon' : ''}`}>{isError ? '✗' : '✓'}</div>
-              <h3>{isError ? t('registration_failed_title') : t('account_created')}</h3>
+              <h3>{isError ? t('registration_failed_msg') : t('account_created')}</h3>
               <p>{modalMessage}</p>
               {!isError && (
                 <div className="success-details">
-                  <p className="redirect-text">{t('redirecting_to_login')}</p>
+                  <p className="redirect-text">{t('redirecting_login')}</p>
                   <div className="loading-spinner"></div>
                 </div>
               )}

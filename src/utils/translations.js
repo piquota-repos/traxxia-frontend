@@ -349,7 +349,7 @@ export const staticTranslations = {
     'account_created': 'Account Created!',
     'registration_failed': 'Registration Failed',
     'redirecting_login': 'Redirecting to login page...',
-
+     'registration_successful': 'Registration successful!',
     // Validation messages
     'first_name_required': 'First name is required',
     'last_name_required': 'Last name is required',
@@ -385,7 +385,7 @@ export const staticTranslations = {
 
     // Business Detail page
     'questions': 'Questions',
-    'analysis': 'Analysis',
+    'analysis': 'ANALYSIS',
     'strategic': 'STRATEGIC',
     'saving': 'Saving...',
     'save_successful': 'Save successful!',
@@ -746,7 +746,8 @@ export const staticTranslations = {
     'account_created': '¡Cuenta Creada!',
     'registration_failed': 'Error en el Registro',
     'redirecting_login': 'Redirigiendo a la página de inicio de sesión...',
-
+    'registration_successful': '¡Registro exitoso!',
+     'User already exists with this email': 'Ya existe un usuario con este correo electrónico',
     // Validation messages
     'first_name_required': 'El nombre es requerido',
     'last_name_required': 'El apellido es requerido',

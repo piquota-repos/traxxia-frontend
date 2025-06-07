@@ -3284,8 +3284,9 @@
   
   .preview-button,
   .manual-save-btn {
-    width: 100%;
-    justify-content: center;
+      width: 35%;
+      position: relative;
+      left: 60%;
   }
   
   .progress-section-title {
