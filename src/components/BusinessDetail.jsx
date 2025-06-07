@@ -1,4 +1,4 @@
-// BusinessDetail.jsx - Simplified Version Using transformBusinessData
+// BusinessDetail.jsx - Complete Fixed Version with Mobile Expanded View
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Button, Card, Row, Col, Nav, Alert } from "react-bootstrap";
 import { ArrowLeft } from "lucide-react";
@@ -235,7 +235,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
     setTimeout(() => {
       setIsFullScreenAnalysis(true);
       setIsAnimating(false);
-    }, 1000);
+    }, 300); // Reduced animation time for mobile
 
     const cacheKey = `${item.id}-${analysisType}`;
     if (!analysisData[cacheKey]) {
@@ -288,7 +288,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
       setActiveAnalysisItem(null);
       setSelectedAnalysisType(null);
       setIsAnimating(false); 
-    }, 1000);
+    }, 300); // Reduced animation time for mobile
   }, []);
 
   const handleRegenerateAnalysis = useCallback(async (analysisType, frameworkId) => { 
@@ -384,47 +384,55 @@ const BusinessDetail = ({ businessName, onBack }) => {
 
   return (
     <>
-      <div className="business-detail-container">
-        
-        {/* Mobile View */}
-        <MobileView
-          businessData={businessData}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onBack={onBack}
-          progressSectionProps={progressSectionProps}
-          categoryItemProps={categoryItemProps}
-          analysisItemProps={analysisItemProps}
-          t={t}
-        />
+      {/* Main Container - Hidden when expanded view is active */}
+      {!isFullScreenAnalysis && (
+        <div className="business-detail-container">
+          
+          {/* Mobile View */}
+          <div className="d-md-none">
+            <MobileView
+              businessData={businessData}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              onBack={onBack}
+              progressSectionProps={progressSectionProps}
+              categoryItemProps={categoryItemProps}
+              analysisItemProps={analysisItemProps}
+              t={t}
+            />
+          </div>
 
-        {/* Desktop View */}
-        <DesktopView
-          businessData={businessData}
-          analysisTab={analysisTab}
-          setAnalysisTab={setAnalysisTab}
-          onBack={onBack}
-          isFullScreenAnalysis={isFullScreenAnalysis}
-          isAnimating={isAnimating}
-          areAllQuestionsAnswered={areAllQuestionsAnswered()}
-          progressSectionProps={progressSectionProps}
-          categoryItemProps={categoryItemProps}
-          analysisItemProps={analysisItemProps}
-          expandedAnalysisProps={expandedAnalysisProps}
-          t={t}
-        />
-      </div>
+          {/* Desktop View */}
+          <div className="d-none d-md-block">
+            <DesktopView
+              businessData={businessData}
+              analysisTab={analysisTab}
+              setAnalysisTab={setAnalysisTab}
+              onBack={onBack}
+              isFullScreenAnalysis={isFullScreenAnalysis}
+              isAnimating={isAnimating}
+              areAllQuestionsAnswered={areAllQuestionsAnswered()}
+              progressSectionProps={progressSectionProps}
+              categoryItemProps={categoryItemProps}
+              analysisItemProps={analysisItemProps}
+              expandedAnalysisProps={expandedAnalysisProps}
+              t={t}
+            />
+          </div>
+        </div>
+      )}
 
-      {/* Expanded Analysis View */}
-      <ExpandedAnalysisViewContainer 
-        isFullScreenAnalysis={isFullScreenAnalysis}
-        expandedAnalysisProps={expandedAnalysisProps}
-      />
+      {/* Expanded Analysis View - Full Screen Overlay */}
+      {isFullScreenAnalysis && (
+        <div className="expanded-analysis-fullscreen-overlay">
+          <ExpandedAnalysisView {...expandedAnalysisProps} />
+        </div>
+      )}
     </>
   );
 };
 
-// Mobile View Component (same as before)
+// Mobile View Component
 const MobileView = ({
   businessData,
   activeTab,
@@ -435,7 +443,7 @@ const MobileView = ({
   analysisItemProps,
   t
 }) => (
-  <Card className="mobile-business-detail d-md-none">
+  <Card className="mobile-business-detail">
     <Card.Header className="mobile-business-header">
       <Button variant="link" onClick={onBack} className="back-button">
         <ArrowLeft size={20} />
@@ -550,7 +558,7 @@ const DesktopView = ({
   expandedAnalysisProps,
   t
 }) => (
-  <Card className="desktop-business-detail d-none d-md-block">
+  <Card className="desktop-business-detail">
     {!isFullScreenAnalysis ? (
       <>
         <Card.Header className="desktop-business-header">
@@ -644,20 +652,6 @@ const DesktopRightSide = ({
     </div>
   </div>
 );
-
-// Expanded Analysis View Container
-const ExpandedAnalysisViewContainer = ({ 
-  isFullScreenAnalysis, 
-  expandedAnalysisProps 
-}) => {
-  if (!isFullScreenAnalysis) return null;
-  
-  return (
-    <div className="expanded-analysis-container">
-      <ExpandedAnalysisView {...expandedAnalysisProps} />
-    </div>
-  );
-};
 
 // Desktop Left Side Component
 const DesktopLeftSide = ({
