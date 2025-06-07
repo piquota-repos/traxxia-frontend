@@ -783,7 +783,7 @@ export const staticTranslations = {
 
     // Business Detail page
     'questions': 'Preguntas',
-    'analysis': 'Análisis',
+    'analysis': 'ANÁLISIS',
     'strategic': 'ESTRATÉGICO',
     'saving': 'Guardando...',
     'save_successful': '¡Guardado exitoso!',
