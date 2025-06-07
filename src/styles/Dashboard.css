@@ -7,7 +7,7 @@
   
   position: relative;
   top: 30px;
-  left: 88%;
+  left: 82%;
   
 }
 .main-content {
@@ -550,4 +550,5 @@
 .business-detail-container {
   min-height: calc(100vh - 60px);
   overflow: auto;
+  scroll-behavior: smooth;
 }

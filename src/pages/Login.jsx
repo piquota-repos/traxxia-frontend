@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+// Updated Login.jsx
+
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
@@ -7,7 +9,9 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import logo from '../assets/01a2750def81a5872ec67b2b5ec01ff5e9d69d0e.png';
 import facebook from '../assets/facebook (1).png';
 import social from '../assets/social.png';
-import apple from '../assets/apple.png'; 
+import apple from '../assets/apple.png';
+import LanguageTranslator from '../components/LanguageTranslator';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -16,85 +20,9 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
-
-  useEffect(() => {
-    // Trigger Chrome's auto-translate detection by adding Spanish content
-    const triggerChromeAutoTranslate = () => {
-      // Add substantial Spanish content to trigger Chrome's language detection
-      const spanishContent = document.createElement('div');
-      spanishContent.id = 'chrome-translate-trigger';
-      spanishContent.setAttribute('translate', 'yes');
-      spanishContent.lang = 'es';
-      spanishContent.innerHTML = `
-        <div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;">
-          <h1>Bienvenido a Traxxia - Plataforma de Análisis Empresarial</h1>
-          <h2>Iniciar Sesión en su Cuenta</h2>
-          <p>Esta aplicación web está completamente en idioma español para usuarios hispanohablantes.</p>
-          <p>Traxxia es una plataforma integral de análisis de datos empresariales diseñada específicamente para el mercado latinoamericano.</p>
-          <p>Para acceder a su cuenta, por favor ingrese su dirección de correo electrónico y contraseña en los campos correspondientes.</p>
-          <p>Si aún no tiene una cuenta registrada, puede crear una nueva cuenta haciendo clic en el enlace de registro.</p>
-          <p>También puede iniciar sesión utilizando sus cuentas de Google, Apple o Facebook para mayor comodidad.</p>
-          <p>Nuestra plataforma ofrece análisis avanzados, reportes detallados y visualizaciones interactivas para ayudar a su empresa a tomar decisiones informadas.</p>
-          <p>El sistema está optimizado para funcionar en dispositivos móviles y de escritorio, garantizando una experiencia fluida en cualquier dispositivo.</p>
-          <p>Para soporte técnico o consultas comerciales, puede contactar a nuestro equipo de atención al cliente en español.</p>
-          <p>Todos los datos están protegidos con encriptación de nivel empresarial y cumplimos con las regulaciones internacionales de privacidad.</p>
-          <p>Dashboard personalizable con métricas clave de rendimiento empresarial en tiempo real.</p>
-          <p>Integración perfecta con sistemas ERP, CRM y otras herramientas empresariales existentes.</p>
-          <p>Análisis predictivo avanzado utilizando algoritmos de machine learning e inteligencia artificial.</p>
-          <p>Reportes automatizados y alertas personalizadas para mantenerse al día con las tendencias del negocio.</p>
-        </div>
-      `;
-      document.body.appendChild(spanishContent);
-
-      // Set page language attributes to help Chrome detect
-      document.documentElement.lang = 'es';
-      
-      // Add meta tags for better detection
-      const metaLang = document.createElement('meta');
-      metaLang.setAttribute('http-equiv', 'content-language');
-      metaLang.setAttribute('content', 'es');
-      document.head.appendChild(metaLang);
-
-      const metaTranslate = document.createElement('meta');
-      metaTranslate.name = 'google';
-      metaTranslate.content = 'translate';
-      document.head.appendChild(metaTranslate);
-
-      // Force DOM mutation to trigger Chrome's detection
-      {/*setTimeout(() => {
-        spanishContent.innerHTML += '<p>Contenido adicional para activar la detección automática de Chrome.</p>';
-        
-        // Change language back to English to trigger detection
-        setTimeout(() => {
-          document.documentElement.lang = 'en';
-          metaLang.setAttribute('content', 'en');
-        }, 1000);
-      }, 500);
-
-      console.log('✅ Spanish content added to trigger Chrome auto-translate detection');*/}
-    };
-
-    // Trigger Chrome translate detection after component mounts
-    const timer = setTimeout(triggerChromeAutoTranslate, 2000);
-
-    // Add more content periodically to increase detection chances
-    const interval = setInterval(() => {
-      const triggerContent = document.getElementById('chrome-translate-trigger');
-      if (triggerContent && !document.body.classList.contains('translated-ltr')) {
-        // Add dynamic content to keep triggering detection
-        const dynamicContent = document.createElement('p');
-        dynamicContent.style.cssText = 'position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;';
-        dynamicContent.textContent = `Análisis empresarial en tiempo real - ${new Date().toISOString()}`;
-        dynamicContent.lang = 'es';
-        triggerContent.appendChild(dynamicContent);
-      }
-    }, 10000);
-
-    return () => {
-      clearTimeout(timer);
-      clearInterval(interval);
-    };
-  }, []);
+  
+  // Use the translation hook
+  const { t } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -106,6 +34,7 @@ const Login = () => {
         password,
       });
       
+      // Store user session data
       sessionStorage.setItem('token', res.data.token);
       sessionStorage.setItem('userId', res.data.user.id);
       sessionStorage.setItem('userName', res.data.user.name);
@@ -114,10 +43,14 @@ const Login = () => {
       sessionStorage.setItem('latestVersion', res.data.latest_version || '');
       sessionStorage.setItem('isAdmin', res.data.user.role === 'admin' ? 'true' : 'false');
       
+      // IMPORTANT: Store the current language in session storage for the application
+      const currentLang = window.getCurrentLanguage ? window.getCurrentLanguage() : 'en';
+      sessionStorage.setItem('appLanguage', currentLang);
+      
       navigate('/dashboard');
     } catch (err) {
       console.error(err.response?.data || err.message);
-      alert(err.response?.data?.message || 'Login failed');
+      alert(err.response?.data?.message || t('login_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -129,6 +62,9 @@ const Login = () => {
 
   return (
     <div className="login-container">
+      {/* Language Translator - Only on login page */}
+      <LanguageTranslator isLoginPage={true} />
+      
       <div className="login-left-section">
         <div className="company-branding">
           <div className="logo-container">
@@ -144,7 +80,7 @@ const Login = () => {
       
       <div className="login-right-section">
         <div className="login-box">
-          <h2>Welcome!</h2>
+          <h2>{t('welcome')}</h2>
           
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -153,7 +89,7 @@ const Login = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email Address"
+                  placeholder={t('email_address')}
                   required
                 />
               </div>
@@ -165,14 +101,14 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
+                  placeholder={t('password')}
                   required
                 />
                 <button 
                   type="button"
                   className="toggle-password"
                   onClick={togglePasswordVisibility}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? t('hide_password') : t('show_password')}
                 >
                   <FontAwesomeIcon
                     icon={showPassword ? faEye : faEyeSlash }
@@ -188,15 +124,15 @@ const Login = () => {
               className={`login-button ${isLoading ? 'loading' : ''}`}
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Log In'}
+              {isLoading ? t('signing_in') : t('login')}
             </button>
           </form>
           
           <div className="login-footer">
-            <p>Not a member? <a href="/register">Register now</a></p>
+            <p>{t('not_member')} <a href="/register">{t('register_now')}</a></p>
           </div>
           <hr className='divider' />
-          <p>Or continue with</p>
+          <p>{t('continue_with')}</p>
           <div className='social-login'>
             <a href="https://google.com" target="_blank" rel="noopener noreferrer">
               <img src={social} alt="Google" />

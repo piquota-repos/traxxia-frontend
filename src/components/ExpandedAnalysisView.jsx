@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { ArrowLeft } from 'lucide-react';
 import AnalysisTypeSelector from './AnalysisTypeSelector';
 import AnalysisRenderer from './AnalysisRenderer';
 import { getIconComponent } from '../utils/iconUtils';
-  
+
 // Helper function to get default analysis type for a category
 const getDefaultAnalysisType = (category, analysisItems) => {
   const categoryItems = analysisItems.filter(item => item.category === category);
@@ -65,8 +65,40 @@ const ExpandedAnalysisView = ({
   onFrameworkTabClick,
   onAnalysisTypeSelect,
   onCloseExpandedView,
-  onRegenerateAnalysis
+  onRegenerateAnalysis,
+  t // Translation function passed from parent
 }) => {
+  const [translations, setTranslations] = useState({});
+
+  // Get translation function
+  const translate = (key) => {
+    if (t) {
+      return t(key);
+    }
+    if (window.getTranslation) {
+      return window.getTranslation(key);
+    }
+    return translations[key] || key;
+  };
+
+  // Update translations when language changes (fallback if t is not passed)
+  useEffect(() => {
+    if (!t) {
+      const updateTranslations = () => {
+        const currentLang = window.currentAppLanguage || 'en';
+        const currentTranslations = window.appTranslations?.[currentLang] || {};
+        setTranslations(currentTranslations);
+      };
+
+      updateTranslations();
+      window.addEventListener('languageChanged', updateTranslations);
+
+      return () => {
+        window.removeEventListener('languageChanged', updateTranslations);
+      };
+    }
+  }, [t]);
+
   const analysisItems = businessData.analysisItems.filter(item => item.category === "analysis");
   const strategicItems = businessData.analysisItems.filter(item => item.category === "strategic");
   const currentItems = fullScreenAnalysisTab === "analysis" ? analysisItems : strategicItems;
@@ -79,7 +111,8 @@ const ExpandedAnalysisView = ({
   }, [activeAnalysisItem, fullScreenAnalysisTab, setFullScreenAnalysisTab]);
 
   const getCacheKey = () => {
-    return activeAnalysisItem ? `${activeAnalysisItem.id}-${selectedAnalysisType}` : null;
+    const currentLanguage = window.currentAppLanguage || 'en';
+    return activeAnalysisItem ? `${activeAnalysisItem.id}-${selectedAnalysisType}-${currentLanguage}` : null;
   };
 
   const analysisResult = getCacheKey() ? analysisData[getCacheKey()] : null;
@@ -126,7 +159,7 @@ const ExpandedAnalysisView = ({
             className="expanded-back-button"
           >
             <ArrowLeft size={18} className="me-2" />
-            Back 
+            {translate('back')}
           </Button>
           <div className="menu-divider"></div>
           <Button
@@ -135,14 +168,14 @@ const ExpandedAnalysisView = ({
             onClick={() => handleCategoryTabClick("analysis")}
             className="me-2"
           >
-            Analysis
+            {translate('analysis')}
           </Button>
           <Button
             variant={fullScreenAnalysisTab === "strategic" ? "primary" : "outline-primary"}
             size="sm"
             onClick={() => handleCategoryTabClick("strategic")}
           >
-            Strategic
+            {translate('strategic')}
           </Button>
         </div>           
       </div>
@@ -184,6 +217,7 @@ const ExpandedAnalysisView = ({
                   isLoading={isLoading}
                   activeAnalysisItem={activeAnalysisItem}
                   showRegenerateButton={false} // Hide regenerate button
+                  t={translate} // Pass translation function
                 />
               ) : ( 
                 <></>
@@ -196,14 +230,15 @@ const ExpandedAnalysisView = ({
                   analysisItem={activeAnalysisItem}
                   analysisResult={analysisResult}
                   isLoading={isLoading}
+                  t={translate} // Pass translation function
                 />
               </div>
             </>
           ) : (
             <div className="analysis-content-workspace">
               <div className="analysis-content-header centered">
-                <h4>Select an Analysis Framework</h4>
-                <p>Choose from the tabs above to begin your analysis</p>
+                <h4>{translate('select_analysis_framework')}</h4>
+                <p>{translate('choose_framework_instruction')}</p>
               </div>
             </div>
           )}

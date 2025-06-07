@@ -1,35 +1,38 @@
 import React from 'react';
+import '../styles/dashboard.css';
+import { detectLanguage, analysisPatterns } from '../utils/translations';
 
 const SwotAnalysis = ({ analysisResult }) => {
-  const introRegex = /^(.*?)(?=\*\*SWOT Analysis)/s;
+  const lang = detectLanguage(analysisResult);
+  const t = analysisPatterns[lang]?.swot || analysisPatterns['en'].swot;
+  
+  const introRegex = new RegExp(`^(.*?)(?=\\*\\*\\s*${t.title.replace('SWOT Analysis', 'SWOT Analysis|Análisis FODA')})`, 's');
   const introMatch = introRegex.exec(analysisResult);
   const introText = introMatch ? introMatch[1].trim() : "";
 
-  const swotRegex = /\*\*\s*SWOT Analysis\s*:\*\*([\s\S]*?)(?=In conclusion|To address|By embracing|$)/i;
-  const swotMatch = swotRegex.exec(analysisResult);
+  const swotMatch = t.patterns.analysisHeader.exec(analysisResult);
   const swotContent = swotMatch ? swotMatch[1].trim() : "";
 
-  const conclusionRegex = /(In conclusion[\s\S]*?$|To address the weaknesses[\s\S]*?$|By embracing[\s\S]*?$)/i;
-  const conclusionMatch = conclusionRegex.exec(analysisResult);
+  const conclusionMatch = t.patterns.conclusion.exec(analysisResult);
   const conclusionText = conclusionMatch ? conclusionMatch[0] : "";
 
-  const sectionPattern = /\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*|In conclusion|To address|By embracing|$))/gi;
-  const swotData = extractAnalysisSections(swotContent, sectionPattern);
+  const swotData = extractAnalysisSections(swotContent, t.patterns.sections);
   const labels = Object.keys(swotData);
 
   return (
     <>
-      <h4 className="text-center"><strong>SWOT Analysis</strong></h4>
+      <h4 className="text-center"><strong>{t.title}</strong></h4>
       
       {introText && <div className="mb-3 intro-text">{introText}</div>}
       
       {labels.length > 0 && (
-        <> <br></br>
+        <>
+          <br/>
           <div className="table-responsive mb-4">
             <table className="table table-bordered table-striped">
               <thead className="table-light">
                 <tr>
-                  {labels.map(label => <th key={label}>{label}</th>)}
+                  {labels.map(label => <th key={label}>{String(label)}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -45,14 +48,13 @@ const SwotAnalysis = ({ analysisResult }) => {
           </div>
         </>
       )}
-      
-       
+                    
       {conclusionText && (
         <div className="mt-4 conclusion-section">
-          <h5><strong>Conclusion</strong></h5>
+          <h5><strong>{t.conclusion}</strong></h5>
           <div className="conclusion-text">
             <div dangerouslySetInnerHTML={{ 
-              __html: conclusionText.replace(/\n/g, "<br/>") 
+              __html: String(conclusionText).replace(/\n/g, "<br/>") 
             }} />
           </div>
         </div>
@@ -61,37 +63,46 @@ const SwotAnalysis = ({ analysisResult }) => {
   );
 };
 
-// Helper function to extract analysis sections
+// Helper functions (same as before)
 const extractAnalysisSections = (analysisBlock, sectionPattern) => {
+  if (!sectionPattern || !analysisBlock) return {};
+  
   const analysisData = {};
-
   let m;
+  sectionPattern.lastIndex = 0;
+  
   while ((m = sectionPattern.exec(analysisBlock)) !== null) {
-    const key = m[1].trim();
-    const value = m[2]
+    const key = String(m[1] || '').trim();
+    const value = String(m[2] || '')
       .split(/\n(?=\*\*|\d+\.\s)/)[0]
       .trim()
       .replace(/\n/g, "<br/>");
-    analysisData[key] = value;
+    
+    if (key) {
+      analysisData[key] = value;
+    }
+    
+    if (!sectionPattern.global) break;
   }
-
+  
   return analysisData;
 };
 
-// Helper function to render analysis boxes
 const renderAnalysisBoxes = (content, label) => {
-  const normalizedLabel = label.toLowerCase().replace(/\s+/g, '-');
+  if (!content) return null;
+  
+  const normalizedLabel = String(label).toLowerCase().replace(/\s+/g, '-');
   const bgClass = `${normalizedLabel}-bg`;
 
-  return content
+  return String(content)
     .split(/<br\s*\/?>\s*(?=<br\s*\/?>|[^<])/i)
-    .map((para) => para.trim())
-    .filter((para) => 
+    .map((para) => String(para).trim())
+    .filter((para) =>
       para !== "" &&
       para !== "*" &&
       para !== "<br/>*" &&
       para !== "<br />*" &&
-      !/^\*+$/.test(para) // removes any line that's just multiple `*`
+      !/^\*+$/.test(para)
     )
     .map((para, idx) => {
       return (
