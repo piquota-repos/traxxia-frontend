@@ -1,9 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Table, Button, Form, Alert, Spinner, OverlayTrigger, Tooltip, Pagination } from 'react-bootstrap';
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Table,
+  Button,
+  Form,
+  Alert,
+  Spinner,
+  OverlayTrigger,
+  Tooltip,
+  Pagination
+} from 'react-bootstrap';
 import MenuBar from '../components/MenuBar';
-import { MdArrowUpward, MdArrowDownward, MdUnfoldMore, MdRefresh, MdDownload } from 'react-icons/md';
+import {
+  MdArrowUpward,
+  MdArrowDownward,
+  MdUnfoldMore,
+  MdRefresh,
+  MdDownload
+} from 'react-icons/md';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Admin = () => {
+  const { t } = useTranslation();
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,17 +40,18 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     setLoading(true);
+    setError('');
     try {
       const token = sessionStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch users');
+        throw new Error(t('failed_to_fetch_users'));
       }
 
       const data = await response.json();
@@ -43,11 +66,14 @@ const Admin = () => {
   const downloadUserCSV = async (userId, version) => {
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/download-csv/${userId}?version=${version}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/api/download-csv/${userId}?version=${version}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
 
-      if (!response.ok) throw new Error('Failed to download CSV');
+      if (!response.ok) throw new Error(t('failed_to_download_csv'));
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -59,7 +85,7 @@ const Admin = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
-      setError(`Failed to download CSV: ${err.message}`);
+      setError(`${t('failed_to_download_csv')}: ${err.message}`);
     }
   };
 
@@ -68,11 +94,12 @@ const Admin = () => {
   }, []);
 
   const filteredUsers = users
-    .filter(user =>
-      (user.name.toLowerCase().includes(filterText.toLowerCase()) ||
-        user.email.toLowerCase().includes(filterText.toLowerCase()))
+    .filter(
+      (user) =>
+        user.name.toLowerCase().includes(filterText.toLowerCase()) ||
+        user.email.toLowerCase().includes(filterText.toLowerCase())
     )
-    .filter(user => {
+    .filter((user) => {
       if (!filterDate) return true;
       const userDate = new Date(user.created_at);
       const selectedDate = new Date(filterDate);
@@ -110,15 +137,23 @@ const Admin = () => {
       <Container className="mt-4">
         <Row>
           <Col>
-           <h3 className="mb-4">Admin Panel - Users Management</h3>
+            <h3 className="mb-4">{t('admin_panel_users_management')}</h3>
 
-            {error && <Alert variant="danger" dismissible onClose={() => setError('')}>{error}</Alert>}
-            {success && <Alert variant="success" dismissible onClose={() => setSuccess('')}>{success}</Alert>}
+            {error && (
+              <Alert variant="danger" dismissible onClose={() => setError('')}>
+                {error}
+              </Alert>
+            )}
+            {success && (
+              <Alert variant="success" dismissible onClose={() => setSuccess('')}>
+                {success}
+              </Alert>
+            )}
 
             <Card>
               <Card.Header>
                 <div className="d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0">All Users</h5>
+                  <h5 className="mb-0">{t('all_users')}</h5>
                   <Button variant="outline-primary" onClick={fetchUsers} disabled={loading}>
                     {loading ? <Spinner size="sm" /> : <MdRefresh size={20} />}
                   </Button>
@@ -130,7 +165,7 @@ const Admin = () => {
                   <Col md={6} sm={12}>
                     <Form.Control
                       type="text"
-                      placeholder="Filter by name or email..."
+                      placeholder={t('filter_by_name_or_email')}
                       value={filterText}
                       onChange={(e) => setFilterText(e.target.value)}
                     />
@@ -153,19 +188,19 @@ const Admin = () => {
                     <Table responsive striped hover>
                       <thead>
                         <tr>
-                          <th>Name</th>
-                          <th>Email</th>
-                          <th>Company</th>
-                          <th>Created At</th>
+                          <th>{t('name')}</th>
+                          <th>{t('email')}</th>
+                          <th>{t('company')}</th>
+                          <th>{t('created_at')}</th>
                           <th
                             role="button"
                             onClick={toggleSortOrder}
                             style={{ userSelect: 'none', cursor: 'pointer' }}
-                            title="Sort by Total Responses"
+                            title={t('sort_by_total_responses')}
                           >
-                            Total Responses {renderSortArrow()}
+                            {t('total_responses')} {renderSortArrow()}
                           </th>
-                          <th>Actions</th>
+                          <th>{t('actions')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -180,7 +215,7 @@ const Admin = () => {
                               {user.latest_response && (
                                 <OverlayTrigger
                                   placement="top"
-                                  overlay={<Tooltip>Download CSV</Tooltip>}
+                                  overlay={<Tooltip>{t('download_csv')}</Tooltip>}
                                 >
                                   <Button
                                     size="sm"
@@ -202,7 +237,7 @@ const Admin = () => {
                     {sortedUsers.length > usersPerPage && (
                       <div className="d-flex justify-content-center">
                         <Pagination>
-                          {[...Array(totalPages).keys()].map(page => (
+                          {[...Array(totalPages).keys()].map((page) => (
                             <Pagination.Item
                               key={page + 1}
                               active={page + 1 === currentPage}
@@ -219,7 +254,7 @@ const Admin = () => {
 
                 {!loading && currentUsers.length === 0 && (
                   <div className="text-center text-muted">
-                    <p>No users found</p>
+                    <p>{t('no_users_found')}</p>
                   </div>
                 )}
               </Card.Body>

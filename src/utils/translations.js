@@ -8,7 +8,7 @@ export const analysisPatterns = {
       conclusion: "Conclusion",
       sections: {
         strengths: "Strengths",
-        weaknesses: "Weaknesses", 
+        weaknesses: "Weaknesses",
         opportunities: "Opportunities",
         threats: "Threats"
       },
@@ -18,24 +18,24 @@ export const analysisPatterns = {
         sections: /\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*\s*([\s\S]*?)(?=(\*\*\s*(Strengths|Weaknesses|Opportunities|Threats)\s*:\*\*|In conclusion|To address|By embracing|$))/gi
       }
     },
-    
+
     valueChain: {
       title: "Value Chain Analysis",
       conclusion: "Conclusion",
       primaryActivities: "Primary Activities",
-      supportActivities: "Support Activities", 
+      supportActivities: "Support Activities",
       margin: "Margin Analysis",
       linkages: "Linkages Analysis",
       noAnalysis: "No analysis available.",
       sections: {
         inboundLogistics: "Inbound Logistics",
         operations: "Operations",
-        outboundLogistics: "Outbound Logistics", 
+        outboundLogistics: "Outbound Logistics",
         marketingSales: "Marketing & Sales",
         service: "Service",
         firmInfrastructure: "Firm Infrastructure",
         hrManagement: "Human Resource Management",
-        techDevelopment: "Technology Development", 
+        techDevelopment: "Technology Development",
         procurement: "Procurement"
       },
       patterns: {
@@ -66,14 +66,14 @@ export const analysisPatterns = {
       low: "Low",
       quadrants: {
         agileLeaders: "Agile Leaders",
-        establishedPerformers: "Established Performers", 
+        establishedPerformers: "Established Performers",
         emergingInnovators: "Emerging Innovators",
         strategicDrifters: "Strategic Drifters"
       },
       descriptions: {
         agileLeaders: "(High Share / High Growth)",
         establishedPerformers: "(High Share / Low Growth)",
-        emergingInnovators: "(Low Share / High Growth)", 
+        emergingInnovators: "(Low Share / High Growth)",
         strategicDrifters: "(Low Share / Low Growth)"
       },
       patterns: {
@@ -102,13 +102,13 @@ export const analysisPatterns = {
 
     porter: {
       title: "Porter's Five Forces Analysis",
-      conclusion: "Conclusion", 
+      conclusion: "Conclusion",
       recommendations: "Actionable Recommendations",
       forces: {
         supplierPower: "Supplier Power",
         buyerPower: "Buyer Power",
         competitiveRivalry: "Competitive Rivalry",
-        threatOfSubstitution: "Threat of Substitution", 
+        threatOfSubstitution: "Threat of Substitution",
         threatOfNewEntry: "Threat of New Entry"
       },
       patterns: {
@@ -156,7 +156,7 @@ export const analysisPatterns = {
       }
     }
   },
-  
+
   es: {
     swot: {
       title: "Análisis FODA",
@@ -164,7 +164,7 @@ export const analysisPatterns = {
       sections: {
         strengths: "Fortalezas",
         weaknesses: "Debilidades",
-        opportunities: "Oportunidades", 
+        opportunities: "Oportunidades",
         threats: "Amenazas"
       },
       patterns: {
@@ -176,7 +176,7 @@ export const analysisPatterns = {
 
     valueChain: {
       title: "Análisis de la Cadena de Valor",
-      conclusion: "Conclusión", 
+      conclusion: "Conclusión",
       primaryActivities: "Actividades Primarias",
       supportActivities: "Actividades de Apoyo",
       margin: "Análisis de Margen",
@@ -184,7 +184,7 @@ export const analysisPatterns = {
       noAnalysis: "Sin análisis disponible.",
       sections: {
         inboundLogistics: "Logística de Entrada",
-        operations: "Operaciones", 
+        operations: "Operaciones",
         outboundLogistics: "Logística de Salida",
         marketingSales: "Marketing y Ventas",
         service: "Servicio",
@@ -214,7 +214,7 @@ export const analysisPatterns = {
     bcg: {
       title: "Análisis de Matriz BCG",
       conclusion: "Conclusión",
-      recommendations: "Recomendaciones Accionables", 
+      recommendations: "Recomendaciones Accionables",
       marketGrowthRate: "Tasa de Crecimiento del Mercado",
       relativeMarketShare: "Participación Relativa en el Mercado",
       high: "Alta",
@@ -222,7 +222,7 @@ export const analysisPatterns = {
       quadrants: {
         agileLeaders: "Líderes Ágiles",
         establishedPerformers: "Ejecutores Establecidos",
-        emergingInnovators: "Innovadores Emergentes", 
+        emergingInnovators: "Innovadores Emergentes",
         strategicDrifters: "Divagadores Estratégicos"
       },
       descriptions: {
@@ -261,7 +261,7 @@ export const analysisPatterns = {
       recommendations: "Recomendaciones Accionables",
       forces: {
         supplierPower: "Poder de los Proveedores",
-        buyerPower: "Poder de los Compradores", 
+        buyerPower: "Poder de los Compradores",
         competitiveRivalry: "Rivalidad Competitiva",
         threatOfSubstitution: "Amenaza de Sustitución",
         threatOfNewEntry: "Amenaza de Nuevos Entrantes"
@@ -431,7 +431,7 @@ export const staticTranslations = {
     'no_answer_provided': 'No answer provided yet',
     'available_options': 'Available options',
     'rating': 'Rating',
-    
+
     // Common UI elements
     'loading': 'Loading...',
     'error': 'Error',
@@ -473,7 +473,7 @@ export const staticTranslations = {
     'swot_analysis': 'SWOT',
     'porters_five_forces': "Porter's Five Forces",
     'value_chain_analysis': 'Value Chain',
-    'bcg_matrix': 'BCG Matrix', 
+    'bcg_matrix': 'BCG Matrix',
     'strategic_framework': 'STRATEGIC',
 
     // Analysis Subtitles
@@ -560,10 +560,159 @@ export const staticTranslations = {
     'last_saved': 'Last saved',
     'save_in_progress': 'Save in progress',
     'auto_save_enabled': 'Auto-save enabled',
-    'manual_save_now': 'Save now'
+    'manual_save_now': 'Save now',
+
+    'welcome': 'Welcome!',
+    'welcome_message': 'Create business plans step by step with the S.T.R.A.T.E.G.I.C framework. Activate AI capabilities for analysis, prediction, and decision-making.',
+    'my_businesses': 'My Businesses',
+    'create_business': 'Create Business',
+    'loading_businesses': 'Loading businesses...',
+    'error_loading_business_data': 'Error loading business data.',
+    'no_businesses_found': 'No businesses found.',
+    'questions_remaining': 'Questions remaining',
+    'of': 'of',
+    'back_to_welcome': 'Back to Welcome',
+
+    // Insights Section
+    'business_insights': 'Business Insights',
+    'generate_insights': 'Generate Insights',
+    'generate_insights_desc': 'Get comprehensive business analysis based on your responses',
+    'analyzing': 'Analyzing...',
+    'generate_insights_btn': 'Generate Insights',
+    'analysis_results': 'Analysis Results',
+    'clear_results': 'Clear Results',
+
+    // Hardcoded Insights Content
+    'business_analysis_results': 'Business Analysis Results',
+    'market_position': 'Market Position',
+    'market_position_details': 'Your business operates in a competitive technology sector with significant growth potential. The current market share indicates room for expansion through strategic initiatives.',
+    'strengths': 'Strengths',
+    'strength_technical_foundation': 'Strong technical foundation',
+    'strength_experienced_team': 'Experienced team',
+    'strength_innovative_products': 'Innovative product offerings',
+    'strength_established_customer_base': 'Established customer base',
+    'areas_for_improvement': 'Areas for Improvement',
+    'improvement_marketing_reach': 'Marketing reach could be expanded',
+    'improvement_customer_acquisition': 'Customer acquisition costs need optimization',
+    'improvement_product_diversification': 'Product diversification opportunities exist',
+    'recommendations': 'Recommendations',
+    'recommendation_digital_marketing': 'Focus on digital marketing strategies',
+    'recommendation_customer_retention': 'Invest in customer retention programs',
+    'recommendation_partnerships': 'Explore partnerships for market expansion',
+    'recommendation_complementary_products': 'Consider developing complementary products',
+    'growth_projections': 'Growth Projections',
+    'growth_projection_details': 'Based on current trends, a 25-30% growth rate is achievable within the next 12 months with proper execution of recommended strategies.',
+
+    'admin_panel.title': 'Admin Panel - Users Management',
+    'admin_panel.all_users': 'All Users',
+    'admin_panel.filter_placeholder': 'Filter by name or email...',
+    'admin_panel.filter_date_placeholder': 'Filter by date',
+    'admin_panel.sort_total_responses': 'Total Responses',
+    'admin_panel.no_users_found': 'No users found',
+    'admin_panel.download_csv_tooltip': 'Download CSV',
+    'admin_panel.refresh_button_aria': 'Refresh users list',
+    'admin_panel.loading': 'Loading...',
+    
+    'admin_panel_users_management': 'Admin Panel - Users Management',
+    'all_users': 'All Users',
+    'filter_by_name_or_email': 'Filter by name or email...',
+    'name': 'Name',
+    'email': 'Email',
+    'company': 'Company',
+    'created_at': 'Created At',
+    'total_responses': 'Total Responses',
+    'sort_by_total_responses': 'Sort by Total Responses',
+    'actions': 'Actions',
+    'download_csv': 'Download CSV',
+    'no_users_found': 'No users found',
+    'failed_to_fetch_users': 'Failed to fetch users',
+    'failed_to_download_csv': 'Failed to download CSV',
+    'register_now': 'Register Now',
+
+    'signed_in_as': 'Signed in as',
+  'dashboard': 'Dashboard',
+  'admin': 'Admin',
+  'logout': 'Logout',
+  'traxia_logo_alt': 'Traxia Logo'
   },
-  
+
   es: {
+'signed_in_as': 'Conectado como',
+  'dashboard': 'Tablero',
+  'admin': 'Administración',
+  'logout': 'Cerrar sesión',
+  'traxia_logo_alt': 'Logo de Traxia',
+    'admin_panel_users_management': 'Panel de Administración - Gestión de Usuarios',
+    'all_users': 'Todos los Usuarios',
+    'filter_by_name_or_email': 'Filtrar por nombre o correo electrónico...',
+    'name': 'Nombre',
+    'email': 'Correo electrónico',
+    'company': 'Empresa',
+    'created_at': 'Creado el',
+    'total_responses': 'Respuestas Totales',
+    'sort_by_total_responses': 'Ordenar por Respuestas Totales',
+    'actions': 'Acciones',
+    'download_csv': 'Descargar CSV',
+    'no_users_found': 'No se encontraron usuarios',
+    'failed_to_fetch_users': 'Error al obtener usuarios',
+    'failed_to_download_csv': 'Error al descargar CSV',
+    'register_now': 'Regístrate ahora',
+    
+    'admin_panel.title': 'Panel de Administración - Gestión de Usuarios',
+    'admin_panel.all_users': 'Todos los usuarios',
+    'admin_panel.filter_placeholder': 'Filtrar por nombre o correo...',
+    'admin_panel.filter_date_placeholder': 'Filtrar por fecha',
+    'admin_panel.sort_total_responses': 'Total de respuestas',
+    'admin_panel.no_users_found': 'No se encontraron usuarios',
+    'admin_panel.download_csv_tooltip': 'Descargar CSV',
+    'admin_panel.refresh_button_aria': 'Actualizar lista de usuarios',
+    'admin_panel.loading': 'Cargando...',
+
+    'welcome': '¡Bienvenido!',
+    'welcome_message': 'Crea planes de negocio paso a paso con el marco S.T.R.A.T.E.G.I.C. Activa capacidades de IA para análisis, predicción y toma de decisiones.',
+    'my_businesses': 'Mis negocios',
+    'create_business': 'Crear negocio',
+    'loading_businesses': 'Cargando negocios...',
+    'error_loading_business_data': 'Error al cargar los datos del negocio.',
+    'no_businesses_found': 'No se encontraron negocios.',
+    'questions_remaining': 'Preguntas restantes',
+    'of': 'de',
+    'back_to_welcome': 'Volver a Bienvenida',
+
+    // Insights Section
+    'business_insights': 'Perspectivas de negocio',
+    'generate_insights': 'Generar perspectivas',
+    'generate_insights_desc': 'Obtén un análisis completo del negocio basado en tus respuestas',
+    'analyzing': 'Analizando...',
+    'generate_insights_btn': 'Generar perspectivas',
+    'analysis_results': 'Resultados del análisis',
+    'clear_results': 'Borrar resultados',
+
+    // Hardcoded Insights Content
+    'business_analysis_results': 'Resultados del análisis de negocio',
+    'market_position': 'Posición en el mercado',
+    'market_position_details': 'Tu negocio opera en un sector tecnológico competitivo con un potencial significativo de crecimiento. La cuota de mercado actual indica espacio para expansión mediante iniciativas estratégicas.',
+    'strengths': 'Fortalezas',
+    'strength_technical_foundation': 'Fuerte base técnica',
+    'strength_experienced_team': 'Equipo experimentado',
+    'strength_innovative_products': 'Ofertas de productos innovadores',
+    'strength_established_customer_base': 'Base de clientes establecida',
+    'areas_for_improvement': 'Áreas para mejorar',
+    'improvement_marketing_reach': 'El alcance de marketing podría ampliarse',
+    'improvement_customer_acquisition': 'Los costos de adquisición de clientes necesitan optimización',
+    'improvement_product_diversification': 'Existen oportunidades para diversificación de productos',
+    'recommendations': 'Recomendaciones',
+    'recommendation_digital_marketing': 'Enfócate en estrategias de marketing digital',
+    'recommendation_customer_retention': 'Invierte en programas de retención de clientes',
+    'recommendation_partnerships': 'Explora asociaciones para expansión de mercado',
+    'recommendation_complementary_products': 'Considera desarrollar productos complementarios',
+    'growth_projections': 'Proyecciones de crecimiento',
+    'growth_projection_details': 'Basado en tendencias actuales, una tasa de crecimiento del 25-30% es alcanzable dentro de los próximos 12 meses con la ejecución adecuada de las estrategias recomendadas.',
+
+    // Save related
+    'save_in_progress': 'Guardando en progreso',
+    'auto_save_enabled': 'Guardado automático activado',
+    'manual_save_now': 'Guardar ahora',
     // Login page
     'welcome': '¡Bienvenido!',
     'email_address': 'Dirección de correo electrónico',
@@ -815,44 +964,44 @@ export const staticTranslations = {
 // Initialize global translations
 export const initializeTranslations = () => {
   window.appTranslations = staticTranslations;
-  
+
   // Check session storage first, then localStorage as fallback
   const sessionLang = sessionStorage.getItem('appLanguage');
   const localLang = localStorage.getItem('appLanguage');
   window.currentAppLanguage = sessionLang || localLang || 'en';
-  
+
   // Static translation function - ONLY FOR UI ELEMENTS
-  window.getTranslation = function(key) {
+  window.getTranslation = function (key) {
     const result = window.appTranslations[window.currentAppLanguage][key] || key;
     return typeof result === 'string' ? result : String(key);
   };
-  
+
   // Enhanced language change function - now saves to session storage
-  window.setAppLanguage = function(language) {
+  window.setAppLanguage = function (language) {
     const oldLanguage = window.currentAppLanguage;
     window.currentAppLanguage = language;
     sessionStorage.setItem('appLanguage', language);
     localStorage.setItem('appLanguage', language); // Keep as backup
-    
+
     // Update the translation function
-    window.getTranslation = function(key) {
+    window.getTranslation = function (key) {
       const result = window.appTranslations[window.currentAppLanguage][key] || key;
       return typeof result === 'string' ? result : String(key);
     };
-    
+
     // Only dispatch event if language actually changed
     if (oldLanguage !== language) {
-      window.dispatchEvent(new CustomEvent('languageChanged', { 
-        detail: { 
+      window.dispatchEvent(new CustomEvent('languageChanged', {
+        detail: {
           language: language,
           previousLanguage: oldLanguage
-        } 
+        }
       }));
     }
   };
 
   // Get current language function
-  window.getCurrentLanguage = function() {
+  window.getCurrentLanguage = function () {
     return window.currentAppLanguage || 'en';
   };
 
@@ -860,7 +1009,7 @@ export const initializeTranslations = () => {
   window.translateApp = window.setAppLanguage;
 
   // Clear language from session (useful for logout)
-  window.clearSessionLanguage = function() {
+  window.clearSessionLanguage = function () {
     sessionStorage.removeItem('appLanguage');
     // Keep in localStorage for next login
   };
@@ -869,29 +1018,29 @@ export const initializeTranslations = () => {
 // Language detection function - for analysis components
 export const detectLanguage = (analysisResult) => {
   if (!analysisResult) return 'en';
-  
+
   const spanishKeywords = [
     'Análisis FODA', 'Fortalezas', 'Debilidades', 'Oportunidades', 'Amenazas',
     'Conclusión', 'En conclusión', 'Actividades Primarias', 'Actividades de Apoyo',
     'Cadena de Valor', 'Matriz BCG', 'Cinco Fuerzas', 'Recomendaciones Accionables'
   ];
-  
+
   const englishKeywords = [
     'SWOT Analysis', 'Strengths', 'Weaknesses', 'Opportunities', 'Threats',
     'Conclusion', 'In conclusion', 'Primary Activities', 'Support Activities',
     'Value Chain', 'BCG Matrix', 'Five Forces', 'Actionable Recommendations'
   ];
-  
+
   let spanishScore = 0;
   let englishScore = 0;
-  
+
   spanishKeywords.forEach(keyword => {
     if (analysisResult.includes(keyword)) spanishScore++;
   });
-  
+
   englishKeywords.forEach(keyword => {
     if (analysisResult.includes(keyword)) englishScore++;
   });
-  
+
   return spanishScore > englishScore ? 'es' : 'en';
 };
