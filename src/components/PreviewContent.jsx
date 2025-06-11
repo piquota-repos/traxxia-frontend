@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Badge, Card, Row, Col } from 'react-bootstrap';
 
-const PreviewContent = ({ categories=[], answers={}, t }) => {
+const PreviewContent = ({ categories = [], answers = {}, t }) => {
   const [localTranslations, setLocalTranslations] = useState({});
 
   // Safe translation function
@@ -52,14 +52,14 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
     try {
       for (const category of categories) {
         const question = category.questions.find(q => (q.question_id || q.id) === questionId);
-        if (question && question.answer) { 
+        if (question && question.answer) {
           return String(question.answer);
         }
       }
-    
+
       // Retrieve the answer object for the questionId
       const answer = answers[questionId] || {};
-      
+
       // Check for different answer types and ensure string return
       if (answer.selectedOption) return String(answer.selectedOption);
       if (answer.selectedOptions && answer.selectedOptions.length > 0) {
@@ -68,7 +68,7 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
       if (answer.rating) return `${translate('rating')}: ${String(answer.rating)}`;
       if (answer.answer) return String(answer.answer);
       if (answer.description) return String(answer.description);
-      
+
       return '';
     } catch (error) {
       console.error('Error getting answer text for question:', questionId, error);
@@ -90,18 +90,18 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
   // Get total statistics
   const getTotalStats = () => {
     try {
-      const allQuestions = categories.flatMap(category => 
+      const allQuestions = categories.flatMap(category =>
         category.questions.map(question => ({
           ...question,
           categoryName: category.category_name || category.name
         }))
       );
-      
+
       const totalQuestions = allQuestions.length;
-      const answeredQuestions = allQuestions.filter(q => 
+      const answeredQuestions = allQuestions.filter(q =>
         isQuestionAnswered(q.question_id || q.id)
       ).length;
-      
+
       return { totalQuestions, answeredQuestions, allQuestions };
     } catch (error) {
       console.error('Error getting total stats:', error);
@@ -115,8 +115,8 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
   return (
     <div className="preview-content">
       {/* Overall Statistics */}
-      <Card className="border-info">
-        <Card.Header className="bg-info text-white">
+      <Card className="">
+        <Card.Header className="">
           <h6 className="mb-0">📋 {translate('summary')}</h6>
         </Card.Header>
         <Card.Body>
@@ -132,10 +132,10 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
               <ul className="list-unstyled">
                 <li><strong>{translate('completion_rate')}:</strong> {completionPercentage}%</li>
                 <li><strong>{translate('categories')}:</strong> {categories.length}</li>
-                <li><strong>{translate('status')}:</strong> 
+                <li><strong>{translate('status')}:</strong>
                   <Badge bg={completionPercentage === 100 ? "success" : "warning"} className="ms-2">
-                    {completionPercentage === 100 ? 
-                      translate('complete') : 
+                    {completionPercentage === 100 ?
+                      translate('complete') :
                       translate('in_progress')
                     }
                   </Badge>
@@ -150,12 +150,12 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
       {categories.map((category) => {
         try {
           const categoryQuestions = category.questions || [];
-          const categoryAnswered = categoryQuestions.filter(q => 
+          const categoryAnswered = categoryQuestions.filter(q =>
             isQuestionAnswered(q.question_id || q.id)
           ).length;
           const categoryTotal = categoryQuestions.length;
           const categoryCompletion = categoryTotal > 0 ? Math.round((categoryAnswered / categoryTotal) * 100) : 0;
-          
+
           return (
             <Card key={category.category_id || category.id} className="mb-4">
               <Card.Header className="d-flex justify-content-between align-items-center">
@@ -166,9 +166,9 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
                   <Badge bg={categoryCompletion === 100 ? "success" : categoryCompletion > 0 ? "warning" : "secondary"}>
                     {categoryAnswered}/{categoryTotal}
                   </Badge>
-                  <Badge bg={categoryCompletion === 100 ? "success" : "light"} text="dark">
+                  {/* <Badge bg={categoryCompletion === 100 ? "success" : "light"} text="dark">
                     {categoryCompletion}%
-                  </Badge>
+                  </Badge> */}
                 </div>
               </Card.Header>
               <Card.Body>
@@ -184,11 +184,10 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
                       const isAnswered = isQuestionAnswered(questionId);
 
                       return (
-                        <div 
-                          key={questionId} 
-                          className={`question-preview mb-3 p-3 border rounded ${
-                            isAnswered ? 'border-success bg-light' : 'border-warning bg-light'
-                          }`}
+                        <div
+                          key={questionId}
+                          className={`question-preview mb-3 p-3 border rounded ${isAnswered ? 'border-success ' : 'border-warning '
+                            }`}
                         >
                           <div className="d-flex justify-content-between align-items-start mb-2">
                             <h6 className="question-text mb-0">
@@ -197,14 +196,9 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
                               </Badge>
                               {String(question.question_text || question.question)}
                             </h6>
-                            <Badge bg={isAnswered ? "success" : "warning"}>
-                              {isAnswered ? 
-                                `✅ ${translate('answered')}` : 
-                                `⏳ ${translate('pending')}`
-                              }
-                            </Badge>
+                            <span> {isAnswered ? "✅" : "⏳"}</span>
                           </div>
-                          
+
                           {/* Question Type Badge */}
                           <div className="mb-2">
                             {/* <Badge bg="info" className="me-2">
@@ -222,10 +216,10 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
                             <strong>{translate('answer')}:</strong>
                             <div className={`mt-1 p-2 rounded`}>
                               {isAnswered ? (
-                                <div 
+                                <div
                                   className="answer-text"
-                                  dangerouslySetInnerHTML={{ 
-                                    __html: String(answerText).replace(/\n/g, '<br>') 
+                                  dangerouslySetInnerHTML={{
+                                    __html: String(answerText).replace(/\n/g, '<br>')
                                   }}
                                 />
                               ) : (
@@ -244,9 +238,9 @@ const PreviewContent = ({ categories=[], answers={}, t }) => {
                               </small>
                               <div className="d-flex flex-wrap gap-1 mt-1">
                                 {question.options.map((option, optIndex) => (
-                                  <Badge 
-                                    key={optIndex} 
-                                    bg={answerText.includes(String(option)) ? "primary" : "light"} 
+                                  <Badge
+                                    key={optIndex}
+                                    bg={answerText.includes(String(option)) ? "primary" : "light"}
                                     text={answerText.includes(String(option)) ? "white" : "dark"}
                                     className="small"
                                   >

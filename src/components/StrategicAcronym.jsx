@@ -1,4 +1,4 @@
-// StrategicAcronym.jsx - Fixed Version for Spanish Response Format
+// StrategicAcronym.jsx - Updated Version with H5 Header Support
 import React from 'react';
 import { detectLanguage } from '../utils/translations';
 
@@ -32,7 +32,7 @@ const StrategicAcronym = ({ analysisResult }) => {
     return langTranslations[key] || key;
   };
   
-  const strategicItems = extractStrategicItems(analysisResult, lang);
+  const strategicItems = extractStrategicItemsWithH5(analysisResult, lang);
   const conclusion = getStrategicConclusion(analysisResult, lang);
   const recommendations = getRecommendations(analysisResult, lang);
   
@@ -58,7 +58,7 @@ const StrategicAcronym = ({ analysisResult }) => {
   }
 
   const acronymLetters = lang === 'es' ? 
-    ['E', 'S', 'T', 'R', 'A', 'T', 'É', 'G', 'I', 'C', 'O'] : 
+    ['S', 'T', 'R', 'A', 'T', 'E', 'G', 'I', 'C'] : 
     ['S', 'T', 'R', 'A', 'T', 'E', 'G', 'I', 'C'];
 
   return (
@@ -87,9 +87,37 @@ const StrategicAcronym = ({ analysisResult }) => {
                   <td className="p-2">
                     {item ? (
                       <div className={`strategic-item ${styleClass}`}>
-                        {item.keyword && (
+                        {/* Display the H5 header if available */}
+                        {item.header && (
+                          <div>
+                            <h5 className="strategic-header" style={{ 
+                              color: '#2c3e50',  
+                              paddingBottom: '8px',
+                              marginBottom: '1px'
+                            }}>
+                              {item.header}
+                            </h5>
+                          </div>
+                        )}
+                        
+                        {/* Display theory if available */}
+                        {item.theory && (
                           <div className="mb-2">
-                            <strong>{String(item.keyword)}:</strong> {String(item.description || '')}
+                            <strong>{getTranslation('theory')}</strong> {String(item.theory)}
+                          </div>
+                        )}
+                        
+                        {/* Display example if available */}
+                        {item.example && (
+                          <div className="mb-2">
+                            <strong>{getTranslation('example')}</strong> {String(item.example)}
+                          </div>
+                        )}
+                        
+                        {/* Display recommendation if available */}
+                        {item.recommendation && (
+                          <div className="mb-2">
+                            <strong>{lang === 'es' ? 'Recomendación:' : 'Recommendation:'}</strong> {String(item.recommendation)}
                           </div>
                         )}
                         
@@ -99,20 +127,6 @@ const StrategicAcronym = ({ analysisResult }) => {
                             <div dangerouslySetInnerHTML={{ 
                               __html: String(item.content).replace(/\n/g, "<br/>") 
                             }} />
-                          </div>
-                        )}
-                        
-                        {/* Display theory if available */}
-                        {item.theory && (
-                          <div className="mt-2">
-                            <strong>{getTranslation('theory')}</strong> {String(item.theory)}
-                          </div>
-                        )}
-                        
-                        {/* Display example if available */}
-                        {item.example && (
-                          <div className="mt-2">
-                            <strong>{getTranslation('example')}</strong> {String(item.example)}
                           </div>
                         )}
                         
@@ -168,29 +182,120 @@ const StrategicAcronym = ({ analysisResult }) => {
   );
 };
 
-// Helper function to extract strategic items from analysis text
-const extractStrategicItems = (strategicContent, lang) => {
+// Updated helper function to extract strategic items with H5 header support
+const extractStrategicItemsWithH5 = (strategicContent, lang) => {
   if (!strategicContent) return [];
 
   const acronymSequence = lang === 'es' ? 
-    ['E', 'S', 'T', 'R', 'A', 'T', 'É', 'G', 'I', 'C', 'O'] : 
+    ['S', 'T', 'R', 'A', 'T', 'E', 'G', 'I', 'C'] : 
     ['S', 'T', 'R', 'A', 'T', 'E', 'G', 'I', 'C'];
     
   const parsedItems = [];
 
-  // For Spanish ESTRATÉGICO analysis, we need different letter mappings
+  // Extract H5 sections from the content
+  const h5Pattern = /<h5>(.*?)<\/h5>([\s\S]*?)(?=<h5>|$)/gi;
+  const h5Sections = [];
+  let match;
+  
+  while ((match = h5Pattern.exec(strategicContent)) !== null) {
+    h5Sections.push({
+      header: match[1],
+      content: match[2]
+    });
+  }
+
+  console.log('Found H5 sections:', h5Sections);
+
+  // For each letter in the acronym, find the corresponding H5 section
+  acronymSequence.forEach((letter, index) => {
+    let foundSection = null;
+    
+    // Look for a section that starts with this letter
+    for (const section of h5Sections) {
+      const headerText = section.header.toLowerCase();
+      const letterLower = letter.toLowerCase();
+      
+      // Check if header starts with the letter we're looking for
+      if (headerText.startsWith(letterLower + ' =') || 
+          headerText.startsWith(letterLower + ':') ||
+          headerText.startsWith(letterLower + ' -')) {
+        foundSection = section;
+        break;
+      }
+    }
+    
+    if (foundSection) {
+      // Parse the content of this section
+      const content = foundSection.content.trim();
+      
+      // Extract theory, example, and recommendation for both English and Spanish
+      let theoryMatch, exampleMatch, recommendationMatch;
+      
+      if (lang === 'es') {
+        // Spanish patterns
+        theoryMatch = /\*\s*Teoría:(.*?)(?=\*\s*Ejemplo|\*\s*Recomendación|$)/is.exec(content);
+        exampleMatch = /\*\s*Ejemplo:(.*?)(?=\*\s*Teoría|\*\s*Recomendación|$)/is.exec(content);
+        recommendationMatch = /\*\s*Recomendación:(.*?)(?=\*\s*Teoría|\*\s*Ejemplo|$)/is.exec(content);
+      } else {
+        // English patterns
+        theoryMatch = /\*\s*Theory:(.*?)(?=\*\s*Example|\*\s*Recommendation|$)/is.exec(content);
+        exampleMatch = /\*\s*Example:(.*?)(?=\*\s*Theory|\*\s*Recommendation|$)/is.exec(content);
+        recommendationMatch = /\*\s*Recommendation:(.*?)(?=\*\s*Theory|\*\s*Example|$)/is.exec(content);
+      }
+      
+      const theory = theoryMatch ? theoryMatch[1].trim() : '';
+      const example = exampleMatch ? exampleMatch[1].trim() : '';
+      const recommendation = recommendationMatch ? recommendationMatch[1].trim() : '';
+      
+      // Remove the extracted parts from content
+      let remainingContent = content;
+      
+      if (lang === 'es') {
+        remainingContent = content
+          .replace(/\*\s*Teoría:.*?(?=\*\s*Ejemplo|\*\s*Recomendación|$)/is, '')
+          .replace(/\*\s*Ejemplo:.*?(?=\*\s*Teoría|\*\s*Recomendación|$)/is, '')
+          .replace(/\*\s*Recomendación:.*?(?=\*\s*Teoría|\*\s*Ejemplo|$)/is, '')
+          .trim();
+      } else {
+        remainingContent = content
+          .replace(/\*\s*Theory:.*?(?=\*\s*Example|\*\s*Recommendation|$)/is, '')
+          .replace(/\*\s*Example:.*?(?=\*\s*Theory|\*\s*Recommendation|$)/is, '')
+          .replace(/\*\s*Recommendation:.*?(?=\*\s*Theory|\*\s*Example|$)/is, '')
+          .trim();
+      }
+      
+      parsedItems.push({
+        acronym: letter,
+        header: foundSection.header,
+        theory: theory,
+        example: example,
+        recommendation: recommendation,
+        content: remainingContent,
+        bulletPoints: null
+      });
+    } else {
+      // Fallback to the old method if no H5 section found
+      const fallbackItem = extractLegacyFormat(strategicContent, letter, lang);
+      parsedItems.push(fallbackItem);
+    }
+  });
+
+  return parsedItems;
+};
+
+// Fallback function for legacy format extraction
+const extractLegacyFormat = (strategicContent, letter, lang) => {
   const spanishMapping = {
-    'E': 'Estrategia',      // Strategy
-    'S': 'Situación',       // Situation (mapped to T - Tactics)
-    'T': 'Tácticas',        // Tactics
-    'R': 'Recursos',        // Resources
-    'A': 'Análisis',        // Analysis
-    'T2': 'Tecnología',     // Technology (second T)
-    'É': 'Ejecución',       // Execution
-    'G': 'Gobernanza',      // Governance
-    'I': 'Innovación',      // Innovation
-    'C': 'Cultura',         // Culture
-    'O': 'Organización'     // Organization
+    'E': 'Estrategia',      
+    'S': 'Situación',       
+    'T': 'Tácticas',        
+    'R': 'Recursos',        
+    'A': 'Análisis',        
+    'É': 'Ejecución',       
+    'G': 'Gobernanza',      
+    'I': 'Innovación',      
+    'C': 'Cultura',         
+    'O': 'Organización'     
   };
 
   const englishMapping = {
@@ -198,131 +303,38 @@ const extractStrategicItems = (strategicContent, lang) => {
     'T': 'Tactics',
     'R': 'Resources',
     'A': 'Analysis',
-    'T2': 'Technology',
     'E': 'Execution',
     'G': 'Governance',
     'I': 'Innovation',
     'C': 'Culture'
   };
 
-  // Enhanced extraction for the actual format in your response
-  acronymSequence.forEach((letter, index) => {
-    let searchLetter = letter;
-    let searchTerm = '';
-    
-    if (lang === 'es') {
-      // Handle the special case of two T's in ESTRATÉGICO
-      if (letter === 'T' && index === 2) {
-        searchTerm = 'Tácticas';
-      } else if (letter === 'T' && index === 5) {
-        searchTerm = 'Tecnología';
-        searchLetter = 'T';
-      } else {
-        searchTerm = spanishMapping[letter] || letter;
-      }
-    } else {
-      // Handle the special case of two T's in STRATEGIC
-      if (letter === 'T' && index === 1) {
-        searchTerm = 'Tactics';
-      } else if (letter === 'T' && index === 4) {
-        searchTerm = 'Technology';
-      } else {
-        searchTerm = englishMapping[letter] || letter;
-      }
-    }
-
-    // Try multiple patterns to match the actual format in your response
-    const patterns = [
-      // Pattern 1: **S - Estrategia: Definir una visión clara, misión y objetivos**
-      new RegExp(`\\*\\*${searchLetter}\\s*-\\s*${searchTerm}:\\s*([^*]+?)\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*[${acronymSequence.join('')}]\\s*-|\\*\\*Recomendaciones|\\*\\*Conclusion|$)`, 'i'),
-      
-      // Pattern 2: **S - Strategy: Description**
-      new RegExp(`\\*\\*${searchLetter}\\s*-\\s*([^*]+?)\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*[${acronymSequence.join('')}]\\s*-|\\*\\*Recomendaciones|\\*\\*Conclusion|$)`, 'i'),
-      
-      // Pattern 3: S = Strategy: Description
-      new RegExp(`${searchLetter}\\s*=\\s*([^\\n]+?)\\n([\\s\\S]*?)(?=[${acronymSequence.join('')}]\\s*=|Recomendaciones|Conclusion|$)`, 'i'),
-      
-      // Pattern 4: Search by full term
-      new RegExp(`\\*\\*.*?${searchTerm}.*?\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*.*?(?:${Object.values(lang === 'es' ? spanishMapping : englishMapping).join('|')})|\\*\\*Recomendaciones|\\*\\*Conclusion|$)`, 'i')
-    ];
-
-    let match = null;
-    let matchedPattern = -1;
-    
-    for (let i = 0; i < patterns.length; i++) {
-      match = patterns[i].exec(strategicContent);
-      if (match) {
-        matchedPattern = i;
-        break;
-      }
-    }
-    
+  const searchTerm = lang === 'es' ? spanishMapping[letter] : englishMapping[letter];
+  
+  if (!searchTerm) return null;
+  
+  // Try to find the content using various patterns
+  const patterns = [
+    new RegExp(`\\*\\*${letter}\\s*=\\s*${searchTerm}[^*]*?\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*[A-Z]\\s*=|$)`, 'i'),
+    new RegExp(`${letter}\\s*=\\s*${searchTerm}[:\n]([\\s\\S]*?)(?=[A-Z]\\s*=|$)`, 'i')
+  ];
+  
+  for (const pattern of patterns) {
+    const match = pattern.exec(strategicContent);
     if (match) {
-      let keyword = '';
-      let content = '';
-      
-      if (matchedPattern === 0) {
-        // Pattern 1: **S - Estrategia: Description**
-        keyword = searchTerm;
-        content = String(match[2] || '').trim();
-      } else if (matchedPattern === 1) {
-        // Pattern 2: **S - Strategy: Description**
-        const fullTitle = String(match[1] || '').trim();
-        const titleParts = fullTitle.split(':');
-        keyword = String(titleParts[0] || '').trim();
-        content = String(match[2] || '').trim();
-      } else {
-        // Other patterns
-        keyword = String(match[1] || '').trim();
-        content = String(match[2] || '').trim();
-      }
-      
-      // Clean up content
-      content = content
-        .replace(/^\*+\s*/, '')
-        .replace(/\s*\*+$/, '')
-        .trim();
-      
-      // Extract description from keyword if it contains a colon
-      let description = '';
-      if (keyword.includes(':')) {
-        const keywordParts = keyword.split(':');
-        keyword = keywordParts[0].trim();
-        description = keywordParts.slice(1).join(':').trim();
-      }
-      
-      // Store the parsed information
-      parsedItems.push({ 
-        acronym: searchLetter, 
-        keyword: keyword || searchTerm, 
-        description: description,
-        content: content,
-        bulletPoints: null,
+      return {
+        acronym: letter,
+        header: `${letter} = ${searchTerm}`,
+        content: match[1].trim(),
         theory: '',
-        example: ''
-      });
-    } else {
-      // Fallback: search for any mention of the term
-      const fallbackPattern = new RegExp(`${searchTerm}[\\s\\S]{0,200}`, 'i');
-      const fallbackMatch = fallbackPattern.exec(strategicContent);
-      
-      if (fallbackMatch) {
-        parsedItems.push({
-          acronym: searchLetter,
-          keyword: searchTerm,
-          description: '',
-          content: String(fallbackMatch[0] || '').trim(),
-          bulletPoints: null,
-          theory: '',
-          example: ''
-        });
-      } else {
-        parsedItems.push(null);
-      }
+        example: '',
+        recommendation: '',
+        bulletPoints: null
+      };
     }
-  });
-
-  return parsedItems;
+  }
+  
+  return null;
 };
 
 // Helper function to get conclusion from strategic analysis

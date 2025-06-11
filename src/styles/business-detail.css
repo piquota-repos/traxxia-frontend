@@ -2684,7 +2684,7 @@
 /* Progress section styles */
 .progress-section {
   margin-bottom: 2rem;
-  padding: 1.5rem;
+  padding: 15px;
   background: #f8f9fa;
   border-radius: 0.5rem;
   height: auto;

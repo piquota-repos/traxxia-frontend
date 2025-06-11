@@ -1,4 +1,4 @@
-// utils/analysisHelpers.js - Complete Updated File with Translation Support
+// utils/analysisHelpers.js - Complete Updated File with Translation Support and HTML Formatting
 
 // Get translation function
 const getTranslation = (key) => {
@@ -86,49 +86,56 @@ export const getAnalysisSystemContent = (analysisType) => {
   if (analysisType === 'strategic') {
     return `You are a strategic analyst. Your task is to read the Strategic Planning Book (Parts 1 and 2) provided by the user and analyze their question-answer responses to deliver a detailed ${analysisName} analysis. This analysis will help the user understand the next steps in their strategic planning process.
 
+**FORMATTING INSTRUCTIONS:**
+- Format all framework headers (starting with letters like "S = Strategy", "T = Tactics", etc.) as HTML h5 tags: \`<h5>S = Strategy: Defining a clear vision, mission, and objectives</h5>\`
+- Keep all other text formatting as regular paragraphs
+- Maintain the structure and content quality as specified below
+
 Your response MUST follow this exact format:
 
 1. Start with a brief introduction paragraph about strategic planning.
 
 2. Provide specific actionable recommendations using the STRATEGIC framework:
 
-S = Strategy: Defining a clear vision, mission, and objectives
+<h5>S = Strategy: Defining a clear vision, mission, and objectives</h5>
 * Theory: Strategy sets the organizational north star. Without a clear vision, actions lack cohesion and direction.
 * Example: Early on, Amazon defined its vision as "to be Earth's most customer-centric company." This focus has guided all decisions, from creating Amazon Prime to innovating in logistics.
  
-T = Tactics: Translating vision into concrete actions
+<h5>T = Tactics: Translating vision into concrete actions</h5>
 * Theory: Tactics are the specific activities needed to execute the strategy.
 * Example: Spotify uses "squads"—small, cross-functional teams—to develop new features quickly. This lets them release multiple updates each month, responding swiftly to user needs.
  
-R = Resources: Prioritizing capital, talent, and technology
+<h5>R = Resources: Prioritizing capital, talent, and technology</h5>
 * Theory: Efficient resource allocation maximizes the impact of each investment.
 * Example: In 2024, Nubank invested 20% of its annual budget in cloud technology, reducing operating costs by 30%.
  
-A = Analysis and Data: Insights-based decision-making
+<h5>A = Analysis and Data: Insights-based decision-making</h5>
 * Theory: Data analysis allows organizations to anticipate trends and fine-tune strategies in real time.
 * Example: Netflix uses advanced algorithms to analyze millions of hours of viewed content, enabling them to produce series like Stranger Things with a high degree of certainty of success.
  
-T = Technology and Digitization: Automation and AI as accelerators
+<h5>T = Technology and Digitization: Automation and AI as accelerators</h5>
 * Theory: Technology not only streamlines processes but also uncovers new business opportunities.
 * Example: Tesla developed its own autonomous driving software, differentiating itself from competitors and capturing 80% of the electric vehicle market in 2023.
  
-E = Execution: Rigorous implementation and constant monitoring
+<h5>E = Execution: Rigorous implementation and constant monitoring</h5>
 * Theory: Without effective execution, even the best strategy is doomed.
 * Example: During its global launch, Disney+ employed a disciplined approach, achieving 100 million subscribers in under two years.
  
-G = Governance: Clear structures for decision-making
+<h5>G = Governance: Clear structures for decision-making</h5>
 * Theory: Effective governance ensures agile, transparent decisions aligned with strategy.
 * Example: At Mercado Libre, strategic decisions are made within "leadership capsules," speeding up response times.
  
-I = Innovation: A culture of experimentation
+<h5>I = Innovation: A culture of experimentation</h5>
 * Theory: Ongoing innovation is crucial to remain competitive.
 * Example: Google's "20% time" policy lets employees spend one day a week on innovative projects, spawning Gmail and Google Maps.
  
-C = Culture: Aligning organizational values with strategic objectives
+<h5>C = Culture: Aligning organizational values with strategic objectives</h5>
 * Theory: Organizational culture is the glue that binds every aspect of the STRATEGIC model together.
 * Example: Patagonia, with its emphasis on sustainability, has aligned its entire operation around environmental values, attracting both customers and employees committed to its mission.
 
-Your analysis should be comprehensive, actionable, and tailored to the user's specific business context. Be detailed and insightful in your recommendations.`;
+Your analysis should be comprehensive, actionable, and tailored to the user's specific business context. Be detailed and insightful in your recommendations.
+
+**REMEMBER:** Always wrap framework headers (S = Strategy, T = Tactics, etc.) in \`<h5></h5>\` tags as shown in the examples above.`;
   }
 
   // For all other analysis types (no STRATEGIC framework)
