@@ -374,7 +374,9 @@
   height: auto; /* Allow natural expansion */
   overflow: visible; /* Allow all content to show */
 }
-
+.phase {
+  font-size: 18px;
+}
 .desktop-right-side {
   padding: 24px;
   background: var(--color-bg-primary); 

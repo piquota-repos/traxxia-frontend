@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from 'react-bootstrap';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 import AnalysisTypeSelector from './AnalysisTypeSelector';
 import AnalysisRenderer from './AnalysisRenderer';
 import { getIconComponent } from '../utils/iconUtils';
@@ -8,12 +8,12 @@ import { getIconComponent } from '../utils/iconUtils';
 // Helper function to get default analysis type for a category
 const getDefaultAnalysisType = (category, analysisItems) => {
   const categoryItems = analysisItems.filter(item => item.category === category);
-  
+
   if (category === 'analysis') {
     // Look for SWOT analysis item first
     const swotItem = categoryItems.find(item => item.id === 'swot');
     if (swotItem) return 'swot';
-    
+
     // Fallback to first item and get its analysis type
     const firstItem = categoryItems[0];
     return firstItem ? getAnalysisTypeFromItemId(firstItem.id) : null;
@@ -21,19 +21,19 @@ const getDefaultAnalysisType = (category, analysisItems) => {
     // Look for strategic analysis item first
     const strategicItem = categoryItems.find(item => item.id === 'strategic');
     if (strategicItem) return 'strategic';
-    
+
     // Fallback to first item and get its analysis type
     const firstItem = categoryItems[0];
     return firstItem ? getAnalysisTypeFromItemId(firstItem.id) : null;
   }
-  
+
   return null;
 };
 
 // Helper function to get default analysis item for a category
 const getDefaultAnalysisItem = (category, analysisItems) => {
   const categoryItems = analysisItems.filter(item => item.category === category);
-  
+
   if (category === 'analysis') {
     // Look for SWOT analysis item first
     const swotItem = categoryItems.find(item => item.id === 'swot');
@@ -43,15 +43,15 @@ const getDefaultAnalysisItem = (category, analysisItems) => {
     const strategicItem = categoryItems.find(item => item.id === 'strategic');
     return strategicItem || categoryItems[0];
   }
-  
+
   return categoryItems[0];
 };
 
 // Helper function to convert item ID to analysis type (same logic as getAnalysisType)
 const getAnalysisTypeFromItemId = (itemId) => {
-  return itemId === 'porters' ? 'porter' : 
-         itemId === 'value-chain' ? 'valuechain' : 
-         itemId;
+  return itemId === 'porters' ? 'porter' :
+    itemId === 'value-chain' ? 'valuechain' :
+      itemId;
 };
 
 const ExpandedAnalysisView = ({
@@ -69,6 +69,7 @@ const ExpandedAnalysisView = ({
   t // Translation function passed from parent
 }) => {
   const [translations, setTranslations] = useState({});
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   // Get translation function
   const translate = (key) => {
@@ -118,29 +119,55 @@ const ExpandedAnalysisView = ({
   const analysisResult = getCacheKey() ? analysisData[getCacheKey()] : null;
   const isLoading = getCacheKey() ? analysisLoading[getCacheKey()] : false;
 
-  // Enhanced tab click handler that ALWAYS calls API (force refresh)
-  const handleTabClick = async (item) => { 
-    // ALWAYS force refresh when clicking tabs in expanded view
-    await onFrameworkTabClick(item, true); // Pass true to FORCE refresh
+  // NEW: Enhanced tab click handler with proper caching logic
+  const handleTabClick = async (item) => {
+    console.log('Tab clicked:', item.id);
+
+    // Get the analysis type for this item
+    const analysisType = getAnalysisTypeFromItemId(item.id);
+    const currentLanguage = window.currentAppLanguage || 'en';
+    const cacheKey = `${item.id}-${analysisType}-${currentLanguage}`;
+
+    // Check if we already have cached data for this analysis
+    const hasCachedData = analysisData[cacheKey] && analysisData[cacheKey].length > 0;
+
+    console.log('Cache key:', cacheKey);
+    console.log('Has cached data:', hasCachedData);
+    console.log('Cached data:', analysisData[cacheKey]);
+
+    if (hasCachedData) {
+      // Use cached data - NO API call
+      console.log('Using cached analysis data');
+      await onFrameworkTabClick(item, false, analysisType); // false = don't force refresh
+    } else {
+      // No cached data - generate new analysis
+      console.log('No cached data found, generating new analysis');
+      await onFrameworkTabClick(item, true, analysisType); // true = force refresh to generate
+    }
   };
 
   // Handle Analysis/Strategic button clicks with default selection
   const handleCategoryTabClick = async (category) => {
     console.log('Category clicked:', category);
     setFullScreenAnalysisTab(category);
-    
+
     // Only auto-select if there's no active analysis item or if switching categories
     if (!activeAnalysisItem || activeAnalysisItem.category !== category) {
       // Get default analysis type and item for this category
       const defaultAnalysisType = getDefaultAnalysisType(category, businessData.analysisItems);
       const defaultAnalysisItem = getDefaultAnalysisItem(category, businessData.analysisItems);
-      
+
       console.log('Default analysis type:', defaultAnalysisType);
       console.log('Default analysis item:', defaultAnalysisItem);
-      
+
       if (defaultAnalysisType && defaultAnalysisItem) {
-        // Call onFrameworkTabClick with the override analysis type
-        await onFrameworkTabClick(defaultAnalysisItem, false, defaultAnalysisType);
+        // Check cache for default item
+        const currentLanguage = window.currentAppLanguage || 'en';
+        const cacheKey = `${defaultAnalysisItem.id}-${defaultAnalysisType}-${currentLanguage}`;
+        const hasCachedData = analysisData[cacheKey] && analysisData[cacheKey].length > 0;
+
+        // Call onFrameworkTabClick with appropriate refresh flag
+        await onFrameworkTabClick(defaultAnalysisItem, !hasCachedData, defaultAnalysisType);
       } else {
         console.log('No default analysis type or item found for category:', category);
         console.log('Available items:', businessData.analysisItems.filter(item => item.category === category));
@@ -148,13 +175,85 @@ const ExpandedAnalysisView = ({
     }
   };
 
+  // NEW: Handle regenerate current analysis
+  const handleRegenerateCurrentAnalysis = async () => {
+    if (!activeAnalysisItem || !selectedAnalysisType) {
+      console.warn('No active analysis item or selected type for regeneration');
+      return;
+    }
+
+    setIsRegenerating(true);
+
+    try {
+      console.log(`Regenerating analysis: ${selectedAnalysisType} for ${activeAnalysisItem.id}`);
+      // Force regeneration and update cache
+      await onRegenerateAnalysis(selectedAnalysisType, activeAnalysisItem.id);
+      console.log('Analysis regenerated successfully');
+    } catch (error) {
+      console.error('Error regenerating analysis:', error);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  // NEW: Handle analysis type change with caching logic
+  const handleAnalysisTypeChange = async (analysisType, forceRefresh = false) => {
+    if (!activeAnalysisItem) return;
+
+    console.log('Analysis type changed to:', analysisType);
+
+    const currentLanguage = window.currentAppLanguage || 'en';
+    const cacheKey = `${activeAnalysisItem.id}-${analysisType}-${currentLanguage}`;
+    const hasCachedData = analysisData[cacheKey] && analysisData[cacheKey].length > 0;
+
+    console.log('Cache key for type change:', cacheKey);
+    console.log('Has cached data for this type:', hasCachedData);
+
+    if (hasCachedData && !forceRefresh) {
+      // Use cached data
+      console.log('Using cached data for analysis type change');
+      await onAnalysisTypeSelect(analysisType, false);
+    } else {
+      // Generate new analysis
+      console.log('Generating new analysis for type change');
+      await onAnalysisTypeSelect(analysisType, true);
+    }
+  };
+
+  // NEW: Analysis Header Component with regenerate button
+  const AnalysisHeader = () => {
+    if (!activeAnalysisItem) return null;
+
+    const cacheKey = getCacheKey();
+    const hasCachedData = cacheKey && analysisData[cacheKey] && analysisData[cacheKey].length > 0;
+
+    return (
+      <div className="d-flex justify-content-end ms-auto">
+        <Button
+          variant="outline-primary"
+          size="sm"
+          onClick={handleRegenerateCurrentAnalysis}
+          disabled={isLoading || isRegenerating || !hasCachedData}
+          className="regenerate-analysis-btn"
+          title={!hasCachedData ? "Generate analysis first" : "Regenerate this analysis"}
+        >
+          <RefreshCw
+            size={14}
+            className={`me-1 ${(isLoading || isRegenerating) ? 'spinning' : ''}`}
+          />
+          {isRegenerating ? (translate('regenerating') || 'Regenerating...') : (translate('regenerate') || 'Regenerate')}
+        </Button> 
+      </div>
+    );
+  };
+
   return (
     <div className="expanded-analysis-view">
       {/* Menu Bar */}
       <div className="analysis-menu-bar">
         <div className="menu-bar-left">
-          <Button 
-            variant="outline-secondary" 
+          <Button
+            variant="outline-secondary"
             onClick={onCloseExpandedView}
             className="expanded-back-button"
           >
@@ -177,7 +276,7 @@ const ExpandedAnalysisView = ({
           >
             {translate('strategic')}
           </Button>
-        </div>           
+        </div>
       </div>
 
       {/* Content Area */}
@@ -186,18 +285,28 @@ const ExpandedAnalysisView = ({
         <div className="expanded-analysis-nav">
           {currentItems.map((item) => {
             const IconComponent = getIconComponent(item.icon);
+
+            // Check if this tab has cached data
+            const analysisType = getAnalysisTypeFromItemId(item.id);
+            const currentLanguage = window.currentAppLanguage || 'en';
+            const cacheKey = `${item.id}-${analysisType}-${currentLanguage}`;
+            const hasCachedData = analysisData[cacheKey] && analysisData[cacheKey].length > 0;
+
             return (
               <button
                 key={item.id}
-                className={`expanded-analysis-tab ${
-                  activeAnalysisItem?.id === item.id ? 'active' : ''
-                }`}
+                className={`expanded-analysis-tab ${activeAnalysisItem?.id === item.id ? 'active' : ''
+                  } ${hasCachedData ? 'has-cache' : ''}`}
                 onClick={() => handleTabClick(item)}
+                title={hasCachedData ? 'Analysis cached' : 'Generate analysis'}
               >
                 <span className="tab-icon">
                   <IconComponent size={20} />
                 </span>
                 <span className="tab-text">{item.title}</span>
+                {hasCachedData && (
+                  <span className="cache-dot"></span>
+                )}
               </button>
             );
           })}
@@ -207,29 +316,32 @@ const ExpandedAnalysisView = ({
         <div className="expanded-analysis-main">
           {activeAnalysisItem ? (
             <>
+              {/* NEW: Analysis Header with regenerate button */}
+              <AnalysisHeader />
+
               {/* Only show AnalysisTypeSelector if the item has multiple analysis types */}
               {activeAnalysisItem.analysisTypes && activeAnalysisItem.analysisTypes.length > 1 ? (
                 <AnalysisTypeSelector
                   analysisTypes={activeAnalysisItem.analysisTypes || []}
                   selectedType={selectedAnalysisType}
-                  onTypeSelect={onAnalysisTypeSelect}
+                  onTypeSelect={handleAnalysisTypeChange} // Use new handler with caching
                   onRegenerateAnalysis={onRegenerateAnalysis}
-                  isLoading={isLoading}
+                  isLoading={isLoading || isRegenerating}
                   activeAnalysisItem={activeAnalysisItem}
-                  showRegenerateButton={false} // Hide regenerate button
+                  showRegenerateButton={false} // Hide the old regenerate button since we have the new one
                   t={translate} // Pass translation function
                 />
-              ) : ( 
+              ) : (
                 <></>
               )}
-              
+
               {/* Analysis Component */}
               <div className="analysis-component-container">
                 <AnalysisRenderer
                   selectedAnalysisType={selectedAnalysisType}
                   analysisItem={activeAnalysisItem}
                   analysisResult={analysisResult}
-                  isLoading={isLoading}
+                  isLoading={isLoading || isRegenerating}
                   t={translate} // Pass translation function
                 />
               </div>

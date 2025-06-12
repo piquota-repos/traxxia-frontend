@@ -48,8 +48,8 @@ const Register = () => {
     }
     if (!form.password) {
       newErrors.password = t('password_required');
-    } else if (form.password.length < 6) {
-      newErrors.password = t('password_min_length');
+    } else if (form.password.length < 8) { // ENHANCED: Changed from 6 to 8 to match backend
+      newErrors.password = t('password_min_length_8'); // Update translation key
     }
     if (!form.confirmPassword) {
       newErrors.confirmPassword = t('confirm_password_required');
@@ -75,24 +75,65 @@ const Register = () => {
 
     setIsSubmitting(true);
     try {
+      // SECURITY FIX: REMOVED role parameter - backend will automatically set to 'user'
       const userData = {
-        name: `${form.name} ${form.lastName}`,
-        email: form.email,
+        name: `${form.name.trim()} ${form.lastName.trim()}`, // Added trim() for security
+        email: form.email.trim().toLowerCase(), // Added trim() and toLowerCase() for consistency
         password: form.password,
-        role: 'user',
+        // CRITICAL FIX: Removed 'role: user' - this was the vulnerability!
+        // Backend now automatically assigns 'user' role and ignores any role parameter
       };
+
+      console.log('🔒 Sending secure registration data:', { 
+        ...userData, 
+        password: '[HIDDEN]' // Don't log passwords
+      });
+
       const res = await axios.post(`${API_BASE_URL}/api/users`, userData);
 
-      setModalMessage(t('registration_successful', { name: res.data.user.name }));
+      // Log successful registration for security monitoring
+      console.log('✅ User registered successfully with role:', res.data.user.role);
+
+      setModalMessage(t('registration_successful'));
       setIsError(false);
       setShowSuccessModal(true);
-      setTimeout(() => (window.location.href = '/login'), 2000);
+      
+      // Reset form for security
+      setForm({
+        name: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        terms: false,
+      });
+      
+      // setTimeout(() => (window.location.href = '/login'), 2000);
     } catch (err) {
       setIsSubmitting(false);
-      const errorMsg = err.response?.data?.message || t('registration_failed');
+      
+      console.error('Registration error:', err.response?.data || err.message);
+      
+      let errorMsg = t('registration_failed');
+      
+      // Handle specific backend validation errors
+      if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+        
+        // Handle specific error cases
+        if (errorMsg.includes('email')) {
+          setErrors({ email: t('email_already_exists') });
+        } else if (errorMsg.includes('password')) {
+          setErrors({ password: errorMsg });
+        } else if (errorMsg.includes('name')) {
+          setErrors({ name: errorMsg });
+        }
+      }
+      
       setIsError(true);
       setModalMessage(errorMsg);
       setShowSuccessModal(true);
+      
       if (err.response?.data?.errors) setErrors(err.response.data.errors);
     }
   };
@@ -129,9 +170,11 @@ const Register = () => {
                 value={form.name}
                 onChange={handleChange}
                 className={errors.name ? 'error' : ''}
+                maxLength="50" // Added security: name length limit
               />
               {errors.name && <div className="error-message">{errors.name}</div>}
             </div>
+            
             <div className="form-group1">
               <label>{t('last_name')}</label>
               <input
@@ -141,9 +184,11 @@ const Register = () => {
                 value={form.lastName}
                 onChange={handleChange}
                 className={errors.lastName ? 'error' : ''}
+                maxLength="50" // Added security: name length limit
               />
               {errors.lastName && <div className="error-message">{errors.lastName}</div>}
             </div>
+            
             <div className="form-group1">
               <label>{t('email')}</label>
               <input
@@ -153,9 +198,11 @@ const Register = () => {
                 value={form.email}
                 onChange={handleChange}
                 className={errors.email ? 'error' : ''}
+                autoComplete="email" // Added for better UX
               />
               {errors.email && <div className="error-message">{errors.email}</div>}
             </div>
+            
             <div className="form-group1">
               <label>{t('password')}</label>
               <div className="password-input-container">
@@ -166,6 +213,8 @@ const Register = () => {
                   value={form.password}
                   onChange={handleChange}
                   className={errors.password ? 'error' : ''}
+                  minLength="8" // Added security: minimum password length
+                  autoComplete="new-password" // Added for better UX
                 />
                 <button
                   type="button"
@@ -177,7 +226,12 @@ const Register = () => {
                 </button>
               </div>
               {errors.password && <div className="error-message">{errors.password}</div>}
+              {/* Added password requirements hint */}
+              <small className="password-hint">
+                {t('password_requirements')} {/* "Password must be at least 8 characters long" */}
+              </small>
             </div>
+            
             <div className="form-group1">
               <label>{t('confirm_password')}</label>
               <div className="password-input-container">
@@ -188,6 +242,7 @@ const Register = () => {
                   value={form.confirmPassword}
                   onChange={handleChange}
                   className={errors.confirmPassword ? 'error' : ''}
+                  autoComplete="new-password" // Added for better UX
                 />
                 <button
                   type="button"
@@ -200,6 +255,7 @@ const Register = () => {
               </div>
               {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
             </div>
+            
             <div className="checkbox-group">
               <label className="checkbox-container">
                 <input type="checkbox" name="terms" checked={form.terms} onChange={handleChange} />
@@ -209,6 +265,7 @@ const Register = () => {
               </label>
               {errors.terms && <div className="error-message">{errors.terms}</div>}
             </div>
+            
             <button
               type="submit"
               className={`submit-button ${isSubmitting ? 'loading' : ''}`}
@@ -218,6 +275,7 @@ const Register = () => {
             </button>
           </form>
         </div>
+        
         {showSuccessModal && (
           <div className="modal-overlay">
             <div className={`success-modal ${isError ? 'error-modal' : ''}`}>

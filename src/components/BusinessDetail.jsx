@@ -1,4 +1,4 @@
-// BusinessDetail.jsx - Complete Updated Version with Separated Save Status
+// BusinessDetail.jsx - Complete Updated Version with Auto-Regeneration on Answer Changes
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Button, Card, Row, Col, Nav, Alert, Spinner, Form } from "react-bootstrap";
 import { ArrowLeft } from "lucide-react";
@@ -13,7 +13,7 @@ import { useTranslation } from "../hooks/useTranslation";
 import LoadingState from "../components/LoadingState";
 import ErrorState from "../components/ErrorState";
 import ProgressSection from "../components/ProgressSection";
-import SaveStatus from "../components/SaveStatus"; // NEW IMPORT
+import SaveStatus from "../components/SaveStatus";
 import AnalysisItem from "../components/AnalysisItem";
 import ExpandedAnalysisView from "../components/ExpandedAnalysisView";
 import CategoryItem from "../components/CategoryItem";
@@ -46,18 +46,27 @@ const BusinessDetail = ({ businessName, onBack }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const hasCategorizationRun = useRef(false);
+  
   // Question categorization state
   const [basicQuestions, setBasicQuestions] = useState([]);
   const [advancedQuestions, setAdvancedQuestions] = useState([]);
   const [isCategorizingQuestions, setIsCategorizingQuestions] = useState(false);
   const [categorizationError, setCategorizationError] = useState('');
   const [expandedCategories, setExpandedCategories] = useState({});
+  
   // Full-screen analysis state
   const [isFullScreenAnalysis, setIsFullScreenAnalysis] = useState(false);
   const [activeAnalysisItem, setActiveAnalysisItem] = useState(null);
   const [fullScreenAnalysisTab, setFullScreenAnalysisTab] = useState("analysis");
   const [isAnimating, setIsAnimating] = useState(false);
   const [selectedAnalysisType, setSelectedAnalysisType] = useState(null);
+
+  // NEW: Track actual answer changes (not just typing)
+  const [hasAnswerChanges, setHasAnswerChanges] = useState(false);
+  const [originalAnswers, setOriginalAnswers] = useState({});
+  const [lastAnswerChangeTime, setLastAnswerChangeTime] = useState(null);
+  const [shouldAutoRegenerate, setShouldAutoRegenerate] = useState(false);
+  const autoRegenerateTimerRef = useRef(null);
 
   // Strategic planning books state
   const [strategicBooks, setStrategicBooks] = useState({
@@ -73,7 +82,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
 
   // Custom Hooks
   const { businessData, setBusinessData, loading, error } = useBusinessData(businessName);
-  const { analysisData, analysisLoading, generateAnalysis } = useAnalysisData();
+  const { analysisData, analysisLoading, generateAnalysis, clearAnalysisCache } = useAnalysisData();
 
   // Progress tracking
   const {
@@ -210,6 +219,58 @@ const BusinessDetail = ({ businessName, onBack }) => {
     }
   };
 
+  // NEW: Auto-regeneration logic
+  const handleAutoRegeneration = useCallback(async () => {
+    if (!isFullScreenAnalysis || !activeAnalysisItem || !selectedAnalysisType) {
+      return;
+    }
+
+    console.log('🔄 Auto-regenerating analysis due to answer changes...');
+    
+    try {
+      // Clear existing cache for this analysis
+      const currentLanguage = window.currentAppLanguage || 'en';
+      const cacheKey = `${activeAnalysisItem.id}-${selectedAnalysisType}-${currentLanguage}`;
+      
+      if (clearAnalysisCache) {
+        await clearAnalysisCache(cacheKey);
+      }
+      
+      // Force regenerate the current analysis
+      await generateAnalysis(selectedAnalysisType, activeAnalysisItem.id, businessData, strategicBooks, true);
+      
+      console.log('✅ Auto-regeneration completed');
+    } catch (error) {
+      console.error('❌ Error during auto-regeneration:', error);
+    }
+  }, [isFullScreenAnalysis, activeAnalysisItem, selectedAnalysisType, businessData, strategicBooks, generateAnalysis, clearAnalysisCache]);
+
+  // NEW: Effect to trigger auto-regeneration when answers change
+  useEffect(() => {
+    if (!lastAnswerChangeTime || !shouldAutoRegenerate) {
+      return;
+    }
+
+    // Clear existing timer
+    if (autoRegenerateTimerRef.current) {
+      clearTimeout(autoRegenerateTimerRef.current);
+    }
+
+    // Set a debounced auto-regeneration (wait 3 seconds after last change)
+    autoRegenerateTimerRef.current = setTimeout(() => {
+      if (isFullScreenAnalysis && activeAnalysisItem && selectedAnalysisType) {
+        handleAutoRegeneration();
+        setShouldAutoRegenerate(false); // Reset flag after regeneration
+      }
+    }, 3000); // 3 second delay
+
+    return () => {
+      if (autoRegenerateTimerRef.current) {
+        clearTimeout(autoRegenerateTimerRef.current);
+      }
+    };
+  }, [lastAnswerChangeTime, shouldAutoRegenerate, handleAutoRegeneration, isFullScreenAnalysis, activeAnalysisItem, selectedAnalysisType]);
+
   // Utility Functions
   const utils = {
     isQuestionCompleted: (questionId) => {
@@ -251,6 +312,22 @@ const BusinessDetail = ({ businessName, onBack }) => {
       questionProcessor.categorizeWithGroq(businessData.categories);
     }
   }, [businessData]);
+
+  // NEW: Check if answers actually changed
+  const checkForAnswerChanges = useCallback((questionId, newValue) => {
+    const originalValue = originalAnswers[questionId] || '';
+    const hasChanged = originalValue !== newValue;
+    
+    if (hasChanged && !hasAnswerChanges) {
+      setHasAnswerChanges(true);
+      console.log('🔄 Answer change detected! Question:', questionId);
+      console.log('   Original:', `"${originalValue}"`);
+      console.log('   New:', `"${newValue}"`);
+    }
+    
+    return hasChanged;
+  }, [originalAnswers, hasAnswerChanges]);
+
   // Optimized save function
   const saveAnswers = useCallback(async (forceUpdate = false) => {
     if (!businessData || isSaving) return;
@@ -284,8 +361,9 @@ const BusinessDetail = ({ businessName, onBack }) => {
     await saveAnswers(true);
   }, [saveAnswers]);
 
-  // Answer change handler
+  // NEW: Enhanced answer change handler that detects actual changes
   const handleAnswerChange = useCallback((questionId, value) => { 
+    console.log('📝 Answer being typed for question:', questionId);
 
     // Mark that user is typing
     isUserTypingRef.current = true;
@@ -299,6 +377,20 @@ const BusinessDetail = ({ businessName, onBack }) => {
     typingTimeoutRef.current = setTimeout(() => {
       isUserTypingRef.current = false;
     }, 2000);
+
+    // NEW: Check if this is an actual change from original
+    const actualChange = checkForAnswerChanges(questionId, value);
+    
+    if (actualChange) {
+      setLastAnswerChangeTime(Date.now());
+      console.log('✅ Confirmed answer change - fresh analysis will be needed');
+      
+      // If in expanded view, mark for immediate auto-regeneration
+      if (isFullScreenAnalysis && activeAnalysisItem && selectedAnalysisType) {
+        setShouldAutoRegenerate(true);
+        console.log('🎯 Auto-regeneration scheduled (expanded view active)');
+      }
+    }
 
     setBusinessData(prevData => {
       if (!prevData || !prevData.categories) {
@@ -333,7 +425,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
       };
       return updatedData;
     });
-  }, [setBusinessData]);
+  }, [setBusinessData, isFullScreenAnalysis, activeAnalysisItem, selectedAnalysisType, checkForAnswerChanges]);
 
   // Auto-save effect
   useEffect(() => {
@@ -367,6 +459,9 @@ const BusinessDetail = ({ businessName, onBack }) => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
+      if (autoRegenerateTimerRef.current) {
+        clearTimeout(autoRegenerateTimerRef.current);
+      }
     };
   }, []);
 
@@ -376,7 +471,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
     isComplete: isCategoryComplete(category),
     answeredCount: getAnsweredQuestionsInCategory(category),
     onToggle: () => toggleCategory(category.id),
-    onAnswerChange: handleAnswerChange,
+    onAnswerChange: handleAnswerChange, // This now includes auto-regeneration logic
     t
   });
 
@@ -389,16 +484,48 @@ const BusinessDetail = ({ businessName, onBack }) => {
     const analysisType = getAnalysisType(item.id);
     setSelectedAnalysisType(analysisType);
 
+    // Reset auto-regeneration flags when opening new analysis
+    setShouldAutoRegenerate(false);
+
     setTimeout(() => {
       setIsFullScreenAnalysis(true);
       setIsAnimating(false);
     }, 300);
 
-    const cacheKey = `${item.id}-${analysisType}`;
-    if (!analysisData[cacheKey]) {
-      await generateAnalysis(analysisType, item.id, businessData, strategicBooks);
+    const currentLanguage = window.currentAppLanguage || 'en';
+    const cacheKey = `${item.id}-${analysisType}-${currentLanguage}`;
+    
+    // NEW: Check if we need fresh analysis based on answer changes
+    const hasCachedData = analysisData[cacheKey] && analysisData[cacheKey].length > 0;
+    const needsFreshAnalysis = hasAnswerChanges || !hasCachedData;
+    
+    console.log('🎯 Analysis item clicked:', item.id);
+    console.log('🎯 Has answer changes:', hasAnswerChanges);
+    console.log('🎯 Has cached data:', hasCachedData);
+    console.log('🎯 Needs fresh analysis:', needsFreshAnalysis);
+    
+    if (needsFreshAnalysis) {
+      console.log('🔄 Generating fresh analysis due to answer changes...');
+      await generateAnalysis(analysisType, item.id, businessData, strategicBooks, true);
+      
+      // Reset the answer change flag after generating fresh analysis
+      if (hasAnswerChanges) {
+        setHasAnswerChanges(false);
+        // Update original answers to current state
+        const newAnswers = {};
+        businessData.categories.forEach(category => {
+          category.questions.forEach(question => {
+            const questionId = question.id || question.question_id;
+            newAnswers[questionId] = question.answer || '';
+          });
+        });
+        setOriginalAnswers(newAnswers);
+        console.log('✅ Answer change flag reset - analysis is now fresh');
+      }
+    } else {
+      console.log('📋 Using cached analysis data (no answer changes)');
     }
-  }, [analysisData, generateAnalysis, businessData, strategicBooks]);
+  }, [analysisData, generateAnalysis, businessData, strategicBooks, hasAnswerChanges]);
 
   const handleFrameworkTabClick = useCallback(async (item, forceRefresh = false, overrideAnalysisType = null) => {
     setActiveAnalysisItem(item);
@@ -410,34 +537,95 @@ const BusinessDetail = ({ businessName, onBack }) => {
     const analysisType = overrideAnalysisType || getAnalysisType(item.id);
     setSelectedAnalysisType(analysisType);
 
-    if (forceRefresh) {
+    // Reset auto-regeneration flags when switching tabs
+    setShouldAutoRegenerate(false);
+
+    const currentLanguage = window.currentAppLanguage || 'en';
+    const cacheKey = `${item.id}-${analysisType}-${currentLanguage}`;
+    
+    // NEW: Check if we need fresh analysis based on answer changes or force refresh
+    const hasCachedData = analysisData[cacheKey] && analysisData[cacheKey].length > 0;
+    const needsFreshAnalysis = forceRefresh || hasAnswerChanges || !hasCachedData;
+    
+    console.log('🔍 Framework tab clicked:', item.id);
+    console.log('🔍 Has answer changes:', hasAnswerChanges);
+    console.log('🔍 Has cached data:', hasCachedData);
+    console.log('🔍 Force refresh:', forceRefresh);
+    console.log('🔍 Needs fresh analysis:', needsFreshAnalysis);
+    
+    if (needsFreshAnalysis) {
+      console.log('🔄 Generating fresh analysis...');
       await generateAnalysis(analysisType, item.id, businessData, strategicBooks, true);
-    } else {
-      const cacheKey = `${item.id}-${analysisType}`;
-      if (!analysisData[cacheKey]) {
-        await generateAnalysis(analysisType, item.id, businessData, strategicBooks, false);
+      
+      // Reset the answer change flag after generating fresh analysis
+      if (hasAnswerChanges && !forceRefresh) {
+        setHasAnswerChanges(false);
+        // Update original answers to current state
+        const newAnswers = {};
+        businessData.categories.forEach(category => {
+          category.questions.forEach(question => {
+            const questionId = question.id || question.question_id;
+            newAnswers[questionId] = question.answer || '';
+          });
+        });
+        setOriginalAnswers(newAnswers);
+        console.log('✅ Answer change flag reset - analysis is now fresh');
       }
+    } else {
+      console.log('📋 Using cached analysis data (no changes)');
     }
-  }, [analysisData, generateAnalysis, businessData, strategicBooks, fullScreenAnalysisTab]);
+  }, [analysisData, generateAnalysis, businessData, strategicBooks, fullScreenAnalysisTab, hasAnswerChanges]);
 
   const handleAnalysisTypeSelect = useCallback(async (analysisType, forceRefresh = false) => {
     if (!activeAnalysisItem) return;
 
     setSelectedAnalysisType(analysisType);
 
-    if (forceRefresh) {
+    // Reset auto-regeneration flags when changing analysis type
+    setShouldAutoRegenerate(false);
+
+    const currentLanguage = window.currentAppLanguage || 'en';
+    const cacheKey = `${activeAnalysisItem.id}-${analysisType}-${currentLanguage}`;
+    
+    // NEW: Check if we need fresh analysis based on answer changes
+    const hasCachedData = analysisData[cacheKey] && analysisData[cacheKey].length > 0;
+    const needsFreshAnalysis = forceRefresh || hasAnswerChanges || !hasCachedData;
+    
+    console.log('🔄 Analysis type changed to:', analysisType);
+    console.log('🔄 Has answer changes:', hasAnswerChanges);
+    console.log('🔄 Has cached data:', hasCachedData);
+    console.log('🔄 Needs fresh analysis:', needsFreshAnalysis);
+    
+    if (needsFreshAnalysis) {
+      console.log('🔄 Generating fresh analysis for new type...');
       await generateAnalysis(analysisType, activeAnalysisItem.id, businessData, strategicBooks, true);
-    } else {
-      const cacheKey = `${activeAnalysisItem.id}-${analysisType}`;
-      if (!analysisData[cacheKey]) {
-        await generateAnalysis(analysisType, activeAnalysisItem.id, businessData, strategicBooks, false);
+      
+      // Reset the answer change flag after generating fresh analysis
+      if (hasAnswerChanges && !forceRefresh) {
+        setHasAnswerChanges(false);
+        // Update original answers to current state
+        const newAnswers = {};
+        businessData.categories.forEach(category => {
+          category.questions.forEach(question => {
+            const questionId = question.id || question.question_id;
+            newAnswers[questionId] = question.answer || '';
+          });
+        });
+        setOriginalAnswers(newAnswers);
+        console.log('✅ Answer change flag reset - analysis is now fresh');
       }
+    } else {
+      console.log('📋 Using cached analysis data for type change');
     }
-  }, [activeAnalysisItem, analysisData, generateAnalysis, businessData, strategicBooks]);
+  }, [activeAnalysisItem, analysisData, generateAnalysis, businessData, strategicBooks, hasAnswerChanges]);
 
   const handleCloseExpandedView = useCallback(() => {
     setIsAnimating(true);
     setIsFullScreenAnalysis(false);
+
+    // Clear auto-regeneration flags when closing (but keep hasAnswerChanges)
+    setShouldAutoRegenerate(false);
+    setLastAnswerChangeTime(null);
 
     setTimeout(() => {
       setActiveAnalysisItem(null);
@@ -447,7 +635,14 @@ const BusinessDetail = ({ businessName, onBack }) => {
   }, []);
 
   const handleRegenerateAnalysis = useCallback(async (analysisType, frameworkId) => {
+    // Reset auto-regeneration flags when manually regenerating
+    setShouldAutoRegenerate(false);
+    setLastAnswerChangeTime(null);
+    
     await generateAnalysis(analysisType, frameworkId, businessData, strategicBooks, true);
+    
+    // Manual regeneration doesn't reset answer change flag
+    // User might want to regenerate even without answer changes
   }, [generateAnalysis, businessData, strategicBooks]);
 
   // Render States
@@ -482,9 +677,6 @@ const BusinessDetail = ({ businessName, onBack }) => {
             <span className="visually-hidden">Loading...</span>
           </Spinner>
           <p>AI is categorizing your questions...</p>
-          <small className="text-muted">
-            Using Groq AI to intelligently sort questions into Basic and Advanced
-          </small>
         </div>
       </div>
     );
@@ -518,7 +710,6 @@ const BusinessDetail = ({ businessName, onBack }) => {
     t
   };
 
-  // NEW: Save Status Props
   const saveStatusProps = {
     saveStatus,
     isSaving,
@@ -531,6 +722,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
     t
   });
 
+  // NEW: Enhanced expanded analysis props with auto-regeneration status
   const expandedAnalysisProps = {
     businessData,
     activeAnalysisItem,
@@ -543,6 +735,8 @@ const BusinessDetail = ({ businessName, onBack }) => {
     onAnalysisTypeSelect: handleAnalysisTypeSelect,
     onCloseExpandedView: handleCloseExpandedView,
     onRegenerateAnalysis: handleRegenerateAnalysis,
+    shouldAutoRegenerate, // Pass auto-regeneration status
+    lastAnswerChangeTime, // Pass last change time for UI feedback
     t
   };
 
@@ -587,7 +781,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
               advancedQuestions={advancedQuestions}
               onBack={onBack}
               progressSectionProps={progressSectionProps}
-              saveStatusProps={saveStatusProps} // NEW PROP
+              saveStatusProps={saveStatusProps}
               categoryItemProps={getCategoryItemProps}
               analysisItemProps={analysisItemProps}
               QuestionItem={QuestionItem}
@@ -612,7 +806,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
               isAnimating={isAnimating}
               areAllQuestionsAnswered={areAllQuestionsAnswered()}
               progressSectionProps={progressSectionProps}
-              saveStatusProps={saveStatusProps} // NEW PROP
+              saveStatusProps={saveStatusProps}
               categoryItemProps={getCategoryItemProps}
               analysisItemProps={analysisItemProps}
               expandedAnalysisProps={expandedAnalysisProps}
@@ -621,7 +815,6 @@ const BusinessDetail = ({ businessName, onBack }) => {
               categorizationError={categorizationError}
               t={t}
             />
-
           </div>
         </div>
       )}
@@ -636,6 +829,7 @@ const BusinessDetail = ({ businessName, onBack }) => {
   );
 };
 
+// [Include all the existing MobileView, DesktopView, and other components exactly as they were]
 // Mobile View Component
 const MobileView = ({
   businessData,
@@ -647,7 +841,7 @@ const MobileView = ({
   advancedQuestions,
   onBack,
   progressSectionProps,
-  saveStatusProps, // NEW PROP
+  saveStatusProps,
   categoryItemProps,
   analysisItemProps,
   QuestionItem,
@@ -689,7 +883,7 @@ const MobileView = ({
             onClick={() => setActiveTab("strategic")}
             className={`mobile-tab ${activeTab === "strategic" ? "active" : ""}`}
           >
-            {t('strategic') || 'STRATEGIC'}
+            {t('strategic') || 'Strategic'}
           </Nav.Link>
         </Nav.Item>
       </Nav>
@@ -704,7 +898,7 @@ const MobileView = ({
         advancedQuestions={advancedQuestions}
         businessData={businessData}
         progressSectionProps={progressSectionProps}
-        saveStatusProps={saveStatusProps} // NEW PROP
+        saveStatusProps={saveStatusProps}
         categoryItemProps={categoryItemProps}
         analysisItemProps={analysisItemProps}
         QuestionItem={QuestionItem}
@@ -725,7 +919,7 @@ const MobileTabContent = ({
   advancedQuestions,
   businessData,
   progressSectionProps,
-  saveStatusProps, // NEW PROP
+  saveStatusProps,
   categoryItemProps,
   analysisItemProps,
   QuestionItem,
@@ -761,12 +955,10 @@ const MobileTabContent = ({
           </Button>
         </div> 
 
-
         {/* Show full ProgressSection only for Advanced tab */}
         {questionTab === QUESTION_TABS.ADVANCED && (
           <ProgressSection {...progressSectionProps} />
         )}
-
 
         {/* Show Save Status for BOTH tabs */}
         <SaveStatus {...saveStatusProps} />
@@ -862,7 +1054,7 @@ const MobileTabContent = ({
     const strategicItems = businessData.analysisItems?.filter(item => item.category === "strategic") || [];
     return (
       <div className="analysis-tab-content">
-        <h6 className="analysis-section-title">{t('strategic') || 'STRATEGIC'}</h6>
+        <h6 className="analysis-section-title">{t('strategic') || 'Strategic'}</h6>
         <div>
           {strategicItems.map(item => (
             <AnalysisItem key={item.id} {...analysisItemProps(item)} />
@@ -887,7 +1079,7 @@ const DesktopView = ({
   isAnimating,
   areAllQuestionsAnswered,
   progressSectionProps,
-  saveStatusProps, // NEW PROP
+  saveStatusProps,
   categoryItemProps,
   analysisItemProps,
   expandedAnalysisProps,
@@ -919,7 +1111,7 @@ const DesktopView = ({
                 advancedQuestions={advancedQuestions}
                 businessData={businessData}
                 progressSectionProps={progressSectionProps}
-                saveStatusProps={saveStatusProps} // NEW PROP
+                saveStatusProps={saveStatusProps}
                 categoryItemProps={categoryItemProps}
                 QuestionItem={QuestionItem}
                 utils={utils}
@@ -984,7 +1176,7 @@ const DesktopRightSide = ({
         className="mx-2"
         onClick={() => setAnalysisTab("strategic")}
       >
-        {t('strategic') || 'STRATEGIC'}
+        {t('strategic') || 'Strategic'}
       </Button>
     </div>
 
@@ -1007,7 +1199,7 @@ const DesktopLeftSide = ({
   advancedQuestions,
   businessData,
   progressSectionProps,
-  saveStatusProps, // NEW PROP
+  saveStatusProps,
   categoryItemProps,
   QuestionItem,
   utils,
@@ -1019,7 +1211,7 @@ const DesktopLeftSide = ({
     <div className="d-flex justify-content-center mb-3">
       <Button
         variant={questionTab === QUESTION_TABS.BASIC ? "primary" : "outline-primary"}
-        className="mx-2"
+        className="mx-2 phase"
         onClick={() => setQuestionTab(QUESTION_TABS.BASIC)}
         size="sm"
       >
@@ -1027,7 +1219,7 @@ const DesktopLeftSide = ({
       </Button>
       <Button
         variant={questionTab === QUESTION_TABS.ADVANCED ? "primary" : "outline-primary"}
-        className="mx-2"
+        className="mx-2 phase"
         onClick={() => {
           if (questionTab === QUESTION_TABS.ADVANCED || utils.allBasicAnswered()) {
             setQuestionTab(QUESTION_TABS.ADVANCED);
