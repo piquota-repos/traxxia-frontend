@@ -3,35 +3,48 @@ import { Heart, TrendingUp, Users, Calendar, Loader, Target, Award, BarChart3 } 
 import RegenerateButton from './RegenerateButton';
 import { useTranslation } from "../hooks/useTranslation";
 
-const LoyaltyNPS = ({ 
+const LoyaltyNPS = ({
   questions = [],
   userAnswers = {},
   businessName = "Your Business",
   onDataGenerated,
   onRegenerate,
   isRegenerating = false,
-  canRegenerate = true
+  canRegenerate = true,
+  loyaltyNPSData = null
 }) => {
-  const [loyaltyData, setLoyaltyData] = useState(null);
+  const [loyaltyData, setLoyaltyData] = useState(loyaltyNPSData);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hasLoadedFromBackend, setHasLoadedFromBackend] = useState(false);
-  const { t } = useTranslation();
-  
-  // Add refs to track if API call is in progress or has been made
-  const isGeneratingRef = useRef(false);
-  const hasGeneratedRef = useRef(false);
 
-  const ML_API_BASE_URL = process.env.REACT_APP_ML_BACKEND_URL || 'http://127.0.0.1:8000';
+  // Add refs to track component mount and prevent multiple calls
+  const isMounted = useRef(false);
+  const isLoadingRef = useRef(false);
+  const hasInitialized = useRef(false);
+  const { t } = useTranslation();
+
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
   const getAuthToken = () => sessionStorage.getItem('token');
 
-  // Load existing analysis from backend
+  // Load existing analysis from backend (chat history)
   const loadExistingAnalysis = async () => {
-    try {
-      const token = getAuthToken();
+    if (isLoadingRef.current || hasLoadedFromBackend) {
+      return false;
+    }
 
-      const response = await fetch(`${API_BASE_URL}/api/analysis/loyaltyNPS`, {
+    try {
+      isLoadingRef.current = true;
+
+      const token = getAuthToken();
+      if (!token) {
+        if (isMounted.current) {
+          setHasLoadedFromBackend(true);
+        }
+        return false;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/user/conversation-history`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -40,251 +53,97 @@ const LoyaltyNPS = ({
 
       if (response.ok) {
         const result = await response.json();
-        console.log('📊 Loaded existing loyalty NPS from backend:', result.analysisData);
-        setLoyaltyData(result.analysisData);
-        setHasLoadedFromBackend(true);
-        hasGeneratedRef.current = true;
-        if (onDataGenerated) {
-          onDataGenerated(result.analysisData);
-        }
-        return true;
-      } else if (response.status === 404) {
-        console.log('📊 No existing loyalty NPS found in backend');
-        setHasLoadedFromBackend(true);
-        return false;
-      } else {
-        console.error('Failed to load loyalty NPS:', response.statusText);
-        setHasLoadedFromBackend(true);
-        return false;
-      }
-    } catch (error) {
-      console.error('Error loading loyalty NPS:', error);
-      setHasLoadedFromBackend(true);
-      return false;
-    }
-  };
+        const analysisMessages = result.chat_messages?.filter(msg =>
+          msg.metadata?.analysisType === 'loyaltyNPS' && msg.metadata?.analysisData
+        );
 
-  // Save analysis to backend
-  const saveAnalysisToBackend = async (analysisData) => {
-    try {
-      const token = getAuthToken();
+        if (analysisMessages && analysisMessages.length > 0) {
+          const latestAnalysis = analysisMessages[analysisMessages.length - 1];
 
-      // Get current session ID
-      const currentResponse = await fetch(`${API_BASE_URL}/api/conversation/current`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
 
-      if (!currentResponse.ok) {
-        throw new Error('Failed to get current conversation');
-      }
-
-      const conversation = await currentResponse.json();
-      const sessionId = conversation.sessionId;
-
-      if (!sessionId) {
-        throw new Error('No active conversation session found');
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/analysis/save`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          sessionId: sessionId,
-          analysisType: 'loyaltyNPS',
-          analysisData: analysisData,
-          businessName: businessName
-        })
-      });
-
-      if (response.ok) {
-        console.log('📊 Loyalty NPS analysis saved to backend');
-        return true;
-      } else {
-        console.error('Failed to save loyalty NPS analysis:', response.statusText);
-        return false;
-      }
-    } catch (error) {
-      console.error('Error saving loyalty NPS analysis:', error);
-      return false;
-    }
-  };
-
-  const generateLoyaltyData = async () => {
-    // Prevent multiple simultaneous calls
-    if (isGeneratingRef.current) {
-      console.log('Loyalty API call already in progress, skipping...');
-      return;
-    }
-
-    try {
-      isGeneratingRef.current = true;
-      setIsLoading(true);
-      setError(null);
-
-      // Prepare questions and answers arrays
-      const questionsArray = [];
-      const answersArray = [];
-
-      // Sort questions by ID to maintain order
-      const sortedQuestions = [...questions].sort((a, b) => a.id - b.id);
-      
-      // Only include answered questions
-      sortedQuestions.forEach(question => {
-        if (userAnswers[question.id]) {
-          // Clean and sanitize text to avoid encoding issues
-          const cleanQuestion = String(question.question)
-            .replace(/[\u2018\u2019]/g, "'")
-            .replace(/[\u201C\u201D]/g, '"')
-            .replace(/[\u2013\u2014]/g, '-')
-            .replace(/[\u2026]/g, '...')
-            .replace(/[^\x00-\x7F]/g, '')
-            .trim();
-            
-          const cleanAnswer = String(userAnswers[question.id])
-            .replace(/[\u2018\u2019]/g, "'")
-            .replace(/[\u201C\u201D]/g, '"')
-            .replace(/[\u2013\u2014]/g, '-')
-            .replace(/[\u2026]/g, '...')
-            .replace(/[^\x00-\x7F]/g, '')
-            .trim();
-            
-          questionsArray.push(cleanQuestion);
-          answersArray.push(cleanAnswer);
-        }
-      });
-
-      if (questionsArray.length === 0) {
-        throw new Error('No answered questions available for loyalty analysis');
-      }
-
-      const payload = {
-        questions: questionsArray,
-        answers: answersArray
-      };
-
-      console.log('Sending to /loyalty-metrics API:', payload);
-
-      const response = await fetch(`${ML_API_BASE_URL}/loyalty-metrics`, {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'Content-Type': 'application/json; charset=utf-8'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const responseText = await response.text();
-      console.log('Raw response:', responseText);
-
-      if (!response.ok) {
-        let errorMessage = `API returned ${response.status}: ${response.statusText}`;
-        try {
-          const errorData = JSON.parse(responseText);
-          if (errorData.detail) {
-            errorMessage = `API Error: ${errorData.detail}`;
+          if (isMounted.current) {
+            setLoyaltyData(latestAnalysis.metadata.analysisData);
+            setHasLoadedFromBackend(true);
+            if (onDataGenerated) {
+              onDataGenerated(latestAnalysis.metadata.analysisData);
+            }
           }
-        } catch (e) {
-          errorMessage = `API Error: ${responseText}`;
-        }
-        throw new Error(errorMessage);
-      }
+          return true;
+        } else {
 
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch (e) {
-        throw new Error('Invalid JSON response from API');
-      }
-
-      if (result && result.loyaltyMetrics) {
-        console.log('Setting loyalty data:', result.loyaltyMetrics);
-        setLoyaltyData(result.loyaltyMetrics);
-        hasGeneratedRef.current = true;
-        
-        // Save to backend
-        await saveAnalysisToBackend(result.loyaltyMetrics);
-        
-        if (onDataGenerated) {
-          onDataGenerated(result.loyaltyMetrics);
+          if (isMounted.current) {
+            setHasLoadedFromBackend(true);
+          }
+          return false;
         }
       } else {
-        console.error('Invalid response structure:', result);
-        throw new Error('Invalid response structure from API');
+        console.error('📊 [LoyaltyNPS] Failed to load conversation history:', response.statusText);
+        if (isMounted.current) {
+          setHasLoadedFromBackend(true);
+        }
+        return false;
       }
-
     } catch (error) {
-      console.error('Error generating loyalty analysis:', error);
-      setError(error.message);
+      console.error('📊 [LoyaltyNPS] Error loading data:', error);
+      if (isMounted.current) {
+        setHasLoadedFromBackend(true);
+      }
+      return false;
     } finally {
-      setIsLoading(false);
-      isGeneratingRef.current = false;
+      isLoadingRef.current = false;
     }
   };
 
   // Handle regeneration
   const handleRegenerate = async () => {
-    hasGeneratedRef.current = false; // Reset the flag to allow regeneration
-    setHasLoadedFromBackend(false); // Reset backend load flag
     if (onRegenerate) {
-      // Use parent's regeneration logic
       onRegenerate();
     } else {
-      // Use local regeneration logic
       setLoyaltyData(null);
-      await generateLoyaltyData();
+      setError(null);
     }
   };
 
-  // Load existing analysis on mount
+  // Update loyalty data when prop changes
   useEffect(() => {
+    if (loyaltyNPSData && loyaltyNPSData !== loyaltyData) {
+
+      setLoyaltyData(loyaltyNPSData);
+      setHasLoadedFromBackend(true);
+      if (onDataGenerated) {
+        onDataGenerated(loyaltyNPSData);
+      }
+    }
+  }, [loyaltyNPSData]);
+
+  // Initialize component - only run once
+  useEffect(() => {
+    if (hasInitialized.current) return;
+
+    isMounted.current = true;
+    hasInitialized.current = true;
+
     const initializeComponent = async () => {
-      // First try to load existing analysis from backend
-      const hasExistingAnalysis = await loadExistingAnalysis();
-      
-      if (!hasExistingAnalysis) {
-        // If no existing analysis, check if we can generate new one
-        const answeredCount = Object.keys(userAnswers).length;
-        
-        if (answeredCount >= 3 && 
-            !loyaltyData && 
-            !isLoading && 
-            !hasGeneratedRef.current && 
-            !isRegenerating) {
-          generateLoyaltyData();
-        }
+
+
+      if (loyaltyNPSData) {
+
+        setLoyaltyData(loyaltyNPSData);
+        setHasLoadedFromBackend(true);
+      } else if (!hasLoadedFromBackend && !isLoadingRef.current) {
+        await loadExistingAnalysis();
+      } else {
+        setHasLoadedFromBackend(true);
       }
     };
 
     initializeComponent();
-  }, []); // Empty dependency array - only run on mount
 
-  // Separate useEffect to handle prop changes (if needed)
-  useEffect(() => {
-    // Only proceed if we've already tried loading from backend
-    if (!hasLoadedFromBackend) return;
-    
-    const answeredCount = Object.keys(userAnswers).length;
-    
-    // Only generate if:
-    // 1. We have enough answers
-    // 2. We don't already have loyalty data
-    // 3. We're not currently loading
-    // 4. We haven't already generated data (to prevent multiple calls)
-    // 5. We're not in the middle of regenerating
-    if (answeredCount >= 3 && 
-        !loyaltyData && 
-        !isLoading && 
-        !hasGeneratedRef.current && 
-        !isRegenerating) {
-      generateLoyaltyData();
-    }
-  }, [userAnswers, questions, loyaltyData, isLoading, isRegenerating, hasLoadedFromBackend]);
+    return () => {
+      isMounted.current = false;
+      isLoadingRef.current = false;
+    };
+  }, []);
 
   // Get score classification based on NPS zones
   const getScoreClassification = (score, method = 'NPS') => {
@@ -312,18 +171,18 @@ const LoyaltyNPS = ({
 
     const { overallScore, method, scale } = loyaltyData;
     const classification = getScoreClassification(overallScore, method);
-    
+
     // Normalize score to 0-1 range for gauge
-    const normalizedScore = method === 'NPS' 
+    const normalizedScore = method === 'NPS'
       ? (overallScore + 100) / 200  // NPS is -100 to 100
       : overallScore / 100;         // CSAT and others are 0 to 100
-    
+
     const radius = 80;
     const strokeWidth = 12;
     const circumference = 2 * Math.PI * radius;
     const strokeDasharray = circumference * 0.75; // 3/4 circle
     const strokeDashoffset = strokeDasharray * (1 - normalizedScore);
-    
+
     // Calculate zones for NPS
     let zones = [];
     if (method === 'NPS' && scale?.zones) {
@@ -345,7 +204,7 @@ const LoyaltyNPS = ({
             strokeWidth={strokeWidth}
             strokeLinecap="round"
           />
-          
+
           {/* Zone arcs for NPS */}
           {zones.map((zone, index) => {
             const zoneLength = strokeDasharray * (zone.end - zone.start);
@@ -364,7 +223,7 @@ const LoyaltyNPS = ({
               />
             );
           })}
-          
+
           {/* Score arc */}
           <path
             d="M 30 100 A 80 80 0 0 1 170 100"
@@ -376,7 +235,7 @@ const LoyaltyNPS = ({
             strokeDashoffset={strokeDashoffset}
             className="gauge-progress"
           />
-          
+
           {/* Center score */}
           <text x="100" y="85" textAnchor="middle" className="gauge-score">
             {overallScore}
@@ -385,7 +244,7 @@ const LoyaltyNPS = ({
             {classification.label}
           </text>
         </svg>
-        
+
         {/* Scale labels */}
         <div className="gauge-scale">
           <span className="gauge-scale-min">{scale?.min || 0}</span>
@@ -428,7 +287,7 @@ const LoyaltyNPS = ({
               </div>
             </>
           )}
-          
+
           {loyaltyData.method !== 'NPS' && (
             <div className="ln-scale-range">
               <span>Scale: {loyaltyData.scale.min} to {loyaltyData.scale.max}</span>
@@ -459,11 +318,11 @@ const LoyaltyNPS = ({
         <div className="loading-state">
           <Loader size={24} className="loading-spinner" />
           <span>
-            {isRegenerating 
+            {isRegenerating
               ? t("Regenerating loyalty & NPS analysis...")
               : !hasLoadedFromBackend
-              ? t("Loading loyalty & NPS analysis...")
-              : t("Generating loyalty & NPS analysis...")
+                ? t("Loading loyalty & NPS analysis...")
+                : t("Generating loyalty & NPS analysis...")
             }
           </span>
         </div>
@@ -479,8 +338,10 @@ const LoyaltyNPS = ({
           <h3>Analysis Error</h3>
           <p>{error}</p>
           <button onClick={() => {
-            hasGeneratedRef.current = false;
-            generateLoyaltyData();
+            setError(null);
+            if (onRegenerate) {
+              onRegenerate();
+            }
           }} className="retry-button">
             Retry Analysis
           </button>
@@ -500,18 +361,10 @@ const LoyaltyNPS = ({
             {answeredCount < 3
               ? `Answer ${3 - answeredCount} more questions to generate loyalty & NPS insights.`
               : hasLoadedFromBackend
-              ? "Generate your loyalty analysis to understand customer satisfaction and retention."
-              : "Loading loyalty & NPS analysis..."
+                ? "Loyalty & NPS analysis will be generated automatically after completing the initial phase."
+                : "Loading loyalty & NPS analysis..."
             }
           </p>
-          {answeredCount >= 3 && hasLoadedFromBackend && (
-            <button onClick={() => {
-              hasGeneratedRef.current = false;
-              generateLoyaltyData();
-            }} className="generate-button">
-              Generate Analysis
-            </button>
-          )}
         </div>
       </div>
     );
@@ -536,7 +389,7 @@ const LoyaltyNPS = ({
           size="medium"
         />
       </div>
-       
+
       {/* Key Metrics */}
       <div className="ln-metrics">
         <div className="ln-metric-card ln-metric-primary">
@@ -557,25 +410,18 @@ const LoyaltyNPS = ({
               <span>Industry Benchmark</span>
             </div>
             <p className="ln-metric-value">{loyaltyData.benchmark}</p>
-            {/* <p className="ln-metric-comparison">
-              {loyaltyData.overallScore > loyaltyData.benchmark ? (
-                <span className="positive">+{loyaltyData.overallScore - loyaltyData.benchmark} above</span>
-              ) : (
-                <span className="negative">{loyaltyData.overallScore - loyaltyData.benchmark} below</span>
-              )}
-            </p> */}
           </div>
         )}
 
         {loyaltyData.trend && (
           <div className="ln-metric-card ln-metric-accent">
             <div className="ln-metric-header">
-              <trendIndicator.icon 
-                size={20} 
-                style={{ 
+              <trendIndicator.icon
+                size={20}
+                style={{
                   color: trendIndicator.color,
                   transform: `rotate(${trendIndicator.rotation}deg)`
-                }} 
+                }}
               />
               <span>Trend</span>
             </div>
@@ -618,10 +464,10 @@ const LoyaltyNPS = ({
         <div className="ln-chart-container">
           <h3 className="ln-section-title">Overall {loyaltyData.method} Score</h3>
           {createGaugeChart()}
-           
+
           {/* Score Interpretation - moved here, directly below the chart */}
           {createScoreInterpretation()}
-        </div> 
+        </div>
       </div>
     </div>
   );
