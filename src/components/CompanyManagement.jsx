@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Building2, Loader, Eye } from 'lucide-react';
+import { Plus, Building2, Loader, Eye, Upload, X, Image, Edit } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils'; // Import the utility function
 import '../styles/CompanyManagement.css';
 
@@ -14,9 +14,26 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
     admin_password: ''
   });
 
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Create FormData to handle both form fields and file
+    const submitData = new FormData();
+    
+    // Append all form fields
+    Object.keys(formData).forEach(key => {
+      submitData.append(key, formData[key]);
+    });
+    
+    // Append logo file if selected
+    if (logoFile) {
+      submitData.append('logo', logoFile);
+    }
+    
+    onSubmit(submitData);
   };
 
   const handleChange = (e) => {
@@ -24,6 +41,35 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
       ...prev,
       [e.target.name]: e.target.value
     }));
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
+        return;
+      }
+
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Logo file size must be less than 5MB');
+        return;
+      }
+
+      setLogoFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => setLogoPreview(e.target.result);
+      reader.readAsDataURL(file);
+    } else {
+      setLogoFile(null);
+      setLogoPreview(null);
+    }
   };
 
   return (
@@ -34,6 +80,7 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="company-form">
+          {/* Existing form fields */}
           <div className="form-section"> 
             <div className="form-grid">
               <div className="form-field">
@@ -41,6 +88,7 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
                 <input
                   type="text"
                   name="company_name"
+                  className='form-control'
                   value={formData.company_name}
                   onChange={handleChange}
                   required
@@ -50,16 +98,11 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
 
               <div className="form-field">
                 <label>Industry</label>
-                <select
-                  name="industry"
-                  value={formData.industry}
-                  onChange={handleChange}
-                >
+                <select name="industry" value={formData.industry} onChange={handleChange}>
                   <option value="">Select Industry</option>
                   <option value="Technology">Technology</option>
                   <option value="Healthcare">Healthcare</option>
                   <option value="Finance">Finance</option>
-                  <option value="Manufacturing">Manufacturing</option>
                   <option value="Retail">Retail</option>
                   <option value="Education">Education</option>
                   <option value="Other">Other</option>
@@ -68,11 +111,7 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
 
               <div className="form-field">
                 <label>Company Size</label>
-                <select
-                  name="size"
-                  value={formData.size}
-                  onChange={handleChange}
-                >
+                <select name="size" value={formData.size} onChange={handleChange}>
                   <option value="">Select Size</option>
                   <option value="startup">Startup (1-10)</option>
                   <option value="small">Small (11-50)</option>
@@ -84,6 +123,29 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
             </div>
           </div>
 
+          {/* Simple Logo Upload Section */}
+          <div className="form-section">
+            <h4>Company Logo (Optional)</h4>
+            <div className="form-field">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
+                style={{ marginBottom: '10px' }}
+              />
+              {logoPreview && (
+                <div style={{ marginTop: '10px' }}>
+                  <img 
+                    src={logoPreview} 
+                    alt="Logo preview" 
+                    style={{ maxWidth: '150px', maxHeight: '80px', objectFit: 'contain' }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Admin fields */}
           <div className="form-section">
             <h4>Company Admin User</h4>
             <div className="form-grid">
@@ -92,6 +154,7 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
                 <input
                   type="text"
                   name="admin_name"
+                  className='form-control'
                   value={formData.admin_name}
                   onChange={handleChange}
                   required
@@ -104,6 +167,7 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
                 <input
                   type="email"
                   name="admin_email"
+                  className='form-control'
                   value={formData.admin_email}
                   onChange={handleChange}
                   required
@@ -116,6 +180,7 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
                 <input
                   type="password"
                   name="admin_password"
+                  className='form-control'
                   value={formData.admin_password}
                   onChange={handleChange}
                   required
@@ -127,19 +192,10 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
           </div>
 
           <div className="form-actions">
-            <button 
-              type="button" 
-              className="secondary-btn"
-              onClick={onCancel}
-              disabled={isLoading}
-            >
+            <button type="button" className="secondary-btn" onClick={onCancel} disabled={isLoading}>
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="primary-btn"
-              disabled={isLoading}
-            >
+            <button type="submit" className="primary-btn" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader size={14} className="spinner" />
@@ -157,16 +213,38 @@ const CreateCompanyForm = ({ onSubmit, onCancel, isLoading }) => {
 };
 
 // ------------------ CompanyDetails ------------------
-const CompanyDetails = ({ company, onClose }) => {
+const CompanyDetails = ({ company, onClose, canEdit = false, onEdit }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content centered large">
         <div className="modal-header">
           <h3>Company Details</h3>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <div className="modal-header-actions">
+            {canEdit && (
+              <button className="secondary-btn" onClick={() => onEdit(company)}>
+                <Edit size={16} />
+                Edit Logo
+              </button>
+            )}
+            <button className="close-btn" onClick={onClose}>×</button>
+          </div>
         </div>
 
         <div className="company-details">
+          {/* Company Logo Display */}
+          {company.logo && (
+            <div className="logo-section">
+              <h4>Company Logo</h4>
+              <div className="company-logo-display-container">
+                <img 
+                  src={company.logo} 
+                  alt={`${company.company_name} logo`}
+                  className="company-logo-display"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="details-grid">
             <div className="detail-item">
               <label>Company Name</label>
@@ -190,11 +268,10 @@ const CompanyDetails = ({ company, onClose }) => {
               <label>Created</label>
               <span>{formatDate(company.created_at)}</span>
             </div>
-            {/* Add more date fields if they exist */}
-            {company.updated_at && (
+            {company.logo_updated_at && (
               <div className="detail-item">
-                <label>Last Updated</label>
-                <span>{formatDate(company.updated_at)}</span>
+                <label>Logo Updated</label>
+                <span>{formatDate(company.logo_updated_at)}</span>
               </div>
             )}
           </div>
@@ -204,7 +281,6 @@ const CompanyDetails = ({ company, onClose }) => {
             <div className="admin-info">
               <p><strong>Name:</strong> {company.admin_name}</p>
               <p><strong>Email:</strong> {company.admin_email}</p>
-              {/* If admin has creation date */}
               {company.admin_created_at && (
                 <p><strong>Admin Since:</strong> {formatDate(company.admin_created_at)}</p>
               )}
@@ -215,11 +291,11 @@ const CompanyDetails = ({ company, onClose }) => {
             <h4>User Statistics</h4>
             <div className="stats-grid">
               <div className="stat-card">
-                <span className="stat-number">{company.total_users}</span>
+                <span className="stat-number">{company.total_users || 0}</span>
                 <span className="stat-label">Total Users</span>
               </div>
               <div className="stat-card">
-                <span className="stat-number">{company.active_users}</span>
+                <span className="stat-number">{company.active_users || 0}</span>
                 <span className="stat-label">Active Users</span>
               </div>
             </div>
@@ -237,6 +313,7 @@ const CompanyManagement = ({ onToast }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [userRole, setUserRole] = useState('');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -246,15 +323,35 @@ const CompanyManagement = ({ onToast }) => {
   const getAuthToken = () => sessionStorage.getItem('token');
 
   useEffect(() => {
+    const role = sessionStorage.getItem('userRole');
+    setUserRole(role || '');
     loadCompanies();
   }, []);
+
+  // Check if user is super admin
+  const isSuperAdmin = userRole === 'super_admin';
+  const isCompanyAdmin = userRole === 'company_admin';
 
   const loadCompanies = async () => {
     try {
       setIsLoading(true);
       const token = getAuthToken();
 
-      const response = await fetch(`${API_BASE_URL}/api/super-admin/companies`, {
+      if (!token) {
+        onToast('Authentication required', 'error');
+        return;
+      }
+
+      // Different endpoint based on user role
+      let endpoint = `${API_BASE_URL}/api/admin/companies`;
+      
+      // For company admin, we'll filter on backend to show only their company
+      if (isCompanyAdmin) {
+        // The backend should handle filtering based on the user's company_id from the token
+        // We may need to modify the backend endpoint to support this
+      }
+
+      const response = await fetch(endpoint, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -263,13 +360,19 @@ const CompanyManagement = ({ onToast }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setCompanies(data.companies);
+        const companiesData = data.companies || [];
+        setCompanies(companiesData);
+      } else if (response.status === 403) {
+        onToast('Admin access required', 'error');
+      } else if (response.status === 401) {
+        onToast('Authentication expired. Please login again.', 'error');
       } else {
-        onToast('Failed to load companies', 'error');
+        const error = await response.json().catch(() => ({}));
+        onToast(error.error || 'Failed to load companies', 'error');
       }
     } catch (error) {
       console.error('Error loading companies:', error);
-      onToast('Error loading companies', 'error');
+      onToast('Network error. Please check your connection.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -280,30 +383,46 @@ const CompanyManagement = ({ onToast }) => {
       setIsCreating(true);
       const token = getAuthToken();
 
-      const response = await fetch(`${API_BASE_URL}/api/super-admin/companies`, {
+      if (!token) {
+        onToast('Authentication required', 'error');
+        return;
+      }
+
+      // Send FormData directly (handles both form fields and file)
+      const response = await fetch(`${API_BASE_URL}/api/admin/companies`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`
+          // Don't set Content-Type header - let browser set it with boundary for FormData
         },
-        body: JSON.stringify(formData)
+        body: formData // FormData object
       });
 
       if (response.ok) {
         const data = await response.json();
-        onToast(`Company "${data.company.company_name}" created successfully`, 'success');
+        onToast(data.message || 'Company created successfully', 'success');
         setShowCreateForm(false);
-        loadCompanies();
+        loadCompanies(); // Reload the companies list
+      } else if (response.status === 403) {
+        onToast('Super admin access required', 'error');
+      } else if (response.status === 401) {
+        onToast('Authentication expired. Please login again.', 'error');
       } else {
-        const error = await response.json();
-        onToast(error.message || 'Failed to create company', 'error');
+        const error = await response.json().catch(() => ({}));
+        onToast(error.error || 'Failed to create company', 'error');
       }
     } catch (error) {
       console.error('Error creating company:', error);
-      onToast('Error creating company', 'error');
+      onToast('Network error. Please check your connection.', 'error');
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleEditCompany = (company) => {
+    // For now, we'll just show a placeholder action for company admins
+    // This could be expanded to include logo upload functionality
+    onToast('Logo editing functionality coming soon', 'info');
   };
 
   const filteredCompanies = companies.filter(company =>
@@ -329,28 +448,35 @@ const CompanyManagement = ({ onToast }) => {
   return (
     <div className="company-management">
       <div className="section-header">
-        <h2>Company Management</h2>
+        <h2>{isSuperAdmin ? 'Company Management' : 'My Company'}</h2>
         <div className="header-actions">
-          <input
-            type="text"
-            placeholder="Search companies..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
-          <button 
-            className="primary-btn"
-            onClick={() => setShowCreateForm(true)}
-          >
-            <Plus size={16} />
-            Create Company
-          </button>
+          {/* Only show search for super admin or if there are multiple companies */}
+          {(isSuperAdmin || companies.length > 1) && (
+            <input
+              type="text"
+              placeholder="Search companies..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          )}
+          {/* Only super admin can create companies */}
+          {isSuperAdmin && (
+            <button 
+              className="primary-btn"
+              onClick={() => setShowCreateForm(true)}
+            >
+              <Plus size={16} />
+              Create Company
+            </button>
+          )}
         </div>
       </div>
 
-      {showCreateForm && (
+      {/* Only show create form for super admin */}
+      {showCreateForm && isSuperAdmin && (
         <CreateCompanyForm
           onSubmit={handleCreateCompany}
           onCancel={() => setShowCreateForm(false)}
@@ -364,14 +490,15 @@ const CompanyManagement = ({ onToast }) => {
             <table className="company-table">
               <thead>
                 <tr>
+                  <th>Logo</th>
                   <th>Company Name</th>
                   <th>Industry</th>
                   <th>Size</th>
                   <th>Status</th>
                   <th>Total Users</th>
                   <th>Active Users</th>
-                  <th>Admin Name</th>
-                  <th>Admin Email</th>
+                  {isSuperAdmin && <th>Admin Name</th>}
+                  {isSuperAdmin && <th>Admin Email</th>}
                   <th>Created Date</th>
                   {/* <th>Actions</th> */}
                 </tr>
@@ -379,6 +506,20 @@ const CompanyManagement = ({ onToast }) => {
               <tbody>
                 {paginatedCompanies.map(company => (
                   <tr key={company._id}>
+                    <td>
+                      {company.logo ? (
+                        <img 
+                          src={company.logo} 
+                          alt={`${company.company_name} logo`}
+                          className="table-logo"
+                          style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+                        />
+                      ) : (
+                        <div className="no-logo-placeholder">
+                          <Image size={16} />
+                        </div>
+                      )}
+                    </td>
                     <td>{company.company_name}</td>
                     <td>{company.industry || '-'}</td>
                     <td>{company.size || '-'}</td>
@@ -389,16 +530,16 @@ const CompanyManagement = ({ onToast }) => {
                     </td>
                     <td>{company.total_users}</td>
                     <td>{company.active_users}</td>
-                    <td>{company.admin_name}</td>
-                    <td>{company.admin_email}</td>
+                    {isSuperAdmin && <td>{company.admin_name}</td>}
+                    {isSuperAdmin && <td>{company.admin_email}</td>}
                     <td>{formatDate(company.created_at)}</td>
                     {/* <td>
-                      <button 
-                        className="secondary-btn small-btn"
+                      <button
+                        className="icon-btn"
                         onClick={() => setSelectedCompany(company)}
+                        title="View Details"
                       >
-                        <Eye size={14} />
-                        View
+                        <Eye size={16} />
                       </button>
                     </td> */}
                   </tr>
@@ -407,27 +548,37 @@ const CompanyManagement = ({ onToast }) => {
             </table>
           </div>
 
-          <div className="pagination">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => prev - 1)}
-            >
-              Prev
-            </button>
-            <span>Page {currentPage} of {totalPages}</span>
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => prev + 1)}
-            >
-              Next
-            </button>
-          </div>
+          {/* Only show pagination for super admin if there are multiple pages */}
+          {totalPages > 1 && isSuperAdmin && (
+            <div className="pagination">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => prev - 1)}
+              >
+                Prev
+              </button>
+              <span>Page {currentPage} of {totalPages}</span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => prev + 1)}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </>
       ) : (
         <div className="empty-state">
           <Building2 size={48} />
-          <h3>No Companies Found</h3>
-          <p>Create your first company to get started</p>
+          <h3>{isSuperAdmin ? 'No Companies Found' : 'Company Information Not Available'}</h3>
+          <p>
+            {searchTerm 
+              ? 'No companies match your search criteria' 
+              : isSuperAdmin 
+                ? 'Create your first company to get started'
+                : 'Please contact your administrator for more information'
+            }
+          </p>
         </div>
       )}
 
@@ -435,6 +586,8 @@ const CompanyManagement = ({ onToast }) => {
         <CompanyDetails
           company={selectedCompany}
           onClose={() => setSelectedCompany(null)}
+          canEdit={isCompanyAdmin}
+          onEdit={handleEditCompany}
         />
       )}
     </div>

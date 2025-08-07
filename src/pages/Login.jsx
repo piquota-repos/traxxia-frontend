@@ -1,6 +1,6 @@
 // Updated Login.jsx
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
@@ -12,17 +12,18 @@ import social from "../assets/social.png";
 import apple from "../assets/apple.png";
 import LanguageTranslator from "../components/LanguageTranslator";
 import { useTranslation } from "../hooks/useTranslation";
-
+import { faSun, faMoon } from "@fortawesome/free-solid-svg-icons";
+import { ThemeContext } from "../components/ThemeComponent";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
+
 
   // Use the translation hook
   const { t } = useTranslation();
@@ -37,16 +38,24 @@ const Login = () => {
         password,
       });
 
-      // Store user session data
+      // Store user session data - Updated to match backend response structure
       sessionStorage.setItem("token", res.data.token);
       sessionStorage.setItem("userId", res.data.user.id);
       sessionStorage.setItem("userName", res.data.user.name);
       sessionStorage.setItem("userEmail", res.data.user.email);
       sessionStorage.setItem("userRole", res.data.user.role);
-      sessionStorage.setItem("latestVersion", res.data.latest_version || "");
+      sessionStorage.setItem("userCompany", res.data.user.company?.name || "");
+      
+      // Store company information for MenuBar
+      if (res.data.user.company) {
+        sessionStorage.setItem("companyName", res.data.user.company.name || "");
+        sessionStorage.setItem("companyLogo", res.data.user.company.logo || "");
+        sessionStorage.setItem("companyIndustry", res.data.user.company.industry || "");
+      }
+      
       sessionStorage.setItem(
         "isAdmin",
-        res.data.user.role === "admin" ? "true" : "false"
+        ["super_admin", "company_admin"].includes(res.data.user.role) ? "true" : "false"
       );
 
       // IMPORTANT: Store the current language in session storage for the application
@@ -58,7 +67,9 @@ const Login = () => {
       navigate("/dashboard");
     } catch (err) {
       console.error(err.response?.data || err.message);
-      alert(err.response?.data?.message || t("login_failed"));
+      // Updated error handling to match backend error response
+      const errorMessage = err.response?.data?.error || t("login_failed");
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -87,6 +98,14 @@ const Login = () => {
       </div>
 
       <div className="login-right-section">
+           <div className="theme-icon-toggle" >
+  <button onClick={toggleTheme} className="theme-toggle-button">
+    <FontAwesomeIcon
+      icon={theme === "dark" ? faSun : faMoon}
+      style={{ fontSize: "20px" }}
+    />
+  </button>
+</div>
         <div className="login-box">
           <h2>{t("welcome")}</h2>
 
@@ -127,61 +146,12 @@ const Login = () => {
                   />
                 </button>
               </div>
-            </div>
-
-            {/* Terms and Conditions Checkbox */}
-            <div className="form-group terms-group">
-              <label className="terms-checkbox">
-                <input
-                  type="checkbox"
-                  checked={acceptTerms}
-                  onChange={(e) => setAcceptTerms(e.target.checked)}
-                />
-                <span>
-                  I agree to the{" "}
-                  <button
-                    type="button"
-                    className="terms-link"
-                    onClick={() => setShowTermsModal(true)}
-                  >
-                    Terms and Conditions
-                  </button>
-                </span>
-              </label>
-            </div>
-
-            {showTermsModal && (
-              <div className="terms-modal-overlay">
-                <div className="terms-modal">
-                  <h3>Terms and Conditions</h3>
-                  <div className="terms-content">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      Nulla et euismod nulla.
-                    </p>
-                    <p>
-                      Suspendisse potenti. Etiam ac mauris lectus. Pellentesque
-                      habitant morbi tristique.
-                    </p>
-                    <p>
-                      By using this app, you agree to abide by these terms. This
-                      is dummy content.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setShowTermsModal(false)}
-                    className="close-terms-button"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            )}
+            </div> 
 
             <button
               type="submit"
               className={`login-button ${isLoading ? "loading" : ""}`}
-              disabled={isLoading || !acceptTerms}
+              disabled={isLoading}
             >
               {isLoading ? t("signing_in") : t("login")}
             </button>
