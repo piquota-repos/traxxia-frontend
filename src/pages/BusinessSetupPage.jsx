@@ -33,6 +33,7 @@ const BusinessSetupPage = () => {
   const business = location.state?.business;
   const selectedBusinessId = location.state?.business?._id;
   const selectedBusinessName = location.state?.business?.business_name;
+
   const { t } = useTranslation();
 
   // Constants
@@ -103,6 +104,9 @@ const BusinessSetupPage = () => {
   const [isProductivityRegenerating, setIsProductivityRegenerating] = useState(false);
   const [maturityData, setMaturityData] = useState(null);
   const [isMaturityRegenerating, setIsMaturityRegenerating] = useState(false);
+  const [highlightedMissingQuestions, setHighlightedMissingQuestions] = useState(null);
+  const [isChannelHeatmapReady, setIsChannelHeatmapReady] = useState(false);
+  const [isCapabilityHeatmapReady, setIsCapabilityHeatmapReady] = useState(false);
 
   // Refs
   const cultureProfileRef = useRef(null);
@@ -164,13 +168,41 @@ const BusinessSetupPage = () => {
     return phases;
   };
 
-  // Phase Tabs Component
+  const handleRedirectToBrief = (missingQuestionsData) => {
+    // Store the missing questions data
+    setHighlightedMissingQuestions(missingQuestionsData);
+
+    // Switch to brief tab
+    if (isMobile) {
+      setActiveTab("brief");
+    } else {
+      if (isAnalysisExpanded) {
+        setIsSliding(true);
+        setIsAnalysisExpanded(false);
+        setActiveTab("brief");
+        setTimeout(() => setIsSliding(false), 1000);
+      } else {
+        setActiveTab("brief");
+      }
+    }
+
+    // Show toast message
+    showToastMessage(
+      `Please answer ${missingQuestionsData.missing_count} more question${missingQuestionsData.missing_count > 1 ? 's' : ''} to generate this analysis.`,
+      "warning"
+    );
+
+    // Auto-clear highlighting after 10 seconds
+    setTimeout(() => {
+      setHighlightedMissingQuestions(null);
+    }, 30000);
+  };
+
   const PhaseTabsComponent = () => {
     const availablePhases = getAvailablePhases();
 
     if (availablePhases.length === 0) return null;
 
-    // Get phase-specific dropdown options
     const getPhaseSpecificOptions = (phase) => {
       const baseOptions = {
         initial: [
@@ -200,12 +232,17 @@ const BusinessSetupPage = () => {
     };
 
     const currentPhaseOptions = getPhaseSpecificOptions(selectedPhase);
-    const currentPhaseLabel = selectedPhase === 'initial' ? 'Initial Phase' : 'Essential Phase';
 
     return (
       <>
         <div className="phase-tabs-container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%'
+          }}>
+            {/* Left side - Phase tabs */}
             <div className="phase-tabs-nav">
               {availablePhases.map(phase => (
                 <button
@@ -217,137 +254,150 @@ const BusinessSetupPage = () => {
                 </button>
               ))}
             </div>
-          </div>
 
-          <div className="phase-dropdown-section">
-            <div ref={dropdownRef} className="dropdown-wrapper" style={{ position: "relative" }}>
-              <button
-                className="dropdown-button"
-                onClick={() => setShowDropdown(prev => !prev)}
-                style={{
-                  backgroundColor: "#fff",
-                  color: "#3b82f6",
-                  border: "1px solid #e1e5e9",
-                  borderRadius: "10px",
-                  padding: "10px 18px",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  boxShadow: "0 2px 8px rgba(59, 130, 246, 0.15)",
-                  minWidth: "180px",
-                  justifyContent: "space-between"
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.borderColor = "#3b82f6";
-                  e.target.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.borderColor = "#e2e8f0";
-                  e.target.style.transform = "translateY(0)";
-                }}
-              >
-                <span>Go to Section</span>
-                <ChevronDown
-                  size={16}
+            {/* Right side - Go to Section and PDF Download */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {/* Go to Section dropdown */}
+              <div ref={dropdownRef} className="dropdown-wrapper" style={{ position: "relative" }}>
+                <button
+                  className="dropdown-button"
+                  onClick={() => setShowDropdown(prev => !prev)}
                   style={{
-                    marginLeft: 8,
-                    transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s ease'
+                    backgroundColor: "#fff",
+                    color: "#3b82f6",
+                    border: "1px solid #e1e5e9",
+                    borderRadius: "10px",
+                    padding: "10px 18px",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 2px 8px rgba(59, 130, 246, 0.15)",
+                    minWidth: "180px",
+                    justifyContent: "space-between"
                   }}
-                />
-              </button>
+                  onMouseEnter={(e) => {
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.borderColor = "#e2e8f0";
+                    e.target.style.transform = "translateY(0)";
+                  }}
+                >
+                  <span>Go to Section</span>
+                  <ChevronDown
+                    size={16}
+                    style={{
+                      marginLeft: 8,
+                      transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease'
+                    }}
+                  />
+                </button>
 
-              {showDropdown && (
-                <div style={{
-                  position: "absolute",
-                  top: "110%",
-                  right: 0,
-                  backgroundColor: "#fff",
-                  border: "2px solid #e2e8f0",
-                  borderRadius: "12px",
-                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
-                  minWidth: "220px",
-                  zIndex: 1000,
-                  maxHeight: "300px",
-                  overflowY: "scroll",
-                  backdropFilter: "blur(20px)"
-                }}>
-                  {/* Phase Header */}
+                {showDropdown && (
                   <div style={{
-                    padding: "12px 16px",
-                    backgroundColor: selectedPhase === 'essential' ? "#fef3c7" : "#dbeafe",
-                    borderBottom: "1px solid #e2e8f0",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    color: selectedPhase === 'essential' ? "#92400e" : "#1e40af",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px"
+                    position: "absolute",
+                    top: "110%",
+                    right: 0,
+                    backgroundColor: "#fff",
+                    border: "2px solid #e2e8f0",
+                    borderRadius: "12px",
+                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
+                    minWidth: "220px",
+                    zIndex: 1000,
+                    maxHeight: "300px",
+                    overflowY: "scroll",
+                    backdropFilter: "blur(20px)"
                   }}>
-                    {currentPhaseLabel} Sections
-                  </div>
-
-                  {/* Options */}
-                  {currentPhaseOptions.map((item, index) => (
-                    <div
-                      key={item}
-                      onClick={() => handleOptionClick(item)}
-                      style={{
-                        padding: "12px 16px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        color: "#374151",
-                        fontWeight: 500,
-                        borderBottom: index < currentPhaseOptions.length - 1 ? "1px solid #f1f5f9" : "none",
-                        transition: "all 0.2s ease",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = selectedPhase === 'essential' ? "#fef3c7" : "#dbeafe";
-                        e.currentTarget.style.color = selectedPhase === 'essential' ? "#92400e" : "#1e40af";
-                        e.currentTarget.style.paddingLeft = "20px";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.color = "#374151";
-                        e.currentTarget.style.paddingLeft = "16px";
-                      }}
-                    >
-                      <span style={{
-                        width: "6px",
-                        height: "6px",
-                        borderRadius: "50%",
-                        backgroundColor: selectedPhase === 'essential' ? "#f59e0b" : "#3b82f6",
-                        flexShrink: 0
-                      }}></span>
-                      {item}
-                    </div>
-                  ))}
-
-                  {currentPhaseOptions.length === 0 && (
+                    {/* Phase Header */}
                     <div style={{
-                      padding: "16px",
-                      textAlign: "center",
-                      color: "#6b7280",
-                      fontSize: "14px",
-                      fontStyle: "italic"
+                      padding: "12px 16px",
+                      backgroundColor: selectedPhase === 'essential' ? "#fef3c7" : "#dbeafe",
+                      borderBottom: "1px solid #e2e8f0",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      color: selectedPhase === 'essential' ? "#92400e" : "#1e40af",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px"
                     }}>
-                      No sections available for this phase
+                      {selectedPhase === 'initial' ? 'Initial Phase' : 'Essential Phase'} Sections
                     </div>
-                  )}
-                </div>
-              )}
+
+                    {/* Options */}
+                    {currentPhaseOptions.map((item, index) => (
+                      <div
+                        key={item}
+                        onClick={() => handleOptionClick(item)}
+                        style={{
+                          padding: "12px 16px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                          color: "#374151",
+                          fontWeight: 500,
+                          borderBottom: index < currentPhaseOptions.length - 1 ? "1px solid #f1f5f9" : "none",
+                          transition: "all 0.2s ease",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = selectedPhase === 'essential' ? "#fef3c7" : "#dbeafe";
+                          e.currentTarget.style.color = selectedPhase === 'essential' ? "#92400e" : "#1e40af";
+                          e.currentTarget.style.paddingLeft = "20px";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                          e.currentTarget.style.color = "#374151";
+                          e.currentTarget.style.paddingLeft = "16px";
+                        }}
+                      >
+                        <span style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          backgroundColor: selectedPhase === 'essential' ? "#f59e0b" : "#3b82f6",
+                          flexShrink: 0
+                        }}></span>
+                        {item}
+                      </div>
+                    ))}
+
+                    {currentPhaseOptions.length === 0 && (
+                      <div style={{
+                        padding: "16px",
+                        textAlign: "center",
+                        color: "#6b7280",
+                        fontSize: "14px",
+                        fontStyle: "italic"
+                      }}>
+                        No sections available for this phase
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* PDF Export Button */}
+              <PDFExportButton className="pdf-export-button" style={{
+                marginRight: "10px"
+              }}
+                businessName={businessData.name}
+                onToastMessage={showToastMessage}
+                currentPhase={selectedPhase}
+                disabled={isAnalysisRegenerating}
+                isChannelHeatmapReady={isChannelHeatmapReady}
+                isCapabilityHeatmapReady={isCapabilityHeatmapReady}
+              />
             </div>
           </div>
         </div>
       </>
     );
   };
-
   // Strategic Analysis Generation - Simplified
   const generateStrategicAnalysis = async (freshAnswers) => {
     try {
@@ -389,7 +439,7 @@ const BusinessSetupPage = () => {
       // Always overwrite existing strategic data
       setStrategicData(strategicContent);
       await saveAnalysisToBackend(strategicContent, 'strategic');
- 
+
     } catch (error) {
       console.error('Error generating strategic analysis:', error);
       throw error;
@@ -461,7 +511,7 @@ const BusinessSetupPage = () => {
   };
 
   const generateFullSwotPortfolioForCompletion = async (completedSet = null) => {
-    if (isRegeneratingRef.current) { 
+    if (isRegeneratingRef.current) {
       return;
     }
 
@@ -621,7 +671,7 @@ const BusinessSetupPage = () => {
         }
       });
 
-      setHasAnalysisData(hasAnyAnalysis); 
+      setHasAnalysisData(hasAnyAnalysis);
     } catch (error) {
       console.error('Error loading existing analysis data:', error);
     }
@@ -740,7 +790,7 @@ const BusinessSetupPage = () => {
       };
 
       // Determine the correct phase
-      const phase = analysisPhaseMap[analysisType] || 'initial'; 
+      const phase = analysisPhaseMap[analysisType] || 'initial';
 
       const response = await fetch(`${API_BASE_URL}/api/conversations/phase-analysis`, {
         method: 'POST',
@@ -765,7 +815,7 @@ const BusinessSetupPage = () => {
       if (!response.ok) {
         console.error(`Failed to save ${analysisType} analysis:`, response.statusText);
         return false;
-      } 
+      }
       return true;
     } catch (error) {
       console.error(`Error saving ${analysisType} analysis:`, error);
@@ -1084,67 +1134,67 @@ const BusinessSetupPage = () => {
   };
 
   const generateMaturityScore = async (freshAnswers) => {
-  try {
-    const questionsArray = [];
-    const answersArray = [];
+    try {
+      const questionsArray = [];
+      const answersArray = [];
 
-    questions
-      .filter(q => freshAnswers[q._id])
-      .sort((a, b) => (a.order || 0) - (b.order || 0))
-      .forEach(question => {
-        questionsArray.push(question.question_text);
-        answersArray.push(freshAnswers[question._id]);
+      questions
+        .filter(q => freshAnswers[q._id])
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .forEach(question => {
+          questionsArray.push(question.question_text);
+          answersArray.push(freshAnswers[question._id]);
+        });
+
+      if (questionsArray.length === 0) {
+        throw new Error('No questions available for maturity score analysis');
+      }
+
+      const response = await fetch(`${ML_API_BASE_URL}/maturity-scoring`, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          questions: questionsArray,
+          answers: answersArray
+        })
       });
 
-    if (questionsArray.length === 0) {
-      throw new Error('No questions available for maturity score analysis');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Maturity Score API returned ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json();
+
+      // Fix: The API returns the maturity data directly, so we need to wrap it properly
+      let maturityContent = null;
+
+      // Check if the result already has the expected structure
+      if (result.maturityScore || result.maturity_score) {
+        maturityContent = result;
+      } else if (result.dimensions && result.overallMaturity) {
+        // API returns data directly in root - wrap it in maturityScore property
+        maturityContent = {
+          maturityScore: result
+        };
+      } else {
+        // Fallback - assume the whole result is the maturity data
+        maturityContent = {
+          maturityScore: result
+        };
+      }
+
+      setMaturityData(maturityContent);
+      await saveAnalysisToBackend(maturityContent, 'maturityScore');
+      return maturityContent;
+    } catch (error) {
+      console.error('Error generating Maturity Score:', error);
+      throw error;
     }
-
-    const response = await fetch(`${ML_API_BASE_URL}/maturity-scoring`, {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        questions: questionsArray,
-        answers: answersArray
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Maturity Score API returned ${response.status}: ${errorText}`);
-    }
-
-    const result = await response.json();
-    
-    // Fix: The API returns the maturity data directly, so we need to wrap it properly
-    let maturityContent = null;
-    
-    // Check if the result already has the expected structure
-    if (result.maturityScore || result.maturity_score) {
-      maturityContent = result;
-    } else if (result.dimensions && result.overallMaturity) {
-      // API returns data directly in root - wrap it in maturityScore property
-      maturityContent = { 
-        maturityScore: result 
-      };
-    } else {
-      // Fallback - assume the whole result is the maturity data
-      maturityContent = { 
-        maturityScore: result 
-      };
-    } 
-    
-    setMaturityData(maturityContent);
-    await saveAnalysisToBackend(maturityContent, 'maturityScore');
-    return maturityContent;
-  } catch (error) {
-    console.error('Error generating Maturity Score:', error);
-    throw error;
-  }
-};
+  };
   const generateCompetitiveAdvantage = async (freshAnswers) => {
     try {
       const questionsArray = [];
@@ -1205,10 +1255,36 @@ const BusinessSetupPage = () => {
       setIsAnalysisRegenerating(true);
 
       if (forceRegenerate || (updatedQuestionId && updatedAnswer)) {
-        showToastMessage("Regenerating all analysis components...", "info");
+        showToastMessage(`Regenerating all ${selectedPhase} phase analysis components...`, "info");
       }
 
-      clearAllAnalysisData();
+      // Clear analysis data based on current phase
+      if (selectedPhase === 'initial') {
+        // Clear initial phase data
+        setSwotAnalysisResult("");
+        setPurchaseCriteriaData(null);
+        setChannelHeatmapData(null);
+        setLoyaltyNPSData(null);
+        setCapabilityHeatmapData(null);
+        setStrategicData(null);
+        setPortersData(null);
+        setPestelData(null);
+      } else if (selectedPhase === 'essential') {
+        // Clear essential phase data
+        setFullSwotData(null);
+        setCustomerSegmentationData(null);
+        setCompetitiveAdvantageData(null);
+        setChannelEffectivenessData(null);
+        setExpandedCapabilityData(null);
+        setStrategicGoalsData(null);
+        setStrategicRadarData(null);
+        setCultureProfileData(null);
+        setProductivityData(null);
+        setMaturityData(null);
+        // Also regenerate strategic analysis for essential phase
+        setStrategicData(null);
+      }
+
       await new Promise(resolve => setTimeout(resolve, 200));
 
       let answersToUse = { ...userAnswers };
@@ -1216,21 +1292,35 @@ const BusinessSetupPage = () => {
         answersToUse[updatedQuestionId] = updatedAnswer;
       }
 
-      // Generate initial phase analysis
-      const analysisPromises = [
-        generateSWOTAnalysisWithAnswers(answersToUse),
-        generateSingleAnalysisWithAnswers('purchaseCriteria', 'purchase-criteria', 'purchaseCriteria', setPurchaseCriteriaData, answersToUse),
-        generateSingleAnalysisWithAnswers('loyaltyNPS', 'loyalty-metrics', 'loyaltyMetrics', setLoyaltyNPSData, answersToUse),
-        generateSingleAnalysisWithAnswers('channelHeatmap', 'channel-heatmap', 'channelHeatmap', setChannelHeatmapData, answersToUse),
-        generateSingleAnalysisWithAnswers('capabilityHeatmap', 'capability-heatmap', 'capabilityHeatmap', setCapabilityHeatmapData, answersToUse),
-        generateStrategicAnalysisWithAnswers(answersToUse), // Simplified call
-        generatePortersAnalysisWithAnswers(answersToUse),
-        generatePestelAnalysisWithAnswers(answersToUse)
-      ];
+      let analysisPromises = [];
 
-      if (phaseManager.canGenerateFullSwot()) {
-        analysisPromises.push(generateFullSwotPortfolio(answersToUse));
-        analysisPromises.push(generateSingleAnalysisWithAnswers('customerSegmentation', 'customer-segment', 'customerSegmentation', setCustomerSegmentationData, answersToUse));
+      if (selectedPhase === 'initial') {
+        // Generate initial phase analysis
+        analysisPromises = [
+          generateSWOTAnalysisWithAnswers(answersToUse),
+          generateSingleAnalysisWithAnswers('purchaseCriteria', 'purchase-criteria', 'purchaseCriteria', setPurchaseCriteriaData, answersToUse),
+          generateSingleAnalysisWithAnswers('loyaltyNPS', 'loyalty-metrics', 'loyaltyMetrics', setLoyaltyNPSData, answersToUse),
+          generateSingleAnalysisWithAnswers('channelHeatmap', 'channel-heatmap', 'channelHeatmap', setChannelHeatmapData, answersToUse),
+          generateSingleAnalysisWithAnswers('capabilityHeatmap', 'capability-heatmap', 'capabilityHeatmap', setCapabilityHeatmapData, answersToUse),
+          generateStrategicAnalysisWithAnswers(answersToUse),
+          generatePortersAnalysisWithAnswers(answersToUse),
+          generatePestelAnalysisWithAnswers(answersToUse)
+        ];
+      } else if (selectedPhase === 'essential') {
+        // Generate essential phase analysis
+        analysisPromises = [
+          generateFullSwotPortfolio(answersToUse),
+          generateSingleAnalysisWithAnswers('customerSegmentation', 'customer-segment', 'customerSegmentation', setCustomerSegmentationData, answersToUse),
+          generateCompetitiveAdvantage(answersToUse),
+          generateChannelEffectiveness(answersToUse),
+          generateExpandedCapability(answersToUse),
+          generateStrategicGoals(answersToUse),
+          generateStrategicRadar(answersToUse),
+          generateCultureProfile(answersToUse),
+          generateProductivityMetrics(answersToUse),
+          generateMaturityScore(answersToUse),
+          generateStrategicAnalysisWithAnswers(answersToUse) // Include strategic analysis for essential phase too
+        ];
       }
 
       const results = await Promise.allSettled(analysisPromises);
@@ -1238,18 +1328,18 @@ const BusinessSetupPage = () => {
 
       if (failures.length > 0) {
         showToastMessage(
-          `${analysisPromises.length - failures.length}/${analysisPromises.length} analyses completed successfully.`,
+          `${analysisPromises.length - failures.length}/${analysisPromises.length} ${selectedPhase} phase analyses completed successfully.`,
           failures.length < analysisPromises.length ? "warning" : "error"
         );
       } else {
         if (forceRegenerate || (updatedQuestionId && updatedAnswer)) {
-          showToastMessage("All analysis components regenerated successfully!", "success");
+          showToastMessage(`All ${selectedPhase} phase analysis components regenerated successfully!`, "success");
         }
       }
 
     } catch (error) {
       console.error('Error regenerating all analysis:', error);
-      showToastMessage("Failed to regenerate analysis components. Please try again.", "error");
+      showToastMessage(`Failed to regenerate ${selectedPhase} phase analysis components. Please try again.`, "error");
     } finally {
       isRegeneratingRef.current = false;
       setIsAnalysisRegenerating(false);
@@ -1310,7 +1400,7 @@ const BusinessSetupPage = () => {
     }
   };
 
-  const handleQuestionCompleted = async (questionId) => { 
+  const handleQuestionCompleted = async (questionId) => {
     // Update completed questions first
     const newCompletedSet = new Set([...completedQuestions, questionId]);
     setCompletedQuestions(newCompletedSet);
@@ -1322,7 +1412,7 @@ const BusinessSetupPage = () => {
 
       const completedInitial = initialQuestions.filter(q => newCompletedSet.has(q._id));
       const completedEssential = essentialQuestions.filter(q => newCompletedSet.has(q._id));
- 
+
 
       // Get the phase of the completed question
       const completedQuestion = questions.find(q => q._id === questionId);
@@ -1332,7 +1422,7 @@ const BusinessSetupPage = () => {
       if (completedQuestionPhase === 'initial' &&
         initialQuestions.length > 0 &&
         completedInitial.length === initialQuestions.length &&
-        !hasAnalysisData) { 
+        !hasAnalysisData) {
         await regenerateAllAnalysisForCompletion();
       }
 
@@ -1340,7 +1430,7 @@ const BusinessSetupPage = () => {
       if (completedQuestionPhase === 'essential' &&
         essentialQuestions.length > 0 &&
         completedEssential.length === essentialQuestions.length &&
-        (!fullSwotData || !competitiveAdvantageData)) { 
+        (!fullSwotData || !competitiveAdvantageData)) {
         await generateFullSwotPortfolioForCompletion();
       }
     }, 100);
@@ -1945,57 +2035,57 @@ const BusinessSetupPage = () => {
     }
   };
 
- // Update the createIndividualRegenerationHandler function
-const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, setter, displayName, setIsRegenerating) => {
-  return async () => {
-    if (!phaseManager.canRegenerateAnalysis() || isRegeneratingRef.current) return;
+  // Update the createIndividualRegenerationHandler function
+  const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, setter, displayName, setIsRegenerating) => {
+    return async () => {
+      if (!phaseManager.canRegenerateAnalysis() || isRegeneratingRef.current) return;
 
-    try {
-      setIsRegenerating(true);
-      showToastMessage(`Regenerating ${displayName}...`, "info");
-      setter(null);
-      await new Promise(resolve => setTimeout(resolve, 200));
+      try {
+        setIsRegenerating(true);
+        showToastMessage(`Regenerating ${displayName}...`, "info");
+        setter(null);
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-      // Handle special cases that have custom generation functions
-      if (analysisType === 'porters') {
-        await generatePortersAnalysisWithAnswers(userAnswers);
-      } else if (analysisType === 'pestel') {
-        await generatePestelAnalysisWithAnswers(userAnswers);
-      } else if (analysisType === 'strategic') {
-        await generateStrategicAnalysisWithAnswers(userAnswers);
-      } else if (analysisType === 'fullSwot') {
-        await generateFullSwotPortfolio();
-      } else if (analysisType === 'competitiveAdvantage') {
-        await generateCompetitiveAdvantage(userAnswers);
-      } else if (analysisType === 'channelEffectiveness') {
-        await generateChannelEffectiveness(userAnswers);
-      } else if (analysisType === 'expandedCapability') {
-        await generateExpandedCapability(userAnswers);
-      } else if (analysisType === 'strategicGoals') {
-        await generateStrategicGoals(userAnswers);
-      } else if (analysisType === 'strategicRadar') {
-        await generateStrategicRadar(userAnswers);
-      } else if (analysisType === 'cultureProfile') {
-        await generateCultureProfile(userAnswers);
-      } else if (analysisType === 'productivityMetrics') {
-        await generateProductivityMetrics(userAnswers);
-      } else if (analysisType === 'maturityScore') {
-        // Use the custom maturity score function
-        await generateMaturityScore(userAnswers);
-      } else {
-        // Use the generic function for standard analyses
-        await generateSingleAnalysis(analysisType, endpoint, dataKey, setter);
+        // Handle special cases that have custom generation functions
+        if (analysisType === 'porters') {
+          await generatePortersAnalysisWithAnswers(userAnswers);
+        } else if (analysisType === 'pestel') {
+          await generatePestelAnalysisWithAnswers(userAnswers);
+        } else if (analysisType === 'strategic') {
+          await generateStrategicAnalysisWithAnswers(userAnswers);
+        } else if (analysisType === 'fullSwot') {
+          await generateFullSwotPortfolio();
+        } else if (analysisType === 'competitiveAdvantage') {
+          await generateCompetitiveAdvantage(userAnswers);
+        } else if (analysisType === 'channelEffectiveness') {
+          await generateChannelEffectiveness(userAnswers);
+        } else if (analysisType === 'expandedCapability') {
+          await generateExpandedCapability(userAnswers);
+        } else if (analysisType === 'strategicGoals') {
+          await generateStrategicGoals(userAnswers);
+        } else if (analysisType === 'strategicRadar') {
+          await generateStrategicRadar(userAnswers);
+        } else if (analysisType === 'cultureProfile') {
+          await generateCultureProfile(userAnswers);
+        } else if (analysisType === 'productivityMetrics') {
+          await generateProductivityMetrics(userAnswers);
+        } else if (analysisType === 'maturityScore') {
+          // Use the custom maturity score function
+          await generateMaturityScore(userAnswers);
+        } else {
+          // Use the generic function for standard analyses
+          await generateSingleAnalysis(analysisType, endpoint, dataKey, setter);
+        }
+
+        showToastMessage(`${displayName} regenerated successfully!`, "success");
+      } catch (error) {
+        console.error(`Error regenerating ${analysisType}:`, error);
+        showToastMessage(`Failed to regenerate ${displayName}.`, "error");
+      } finally {
+        setIsRegenerating(false);
       }
-
-      showToastMessage(`${displayName} regenerated successfully!`, "success");
-    } catch (error) {
-      console.error(`Error regenerating ${analysisType}:`, error);
-      showToastMessage(`Failed to regenerate ${displayName}.`, "error");
-    } finally {
-      setIsRegenerating(false);
-    }
+    };
   };
-};
 
   const generateSingleAnalysis = async (analysisType, endpoint, dataKey, setter) => {
     try {
@@ -2145,25 +2235,18 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
           {isAnalysisRegenerating ? (
             <>
               <Loader size={16} className="animate-spin" />
-              Regenerating...
+              Regenerating {selectedPhase}...
             </>
           ) : (
             <>
               <RefreshCw size={16} />
-              {t('RegenerateAll') || 'Regenerate All'}
+              Regenerate All {selectedPhase === 'initial' ? 'Initial' : 'Essential'}
             </>
           )}
         </button>
-
-        <PDFExportButton
-          analysisResult={swotAnalysisResult}
-          businessName={businessData.name}
-          onToastMessage={showToastMessage}
-        />
       </div>
     );
   };
-
   // Render Analysis Content
   const renderAnalysisContent = () => {
     const unlockedFeatures = phaseManager.getUnlockedFeatures();
@@ -2198,6 +2281,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
             userAnswers={userAnswers}
             saveAnalysisToBackend={saveAnalysisToBackend}
             selectedBusinessId={selectedBusinessId}
+            onRedirectToBrief={handleRedirectToBrief}
           />
         </div>
 
@@ -2219,6 +2303,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
             canRegenerate={!isAnalysisRegenerating}
             purchaseCriteriaData={purchaseCriteriaData}
             selectedBusinessId={selectedBusinessId}
+            onRedirectToBrief={handleRedirectToBrief}
           />
         </div>
 
@@ -2227,7 +2312,12 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
             questions={questions}
             userAnswers={userAnswers}
             businessName={businessData.name}
-            onDataGenerated={setChannelHeatmapData}
+            onDataGenerated={(data) => {
+              setChannelHeatmapData(data);
+              if (data && data.matrix && data.matrix.length > 0) {
+                setIsChannelHeatmapReady(true);
+              }
+            }}
             onRegenerate={createIndividualRegenerationHandler(
               'channelHeatmap',
               'channel-heatmap',
@@ -2240,6 +2330,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
             canRegenerate={!isAnalysisRegenerating}
             channelHeatmapData={channelHeatmapData}
             selectedBusinessId={selectedBusinessId}
+            onRedirectToBrief={handleRedirectToBrief}
           />
         </div>
 
@@ -2261,6 +2352,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
             canRegenerate={!isAnalysisRegenerating}
             loyaltyNPSData={loyaltyNPSData}
             selectedBusinessId={selectedBusinessId}
+            onRedirectToBrief={handleRedirectToBrief}
           />
         </div>
 
@@ -2269,7 +2361,12 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
             questions={questions}
             userAnswers={userAnswers}
             businessName={businessData.name}
-            onDataGenerated={setCapabilityHeatmapData}
+            onDataGenerated={(data) => {
+              setCapabilityHeatmapData(data);
+              if (data && data.capabilities && data.capabilities.length > 0) {
+                setIsCapabilityHeatmapReady(true);
+              }
+            }}
             onRegenerate={createIndividualRegenerationHandler(
               'capabilityHeatmap',
               'capability-heatmap',
@@ -2282,6 +2379,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
             canRegenerate={!isAnalysisRegenerating}
             capabilityHeatmapData={capabilityHeatmapData}
             selectedBusinessId={selectedBusinessId}
+            onRedirectToBrief={handleRedirectToBrief}
           />
         </div>
 
@@ -2302,6 +2400,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
             canRegenerate={!isAnalysisRegenerating}
             portersData={portersData}
             selectedBusinessId={selectedBusinessId}
+            onRedirectToBrief={handleRedirectToBrief}
           />
         </div>
 
@@ -2322,6 +2421,8 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
             canRegenerate={!isAnalysisRegenerating}
             pestelData={pestelData}
             selectedBusinessId={selectedBusinessId}
+            onRedirectToBrief={handleRedirectToBrief}
+
           />
         </div>
       </div>
@@ -2339,6 +2440,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
               canRegenerate={true}
               fullSwotData={fullSwotData}
               selectedBusinessId={selectedBusinessId}
+              onRedirectToBrief={handleRedirectToBrief}
             />
           </div>
         )}
@@ -2362,6 +2464,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
               canRegenerate={!isAnalysisRegenerating}
               customerSegmentationData={customerSegmentationData}
               selectedBusinessId={selectedBusinessId}
+              onRedirectToBrief={handleRedirectToBrief}
             />
           </div>
         )}
@@ -2375,6 +2478,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
               canRegenerate={true}
               competitiveAdvantageData={competitiveAdvantageData}
               selectedBusinessId={selectedBusinessId}
+              onRedirectToBrief={handleRedirectToBrief}
             />
           </div>
         )}
@@ -2397,6 +2501,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
               canRegenerate={!isAnalysisRegenerating}
               channelEffectivenessData={channelEffectivenessData}
               selectedBusinessId={selectedBusinessId}
+              onRedirectToBrief={handleRedirectToBrief}
             />
           </div>
         )}
@@ -2419,6 +2524,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
               canRegenerate={!isAnalysisRegenerating}
               expandedCapabilityData={expandedCapabilityData}
               selectedBusinessId={selectedBusinessId}
+              onRedirectToBrief={handleRedirectToBrief}
             />
           </div>
         )}
@@ -2441,6 +2547,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
               canRegenerate={!isAnalysisRegenerating}
               strategicGoalsData={strategicGoalsData}
               selectedBusinessId={selectedBusinessId}
+              onRedirectToBrief={handleRedirectToBrief}
             />
           </div>
         )}
@@ -2463,6 +2570,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
               canRegenerate={!isAnalysisRegenerating}
               strategicRadarData={strategicRadarData}
               selectedBusinessId={selectedBusinessId}
+              onRedirectToBrief={handleRedirectToBrief}
             />
           </div>
         )}
@@ -2485,6 +2593,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
               canRegenerate={!isAnalysisRegenerating}
               cultureProfileData={cultureProfileData}
               selectedBusinessId={selectedBusinessId}
+              onRedirectToBrief={handleRedirectToBrief}
             />
           </div>
         )}
@@ -2507,6 +2616,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
               canRegenerate={!isAnalysisRegenerating}
               productivityData={productivityData}
               selectedBusinessId={selectedBusinessId}
+              onRedirectToBrief={handleRedirectToBrief}
             />
           </div>
         )}
@@ -2529,6 +2639,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
               canRegenerate={!isAnalysisRegenerating}
               maturityData={maturityData}
               selectedBusinessId={selectedBusinessId}
+              onRedirectToBrief={handleRedirectToBrief}
             />
           </div>
         )}
@@ -2726,7 +2837,41 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
                     </div>
 
                     {activeTab === "analysis" && unlockedFeatures.analysis && (
-                      <AnalysisControls />
+                      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+
+
+                        <button
+                          onClick={() => regenerateAllAnalysis(null, null, true)}
+                          disabled={isAnalysisRegenerating || !unlockedFeatures.analysis}
+                          style={{
+                            backgroundColor: (isAnalysisRegenerating) ? "#f3f4f6" : "#10b981",
+                            color: (isAnalysisRegenerating) ? "#6b7280" : "#fff",
+                            border: "none",
+                            borderRadius: "10px",
+                            padding: "10px 18px",
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            display: "flex",
+                            alignItems: "center",
+                            cursor: (isAnalysisRegenerating) ? "not-allowed" : "pointer",
+                            gap: "8px",
+                            transition: "all 0.2s ease",
+                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"
+                          }}
+                        >
+                          {isAnalysisRegenerating ? (
+                            <>
+                              <Loader size={16} className="animate-spin" />
+                              Regenerating...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw size={16} />
+                              {t('RegenerateAll') || 'Regenerate All'}
+                            </>
+                          )}
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -2753,6 +2898,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
                             selectedBusinessId={selectedBusinessId}
                             phaseManager={phaseManager}
                             saveAnalysisToBackend={saveAnalysisToBackend}
+                            hideDownload={false}
                           />
                         </div>
                       )}
@@ -2792,7 +2938,41 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
                 </div>
 
                 {activeTab === "analysis" && unlockedFeatures.analysis && (
-                  <AnalysisControls />
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+
+
+                    <button
+                      onClick={() => regenerateAllAnalysis(null, null, true)}
+                      disabled={isAnalysisRegenerating || !unlockedFeatures.analysis}
+                      style={{
+                        backgroundColor: (isAnalysisRegenerating) ? "#f3f4f6" : "#10b981",
+                        color: (isAnalysisRegenerating) ? "#6b7280" : "#fff",
+                        border: "none",
+                        borderRadius: "10px",
+                        padding: "10px 18px",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        display: "flex",
+                        alignItems: "center",
+                        cursor: (isAnalysisRegenerating) ? "not-allowed" : "pointer",
+                        gap: "8px",
+                        transition: "all 0.2s ease",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"
+                      }}
+                    >
+                      {isAnalysisRegenerating ? (
+                        <>
+                          <Loader size={16} className="animate-spin" />
+                          Regenerating...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw size={16} />
+                          {t('RegenerateAll') || 'Regenerate All'}
+                        </>
+                      )}
+                    </button>
+                  </div>
                 )}
               </div>
             )}
@@ -2828,6 +3008,8 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
                         isProductivityRegenerating ||
                         isMaturityRegenerating
                       }
+                      highlightedMissingQuestions={highlightedMissingQuestions} // Add this prop
+                      onClearHighlight={() => setHighlightedMissingQuestions(null)}
                     />
                   </div>
                 )}
@@ -2859,6 +3041,7 @@ const createIndividualRegenerationHandler = (analysisType, endpoint, dataKey, se
                       selectedBusinessId={selectedBusinessId}
                       phaseManager={phaseManager}
                       saveAnalysisToBackend={saveAnalysisToBackend}
+                      hideDownload={false}
                     />
                   </div>
                 )}
