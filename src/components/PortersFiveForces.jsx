@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Shield, Loader, AlertTriangle, Users, DollarSign, TrendingUp, Building, ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
-import RegenerateButton from './RegenerateButton';
-import MissingQuestionsChecker from './MissingQuestionsChecker';
 import AnalysisEmptyState from './AnalysisEmptyState';
+import { checkMissingQuestionsAndRedirect, ANALYSIS_TYPES } from '../services/missingQuestionsService';
 
 const PortersFiveForces = ({
   questions = [],
@@ -39,82 +38,18 @@ const PortersFiveForces = ({
     }
   };
 
-  // Function to check missing questions and redirect
-  const checkMissingQuestionsAndRedirect = async () => {
-    try {
-      const token = getAuthToken();
-
-      const response = await fetch(
-        `${API_BASE_URL}/api/questions/missing-for-analysis`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            analysis_type: 'porters',
-            business_id: selectedBusinessId
-          })
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-
-        // If there are missing questions, redirect with highlighting
-        if (result.missing_count > 0) {
-          handleRedirectToBrief(result);
-        } else {
-          // No missing questions but data is incomplete - user needs to improve their answers
-          // Create a custom result to highlight the porters question(s)
-          const portersQuestions = await fetch(
-            `${API_BASE_URL}/api/questions`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            }
-          ).then(res => res.json()).then(data =>
-            data.questions.filter(q => q.used_for && q.used_for.includes('porters'))
-          );
-
-          handleRedirectToBrief({
-            missing_count: portersQuestions.length,
-            missing_questions: portersQuestions.map(q => ({
-              _id: q._id,
-              order: q.order,
-              question_text: q.question_text,
-              objective: q.objective,
-              required_info: q.required_info,
-              used_for: q.used_for
-            })),
-            analysis_type: 'porters',
-            message: `Please provide more detailed answers for Porter's Five Forces analysis. The current answers are insufficient to generate meaningful insights.`,
-            is_complete: false,
-            keepHighlightLonger: true // Flag to keep highlighting longer
-          });
-        }
-      } else {
-        // If API call fails, redirect to review answers
-        handleRedirectToBrief({
-          missing_count: 0,
-          missing_questions: [],
-          analysis_type: 'porters',
-          message: 'Please review and improve your answers for Porter\'s Five Forces analysis.'
-        });
+  const handleMissingQuestionsCheck = async () => {
+    const analysisConfig = ANALYSIS_TYPES.porters; 
+    
+    await checkMissingQuestionsAndRedirect(
+      'porters', 
+      selectedBusinessId,
+      handleRedirectToBrief,
+      {
+        displayName: analysisConfig.displayName,
+        customMessage: analysisConfig.customMessage
       }
-    } catch (error) {
-      console.error('Error checking missing questions:', error);
-      // If error occurs, redirect to review answers
-      handleRedirectToBrief({
-        missing_count: 0,
-        missing_questions: [],
-        analysis_type: 'porters',
-        message: 'Please review and improve your answers for Porter\'s Five Forces analysis.'
-      });
-    }
+    );
   };
 
   // Check if the porters data is empty/incomplete
@@ -244,37 +179,20 @@ const PortersFiveForces = ({
   // Check if data is incomplete and show missing questions checker
   if (!parsedData || isPortersDataIncomplete(parsedData)) {
     return (
-      <div className="porters-container">
-        <div className="cs-header">
-          <div className="cs-title-section">
-            <Shield className="main-icon" size={24} />
-            <div>
-              <h2 className='cs-title'>Porter's Five Forces Analysis</h2>
-            </div>
-          </div>
-        </div>
+      <div className="porters-container"> 
 
         {/* Replace the entire empty-state div with the common component */}
         <AnalysisEmptyState
           analysisType="porters"
           analysisDisplayName="Porter's Five Forces Analysis"
           icon={Shield}
-          onImproveAnswers={checkMissingQuestionsAndRedirect}
+          onImproveAnswers={handleMissingQuestionsCheck}
           onRegenerate={handleRegenerate}
           isRegenerating={isRegenerating}
           canRegenerate={canRegenerate}
           userAnswers={userAnswers}
           minimumAnswersRequired={3}
-        />
-
-        <MissingQuestionsChecker
-          analysisType="porters"
-          analysisData={parsedData}
-          selectedBusinessId={selectedBusinessId}
-          onRedirectToBrief={handleRedirectToBrief}
-          API_BASE_URL={API_BASE_URL}
-          getAuthToken={getAuthToken}
-        />
+        /> 
       </div>
     );
   }
@@ -282,22 +200,7 @@ const PortersFiveForces = ({
   return (
     <div className="porters-container" data-analysis-type="porters"
       data-analysis-name="Porter's Five Forces"
-      data-analysis-order="6">
-      <div className="cs-header">
-        <div className="cs-title-section">
-          <Shield className="main-icon" size={24} />
-          <div>
-            <h2 className='cs-title'>Porter's Five Forces Analysis</h2>
-          </div>
-        </div>
-        <RegenerateButton
-          onRegenerate={handleRegenerate}
-          isRegenerating={isRegenerating}
-          canRegenerate={canRegenerate}
-          sectionName="Porter's Analysis"
-          size="medium"
-        />
-      </div>
+      data-analysis-order="6"> 
 
       {/* Executive Summary Table */}
       {parsedData.executive_summary && (
@@ -359,18 +262,7 @@ const PortersFiveForces = ({
                     ))}
                   </div>
                 </div>
-              )}
-
-              {parsedData.executive_summary.strategic_implications && (
-                <div className="subsection">
-                  <h4>Strategic Implications</h4>
-                  <ul className="implications-list">
-                    {parsedData.executive_summary.strategic_implications.map((implication, index) => (
-                      <li key={index}>{implication}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              )} 
             </div>
           )}
         </div>
@@ -591,106 +483,7 @@ const PortersFiveForces = ({
             </div>
           )}
         </div>
-      )}
-
-      {/* Strategic Recommendations Table */}
-      {parsedData.strategic_recommendations && (
-        <div className="section-container">
-          <div className="section-header" onClick={() => toggleSection('recommendations')}>
-            <h3>Strategic Recommendations</h3>
-            {expandedSections.recommendations ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
-          </div>
-
-          {expandedSections.recommendations !== false && (
-            <div className="table-container">
-              {/* Immediate Actions */}
-              {parsedData.strategic_recommendations.immediate_actions && (
-                <div className="subsection">
-                  <h4>Immediate Actions (Next 3-6 months)</h4>
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Action</th>
-                        <th>Rationale</th>
-                        <th>Timeline</th>
-                        <th>Expected Impact</th>
-                        <th>Resources Required</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {parsedData.strategic_recommendations.immediate_actions.map((action, index) => (
-                        <tr key={index}>
-                          <td><strong>{action.action}</strong></td>
-                          <td>{action.rationale}</td>
-                          <td><span className="timeline-badge">{action.timeline}</span></td>
-                          <td>{action.expected_impact || 'N/A'}</td>
-                          <td>
-                            {action.resources_required ? action.resources_required.join(', ') : 'N/A'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* Short-term Initiatives */}
-              {parsedData.strategic_recommendations.short_term_initiatives && (
-                <div className="subsection">
-                  <h4>Short-term Initiatives</h4>
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Initiative</th>
-                        <th>Strategic Pillar</th>
-                        <th>Expected Outcome</th>
-                        <th>Risk Mitigation</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {parsedData.strategic_recommendations.short_term_initiatives.map((initiative, index) => (
-                        <tr key={index}>
-                          <td><strong>{initiative.initiative}</strong></td>
-                          <td>{initiative.strategic_pillar || 'N/A'}</td>
-                          <td>{initiative.expected_outcome || 'N/A'}</td>
-                          <td>{initiative.risk_mitigation || 'N/A'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* Long-term Strategic Shifts */}
-              {parsedData.strategic_recommendations.long_term_strategic_shifts && (
-                <div className="subsection">
-                  <h4>Long-term Strategic Shifts</h4>
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Strategic Shift</th>
-                        <th>Transformation Required</th>
-                        <th>Competitive Advantage</th>
-                        <th>Sustainability</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {parsedData.strategic_recommendations.long_term_strategic_shifts.map((shift, index) => (
-                        <tr key={index}>
-                          <td><strong>{shift.shift}</strong></td>
-                          <td>{shift.transformation_required || 'N/A'}</td>
-                          <td>{shift.competitive_advantage || 'N/A'}</td>
-                          <td>{shift.sustainability || 'N/A'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      )} 
 
       {/* Monitoring Dashboard Table */}
       {parsedData.monitoring_dashboard && (

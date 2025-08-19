@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Heart, TrendingUp, Users, Calendar, Loader, Target, Award, BarChart3 } from 'lucide-react';
-import RegenerateButton from './RegenerateButton';
-import MissingQuestionsChecker from './MissingQuestionsChecker';
+import { Heart, TrendingUp, Users, Calendar, Loader, Target, Award, BarChart3 } from 'lucide-react'; 
 import { useTranslation } from "../hooks/useTranslation";
 import AnalysisEmptyState from './AnalysisEmptyState';
+import { checkMissingQuestionsAndRedirect, ANALYSIS_TYPES } from '../services/missingQuestionsService';
 
 const LoyaltyNPS = ({
   questions = [],
@@ -16,8 +15,9 @@ const LoyaltyNPS = ({
   loyaltyNPSData = null,
   selectedBusinessId,
   onRedirectToBrief
-}) => {
-  const [loyaltyData, setLoyaltyData] = useState(loyaltyNPSData);
+}) => { 
+  
+  const [loyaltyData, setLoyaltyData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -35,86 +35,40 @@ const LoyaltyNPS = ({
     }
   };
 
-  // Function to check missing questions and redirect
-  const checkMissingQuestionsAndRedirect = async () => {
-    try {
-      const token = getAuthToken();
-
-      const response = await fetch(
-        `${API_BASE_URL}/api/questions/missing-for-analysis`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            analysis_type: 'loyaltyNPS',
-            business_id: selectedBusinessId
-          })
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-
-        // If there are missing questions, redirect with highlighting
-        if (result.missing_count > 0) {
-          handleRedirectToBrief(result);
-        } else {
-          // No missing questions but data is incomplete - user needs to improve their answers
-          // Create a custom result to highlight the loyaltyNPS question(s)
-          const loyaltyNPSQuestions = await fetch(
-            `${API_BASE_URL}/api/questions`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            }
-          ).then(res => res.json()).then(data =>
-            data.questions.filter(q => q.used_for && q.used_for.includes('loyaltyNPS'))
-          );
-
-          handleRedirectToBrief({
-            missing_count: loyaltyNPSQuestions.length,
-            missing_questions: loyaltyNPSQuestions.map(q => ({
-              _id: q._id,
-              order: q.order,
-              question_text: q.question_text,
-              objective: q.objective,
-              required_info: q.required_info,
-              used_for: q.used_for
-            })),
-            analysis_type: 'loyaltyNPS',
-            message: `Please provide more detailed answers for loyalty & NPS analysis. The current answers are insufficient to generate meaningful loyalty insights.`,
-            is_complete: false,
-            keepHighlightLonger: true // Flag to keep highlighting longer
-          });
-        }
-      } else {
-        // If API call fails, redirect to review answers
-        handleRedirectToBrief({
-          missing_count: 0,
-          missing_questions: [],
-          analysis_type: 'loyaltyNPS',
-          message: 'Please review and improve your answers for loyalty & NPS analysis.'
-        });
+  const handleMissingQuestionsCheck = async () => {
+    const analysisConfig = ANALYSIS_TYPES.loyaltyNPS; 
+    
+    await checkMissingQuestionsAndRedirect(
+      'loyaltyNPS', 
+      selectedBusinessId,
+      handleRedirectToBrief,
+      {
+        displayName: analysisConfig.displayName,
+        customMessage: analysisConfig.customMessage
       }
-    } catch (error) {
-      console.error('Error checking missing questions:', error);
-      // If error occurs, redirect to review answers
-      handleRedirectToBrief({
-        missing_count: 0,
-        missing_questions: [],
-        analysis_type: 'loyaltyNPS',
-        message: 'Please review and improve your answers for loyalty & NPS analysis.'
-      });
-    }
+    );
   };
 
-  // Check if the loyalty data is empty/incomplete
-  const isLoyaltyDataIncomplete = (data) => {
+  // Extract loyalty data from the new API structure
+  const extractLoyaltyData = (data) => {
+    if (!data) return null;
+
+    // Handle both old structure and new structure with loyaltyMetrics
+    if (data.loyaltyMetrics) {
+      return data.loyaltyMetrics;
+    }
+
+    // If it's already in the old format, return as is
+    if (data.method && data.overallScore !== undefined) {
+      return data;
+    }
+
+    return null;
+  };
+
+  // Check if the loyalty data is empty/incomplete - UPDATED for new structure
+  const isLoyaltyDataIncomplete = (data) => { 
+    
     if (!data) return true;
 
     // Check if essential fields are missing or null
@@ -123,9 +77,9 @@ const LoyaltyNPS = ({
     if (!data.scale) return true;
 
     // Check if scale object has required properties
-    if (!data.scale.min && data.scale.min !== 0) return true;
-    if (!data.scale.max) return true;
-
+    if (data.scale.min === null || data.scale.min === undefined) return true;
+    if (data.scale.max === null || data.scale.max === undefined) return true;
+ 
     return false;
   };
 
@@ -171,12 +125,17 @@ const LoyaltyNPS = ({
     }
   };
 
-  // Update loyalty data when prop changes
-  useEffect(() => {
-    if (loyaltyNPSData && loyaltyNPSData !== loyaltyData) {
-      setLoyaltyData(loyaltyNPSData);
-      if (onDataGenerated) {
-        onDataGenerated(loyaltyNPSData);
+  // Update loyalty data when prop changes - UPDATED for new structure
+  useEffect(() => { 
+    
+    if (loyaltyNPSData) {
+      const extractedData = extractLoyaltyData(loyaltyNPSData); 
+      
+      if (extractedData && extractedData !== loyaltyData) {
+        setLoyaltyData(extractedData);
+        if (onDataGenerated) {
+          onDataGenerated(extractedData);
+        }
       }
     }
   }, [loyaltyNPSData]);
@@ -189,7 +148,8 @@ const LoyaltyNPS = ({
     hasInitialized.current = true;
 
     if (loyaltyNPSData) {
-      setLoyaltyData(loyaltyNPSData);
+      const extractedData = extractLoyaltyData(loyaltyNPSData);
+      setLoyaltyData(extractedData);
     }
 
     return () => {
@@ -238,10 +198,16 @@ const LoyaltyNPS = ({
     // Calculate zones for NPS
     let zones = [];
     if (method === 'NPS' && scale?.zones) {
+      // Calculate proportional positions based on actual scale values
+      const totalRange = scale.max - scale.min; // 200 for NPS (-100 to 100)
+      
+      const detractorEnd = (scale.zones.detractors[1] - scale.min) / totalRange; // 0.5
+      const passiveEnd = (scale.zones.passives[1] - scale.min) / totalRange; // 0.65
+      
       zones = [
-        { name: 'Detractors', range: scale.zones.detractors, color: '#EF4444', start: 0, end: 0.5 },
-        { name: 'Passives', range: scale.zones.passives, color: '#F59E0B', start: 0.5, end: 0.65 },
-        { name: 'Promoters', range: scale.zones.promoters, color: '#10B981', start: 0.65, end: 1 }
+        { name: 'Detractors', range: scale.zones.detractors, color: '#EF4444', start: 0, end: detractorEnd },
+        { name: 'Passives', range: scale.zones.passives, color: '#F59E0B', start: detractorEnd, end: passiveEnd },
+        { name: 'Promoters', range: scale.zones.promoters, color: '#10B981', start: passiveEnd, end: 1 }
       ];
     }
 
@@ -365,6 +331,7 @@ const LoyaltyNPS = ({
         return { icon: Target, color: '#6B7280', label: 'No Data', rotation: 0 };
     }
   };
+ 
 
   if (isLoading || isRegenerating) {
     return (
@@ -403,62 +370,32 @@ const LoyaltyNPS = ({
   }
 
   // Check if data is incomplete and show missing questions checker
-  if (!loyaltyData || isLoyaltyDataIncomplete(loyaltyData)) {
+  if (!loyaltyData || isLoyaltyDataIncomplete(loyaltyData)) { 
+    
     return (
-      <div className="loyalty-nps">
-        <div className="ln-header">
-          <div className="ln-title-section">
-            <Heart className="ln-icon" size={24} />
-            <h2 className="ln-title">{t("Loyalty & NPS Score")}</h2>
-          </div>
-        </div>
-
-        {/* Replace the entire empty-state div with the common component */}
+      <div className="loyalty-nps"> 
         <AnalysisEmptyState
           analysisType="loyaltyNPS"
           analysisDisplayName="Loyalty & NPS Analysis"
           icon={Heart}
-          onImproveAnswers={checkMissingQuestionsAndRedirect}
+          onImproveAnswers={handleMissingQuestionsCheck}
           onRegenerate={handleRegenerate}
           isRegenerating={isRegenerating}
           canRegenerate={canRegenerate}
           userAnswers={userAnswers}
           minimumAnswersRequired={3}
-        />
-
-        <MissingQuestionsChecker
-          analysisType="loyaltyNPS"
-          analysisData={loyaltyData}
-          selectedBusinessId={selectedBusinessId}
-          onRedirectToBrief={handleRedirectToBrief}
-          API_BASE_URL={API_BASE_URL}
-          getAuthToken={getAuthToken}
-        />
+        /> 
       </div>
     );
   }
 
   const classification = getScoreClassification(loyaltyData.overallScore, loyaltyData.method);
-  const trendIndicator = getTrendIndicator(loyaltyData.trend);
+  const trendIndicator = getTrendIndicator(loyaltyData.trend); 
 
   return (
     <div className="loyalty-nps" data-analysis-type="loyalty-nps"
       data-analysis-name="Loyalty & NPS Analysis"
-      data-analysis-order="4">
-      {/* Header with regenerate button */}
-      <div className="ln-header">
-        <div className="ln-title-section">
-          <Heart className="ln-icon" size={24} />
-          <h2 className="ln-title">{t("Loyalty & NPS Score")}</h2>
-        </div>
-        <RegenerateButton
-          onRegenerate={handleRegenerate}
-          isRegenerating={isRegenerating}
-          canRegenerate={canRegenerate}
-          sectionName="Loyalty & NPS"
-          size="medium"
-        />
-      </div>
+      data-analysis-order="4"> 
 
       {/* Key Metrics */}
       <div className="ln-metrics">

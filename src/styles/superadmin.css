@@ -950,9 +950,9 @@
 }
 
 .stat-card {
-  background: #f9fafb;
+  background: transparent;
   padding: 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0px;
   text-align: center;
   flex: 1;
 }
@@ -1030,7 +1030,7 @@
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 10px;
   color: #6b7280;
 }
 
@@ -1729,7 +1729,7 @@
 
 /* Main Content */
 .admin-content {
-  max-width: 1400px;
+  max-width: -webkit-fill-available;
   margin: 0 auto;
   padding: 2rem;
 }
@@ -2615,9 +2615,9 @@
 }
 
 .stat-card {
-  background: #f9fafb;
+  background: transparent;
   padding: 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0px;
   text-align: center;
   flex: 1;
 }
@@ -2697,13 +2697,7 @@
   font-size: 0.75rem;
   color: #9ca3af;
 }
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #6b7280;
-}
+ 
 
 .empty-state svg {
   margin-bottom: 1rem;

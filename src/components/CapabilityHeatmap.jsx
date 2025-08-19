@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Zap, TrendingUp, Loader, Target, Award, Activity } from 'lucide-react';
-import RegenerateButton from './RegenerateButton';
-import MissingQuestionsChecker from './MissingQuestionsChecker';
+import { Zap, TrendingUp, Loader, Target, Award, Activity } from 'lucide-react'; 
 import { useTranslation } from "../hooks/useTranslation";
 import AnalysisEmptyState from './AnalysisEmptyState';
+import { checkMissingQuestionsAndRedirect, ANALYSIS_TYPES } from '../services/missingQuestionsService';
 
 const CapabilityHeatmap = ({
   questions = [],
@@ -16,8 +15,10 @@ const CapabilityHeatmap = ({
   capabilityHeatmapData = null,
   selectedBusinessId,
   onRedirectToBrief
-}) => {
-  const [capabilityData, setCapabilityData] = useState(capabilityHeatmapData);
+}) => { 
+  console.log('Raw capabilityHeatmapData:', capabilityHeatmapData);
+  
+  const [capabilityData, setCapabilityData] = useState(null);
   const [error, setError] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
@@ -29,6 +30,23 @@ const CapabilityHeatmap = ({
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
   const getAuthToken = () => sessionStorage.getItem('token');
 
+  // Extract the actual capability data from the API response
+  const extractCapabilityData = (data) => {
+    if (!data) return null;
+    
+    // If data has capabilityHeatmap property, extract it
+    if (data.capabilityHeatmap) {
+      return data.capabilityHeatmap;
+    }
+    
+    // If data already has the expected structure
+    if (data.capabilities && data.maturityScale) {
+      return data;
+    }
+    
+    return null;
+  };
+
   const handleRedirectToBrief = (missingQuestionsData = null) => {
     if (onRedirectToBrief) {
       onRedirectToBrief(missingQuestionsData);
@@ -36,84 +54,63 @@ const CapabilityHeatmap = ({
   };
 
   // Function to check missing questions and redirect
-  const checkMissingQuestionsAndRedirect = async () => {
-    try {
-      const token = getAuthToken();
+  const handleMissingQuestionsCheck = async () => {
+    const analysisConfig = ANALYSIS_TYPES.capabilityHeatmap;
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/questions/missing-for-analysis`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            analysis_type: 'capabilityHeatmap',
-            business_id: selectedBusinessId
-          })
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-
-        // If there are missing questions, redirect with highlighting
-        if (result.missing_count > 0) {
-          handleRedirectToBrief(result);
-        } else {
-          // No missing questions but data is incomplete - user needs to improve their answers
-          // Create a custom result to highlight the capabilityHeatmap question(s)
-          const capabilityHeatmapQuestions = await fetch(
-            `${API_BASE_URL}/api/questions`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            }
-          ).then(res => res.json()).then(data =>
-            data.questions.filter(q => q.used_for && q.used_for.includes('capabilityHeatmap'))
-          );
-
-          handleRedirectToBrief({
-            missing_count: capabilityHeatmapQuestions.length,
-            missing_questions: capabilityHeatmapQuestions.map(q => ({
-              _id: q._id,
-              order: q.order,
-              question_text: q.question_text,
-              objective: q.objective,
-              required_info: q.required_info,
-              used_for: q.used_for
-            })),
-            analysis_type: 'capabilityHeatmap',
-            message: `Please provide more detailed answers for capability heatmap analysis. The current answers are insufficient to generate meaningful capability insights.`,
-            is_complete: false,
-            keepHighlightLonger: true // Flag to keep highlighting longer
-          });
-        }
-      } else {
-        // If API call fails, redirect to review answers
-        handleRedirectToBrief({
-          missing_count: 0,
-          missing_questions: [],
-          analysis_type: 'capabilityHeatmap',
-          message: 'Please review and improve your answers for capability heatmap analysis.'
-        });
+    await checkMissingQuestionsAndRedirect(
+      'CapabilityHeatmap',
+      selectedBusinessId,
+      handleRedirectToBrief,
+      {
+        displayName: analysisConfig.displayName,
+        customMessage: analysisConfig.customMessage
       }
-    } catch (error) {
-      console.error('Error checking missing questions:', error);
-      // If error occurs, redirect to review answers
-      handleRedirectToBrief({
-        missing_count: 0,
-        missing_questions: [],
-        analysis_type: 'capabilityHeatmap',
-        message: 'Please review and improve your answers for capability heatmap analysis.'
-      });
-    }
+    );
   };
 
-  // Check if the capability data is empty/incomplete
+  // Check if a value contains "NOT ENOUGH DATA" (case-insensitive)
+  const hasNotEnoughDataValue = (value) => {
+    if (typeof value === 'string') {
+      return value.toUpperCase().includes('NOT ENOUGH DATA');
+    }
+    return false;
+  };
+
+  // Check if any data contains "NOT ENOUGH DATA"
+  const containsNotEnoughData = (data) => {
+    if (!data) return false;
+
+    // Check capabilities array
+    if (data.capabilities && Array.isArray(data.capabilities)) {
+      for (const capability of data.capabilities) {
+        if (hasNotEnoughDataValue(capability.name) ||
+            hasNotEnoughDataValue(capability.category) ||
+            hasNotEnoughDataValue(capability.type) ||
+            hasNotEnoughDataValue(capability.impact) ||
+            hasNotEnoughDataValue(capability.currentLevel)) {
+          return true;
+        }
+      }
+    }
+
+    // Check maturity scale
+    if (data.maturityScale && data.maturityScale.levels) {
+      for (const level of data.maturityScale.levels) {
+        if (hasNotEnoughDataValue(level.label)) {
+          return true;
+        }
+      }
+    }
+
+    // Check overall maturity
+    if (hasNotEnoughDataValue(data.overallMaturity)) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // Simplified check for incomplete data
   const isCapabilityDataIncomplete = (data) => {
     if (!data) return true;
 
@@ -126,16 +123,23 @@ const CapabilityHeatmap = ({
     // Check if overallMaturity is missing
     if (data.overallMaturity === null || data.overallMaturity === undefined) return true;
 
-    // Validate that capabilities have required fields
-    const hasIncompleteCapabilities = data.capabilities.some(capability =>
-      !capability.name ||
-      !capability.category ||
-      !capability.type ||
-      capability.currentLevel === null ||
-      capability.currentLevel === undefined
+    // Filter valid capabilities (excluding "NOT ENOUGH DATA" ones)
+    const validCapabilities = data.capabilities.filter(capability => 
+      capability.name && 
+      !hasNotEnoughDataValue(capability.name) &&
+      capability.category &&
+      !hasNotEnoughDataValue(capability.category) &&
+      capability.type &&
+      !hasNotEnoughDataValue(capability.type) &&
+      capability.currentLevel !== null &&
+      capability.currentLevel !== undefined &&
+      !hasNotEnoughDataValue(capability.currentLevel)
     );
 
-    return hasIncompleteCapabilities;
+    // If we have at least one valid capability, data is complete enough to show
+    if (validCapabilities.length > 0) return false;
+
+    return true;
   };
 
   // Check if analysis failed (all required questions answered but data is incomplete)
@@ -182,10 +186,13 @@ const CapabilityHeatmap = ({
 
   // Update capability data when prop changes
   useEffect(() => {
-    if (capabilityHeatmapData && capabilityHeatmapData !== capabilityData) {
-      setCapabilityData(capabilityHeatmapData);
+    const extractedData = extractCapabilityData(capabilityHeatmapData);
+    console.log('Extracted capability data:', extractedData);
+    
+    if (extractedData && extractedData !== capabilityData) {
+      setCapabilityData(extractedData);
       if (onDataGenerated) {
-        onDataGenerated(capabilityHeatmapData);
+        onDataGenerated(extractedData);
       }
     }
   }, [capabilityHeatmapData]);
@@ -204,7 +211,10 @@ const CapabilityHeatmap = ({
     hasInitialized.current = true;
 
     if (capabilityHeatmapData) {
-      setCapabilityData(capabilityHeatmapData);
+      const extractedData = extractCapabilityData(capabilityHeatmapData);
+      if (extractedData) {
+        setCapabilityData(extractedData);
+      }
     }
 
     return () => {
@@ -225,6 +235,23 @@ const CapabilityHeatmap = ({
     }
   };
 
+  // Filter out capabilities with "NOT ENOUGH DATA" values for display
+  const getValidCapabilities = (capabilities) => {
+    if (!capabilities) return [];
+    
+    return capabilities.filter(capability => 
+      capability.name && 
+      !hasNotEnoughDataValue(capability.name) &&
+      capability.category &&
+      !hasNotEnoughDataValue(capability.category) &&
+      capability.type &&
+      !hasNotEnoughDataValue(capability.type) &&
+      capability.currentLevel !== null &&
+      capability.currentLevel !== undefined &&
+      !hasNotEnoughDataValue(capability.currentLevel)
+    );
+  };
+
   const maturityLevels = capabilityData?.maturityScale?.levels || [
     { level: 1, label: "Initial" },
     { level: 2, label: "Developing" },
@@ -233,10 +260,12 @@ const CapabilityHeatmap = ({
     { level: 5, label: "Optimized" }
   ];
 
-  const totalCapabilities = capabilityData?.capabilities?.length || 0;
-  const strengthsCount = capabilityData?.capabilities?.filter(c => c.type === 'strength').length || 0;
-  const weaknessesCount = capabilityData?.capabilities?.filter(c => c.type === 'weakness').length || 0;
+  const validCapabilities = getValidCapabilities(capabilityData?.capabilities);
+  const totalCapabilities = validCapabilities.length;
+  const strengthsCount = validCapabilities.filter(c => c.type === 'strength').length;
+  const weaknessesCount = validCapabilities.filter(c => c.type === 'weakness').length;
   const overallMaturity = capabilityData?.overallMaturity || 0;
+
 
   if (isRegenerating) {
     return (
@@ -267,37 +296,20 @@ const CapabilityHeatmap = ({
     );
   }
 
-  // Check if data is incomplete and show missing questions checker
+  // Check if data is incomplete (including "NOT ENOUGH DATA" values) and show missing questions checker
   if (!capabilityData || isCapabilityDataIncomplete(capabilityData)) {
     return (
-      <div className="capability-heatmap">
-        <div className="ch-header">
-          <div className="ch-title-section">
-            <Zap className="ch-icon" size={24} />
-            <h2 className="ch-title">{t("Capability Heatmap")}</h2>
-          </div>
-        </div>
-
-        {/* Replace the entire empty-state div with the common component */}
+      <div className="capability-heatmap"> 
         <AnalysisEmptyState
           analysisType="capabilityHeatmap"
           analysisDisplayName="Capability Heatmap Analysis"
           icon={Zap}
-          onImproveAnswers={checkMissingQuestionsAndRedirect}
+          onImproveAnswers={handleMissingQuestionsCheck}
           onRegenerate={handleRegenerate}
           isRegenerating={isRegenerating}
           canRegenerate={canRegenerate}
           userAnswers={userAnswers}
           minimumAnswersRequired={3}
-        />
-
-        <MissingQuestionsChecker
-          analysisType="capabilityHeatmap"
-          analysisData={capabilityData}
-          selectedBusinessId={selectedBusinessId}
-          onRedirectToBrief={handleRedirectToBrief}
-          API_BASE_URL={API_BASE_URL}
-          getAuthToken={getAuthToken}
         />
       </div>
     );
@@ -306,20 +318,7 @@ const CapabilityHeatmap = ({
   return (
     <div className="capability-heatmap" data-analysis-type="capability-heatmap"
       data-analysis-name="Capability Heatmap"
-      data-analysis-order="5">
-      <div className="ch-header">
-        <div className="ch-title-section">
-          <Zap className="ch-icon" size={24} />
-          <h2 className="ch-title">{t("Capability Heatmap")}</h2>
-        </div>
-        <RegenerateButton
-          onRegenerate={handleRegenerate}
-          isRegenerating={isRegenerating}
-          canRegenerate={canRegenerate}
-          sectionName="Capability Heatmap"
-          size="medium"
-        />
-      </div>
+      data-analysis-order="5"> 
 
       <div className="ch-metrics">
         <div className="ch-metric-card ch-metric-blue">
@@ -372,7 +371,7 @@ const CapabilityHeatmap = ({
                 ))}
               </div>
 
-              {capabilityData.capabilities.map((capability) => (
+              {validCapabilities.map((capability) => (
                 <div key={capability.name} className="ch-heatmap-row">
                   <div className="ch-cell ch-cell-header ch-capability-header">
                     <div className="ch-capability-name">{capability.name}</div>
@@ -404,6 +403,10 @@ const CapabilityHeatmap = ({
                               <div>Category: {capability.category}</div>
                               <div>Type: {capability.type}</div>
                               <div>Impact: {capability.impact}</div>
+                              <div>Current Level: {capability.currentLevel}</div>
+                              {capability.targetLevel && (
+                                <div>Target Level: {capability.targetLevel}</div>
+                              )}
                             </div>
                           </div>
                         )}

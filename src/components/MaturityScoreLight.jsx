@@ -13,10 +13,9 @@ import {
   Loader,
   ChevronDown,
   ChevronRight
-} from 'lucide-react';
-import RegenerateButton from './RegenerateButton';
-import MissingQuestionsChecker from './MissingQuestionsChecker';
+} from 'lucide-react'; 
 import AnalysisEmptyState from './AnalysisEmptyState';
+import { checkMissingQuestionsAndRedirect, ANALYSIS_TYPES } from '../services/missingQuestionsService';
 
 const MaturityScore = ({ 
   maturityData = null,
@@ -41,87 +40,54 @@ const MaturityScore = ({
     }
   };
 
-  // Function to check missing questions and redirect
-  const checkMissingQuestionsAndRedirect = async () => {
-    try {
-      const token = getAuthToken();
-      
-      const response = await fetch(
-        `${API_BASE_URL}/api/questions/missing-for-analysis`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            analysis_type: 'maturityScore',
-            business_id: selectedBusinessId
-          })
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        
-        // If there are missing questions, redirect with highlighting
-        if (result.missing_count > 0) {
-          handleRedirectToBrief(result);
-        } else {
-          // No missing questions but data is incomplete - user needs to improve their answers
-          // Create a custom result to highlight the maturityScore question(s)
-          const maturityScoreQuestions = await fetch(
-            `${API_BASE_URL}/api/questions`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            }
-          ).then(res => res.json()).then(data => 
-            data.questions.filter(q => q.used_for && q.used_for.includes('maturityScore'))
-          );
-
-          handleRedirectToBrief({
-            missing_count: maturityScoreQuestions.length,
-            missing_questions: maturityScoreQuestions.map(q => ({
-              _id: q._id,
-              order: q.order,
-              question_text: q.question_text,
-              objective: q.objective,
-              required_info: q.required_info,
-              used_for: q.used_for
-            })),
-            analysis_type: 'maturityScore',
-            message: `Please provide more detailed answers for business maturity score analysis. The current answers are insufficient to generate meaningful maturity insights.`,
-            is_complete: false,
-            keepHighlightLonger: true // Flag to keep highlighting longer
-          });
-        }
-      } else {
-        // If API call fails, redirect to review answers
-        handleRedirectToBrief({
-          missing_count: 0,
-          missing_questions: [],
-          analysis_type: 'maturityScore',
-          message: 'Please review and improve your answers for business maturity score analysis.'
-        });
+  const handleMissingQuestionsCheck = async () => {
+    const analysisConfig = ANALYSIS_TYPES.maturityScore; 
+    
+    await checkMissingQuestionsAndRedirect(
+      'maturityScore', 
+      selectedBusinessId,
+      handleRedirectToBrief,
+      {
+        displayName: analysisConfig.displayName,
+        customMessage: analysisConfig.customMessage
       }
-    } catch (error) {
-      console.error('Error checking missing questions:', error);
-      // If error occurs, redirect to review answers
-      handleRedirectToBrief({
-        missing_count: 0,
-        missing_questions: [],
-        analysis_type: 'maturityScore',
-        message: 'Please review and improve your answers for business maturity score analysis.'
-      });
+    );
+  };
+
+  // Check if a value contains "NOT ENOUGH DATA" (case-insensitive)
+  const hasNotEnoughDataValue = (value) => {
+    if (typeof value === 'string') {
+      return value.toUpperCase().includes('NOT ENOUGH DATA');
     }
+    return false;
+  };
+
+  // Check if any data contains "NOT ENOUGH DATA"
+  const containsNotEnoughData = (data) => {
+    if (!data) return false;
+
+    // Helper function to recursively check an object for "NOT ENOUGH DATA"
+    const checkObjectRecursively = (obj) => {
+      if (!obj || typeof obj !== 'object') {
+        return hasNotEnoughDataValue(obj);
+      }
+
+      if (Array.isArray(obj)) {
+        return obj.some(item => checkObjectRecursively(item));
+      }
+
+      return Object.values(obj).some(value => checkObjectRecursively(value));
+    };
+
+    return checkObjectRecursively(data);
   };
 
   // Check if the maturity data is empty/incomplete
   const isMaturityDataIncomplete = (data) => {
     if (!data) return true;
+    
+    // Check for "NOT ENOUGH DATA" values first
+    if (containsNotEnoughData(data)) return true;
     
     // Handle various nested structures
     let scoreData;
@@ -169,6 +135,13 @@ const MaturityScore = ({
   // Transform raw API response to component-friendly format
   useEffect(() => {
     if (!maturityData) return;
+    
+    // Check for "NOT ENOUGH DATA" before processing
+    if (containsNotEnoughData(maturityData)) {
+      console.error('Maturity data contains "NOT ENOUGH DATA" values:', maturityData);
+      setTransformedData(null);
+      return;
+    }
     
     // Fixed: Handle the nested API response structure properly
     let scoreData;
@@ -284,27 +257,6 @@ const MaturityScore = ({
     return <BarChart3 size={16} />;
   };
 
-  // Component sections
-  const renderHeader = () => (
-    <div className="cs-header">
-      <div className="cs-title-section">
-        <Award className="main-icon" size={24} />
-        <div>
-          <h2 className="cs-title">Business Maturity Score</h2> 
-        </div>
-      </div>
-      {canRegenerate && onRegenerate && (
-        <RegenerateButton
-          onRegenerate={onRegenerate}
-          isRegenerating={isRegenerating}
-          canRegenerate={canRegenerate}
-          sectionName="Business Maturity Score"
-          size="medium"
-        />
-      )}
-    </div>
-  );
-
   const renderLoadingState = () => (
     <div className="maturity-container">
       <div className="loading-state">
@@ -320,8 +272,7 @@ const MaturityScore = ({
   );
 
   const renderErrorState = () => (
-    <div className="maturity-container">
-      {renderHeader()}
+    <div className="maturity-container"> 
       <div className="error-state">
         <div className="error-icon">⚠️</div>
         <h3>Analysis Error</h3>
@@ -751,33 +702,21 @@ const MaturityScore = ({
     return renderLoadingState();
   }
 
-  // Check if data is incomplete and show missing questions checker
+  // Check if data is incomplete (including "NOT ENOUGH DATA" values) and show missing questions checker
   if (!maturityData || isMaturityDataIncomplete(maturityData)) {
     return (
-      <div className="maturity-container">
-        {renderHeader()}
-
-        {/* Replace the entire empty-state div with the common component */}
+      <div className="maturity-container"> 
         <AnalysisEmptyState
           analysisType="maturityScore"
           analysisDisplayName="Business Maturity Score Analysis"
           icon={Award}
-          onImproveAnswers={checkMissingQuestionsAndRedirect}
+          onImproveAnswers={handleMissingQuestionsCheck}
           onRegenerate={onRegenerate}
           isRegenerating={isRegenerating}
           canRegenerate={canRegenerate}
           userAnswers={userAnswers}
           minimumAnswersRequired={3}
-        />
-        
-        <MissingQuestionsChecker
-          analysisType="maturityScore"
-          analysisData={maturityData}
-          selectedBusinessId={selectedBusinessId}
-          onRedirectToBrief={handleRedirectToBrief}
-          API_BASE_URL={API_BASE_URL}
-          getAuthToken={getAuthToken}
-        />
+        /> 
       </div>
     );
   }
@@ -787,8 +726,7 @@ const MaturityScore = ({
   }
 
   return (
-    <div className="maturity-container fade-in-up">
-      {renderHeader()}
+    <div className="maturity-container fade-in-up"> 
       
       <div className="dashboard-content">
         {renderGaugeChart()}

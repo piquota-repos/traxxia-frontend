@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   RefreshCw,
   Loader,
@@ -23,9 +23,10 @@ import {
   Monitor,
   MessageCircle,
   Building
-} from 'lucide-react';
-import RegenerateButton from './RegenerateButton';
+} from 'lucide-react'; 
 import DownloadStrategicAnalysis from './DownloadStrategicAnalysis';
+import AnalysisEmptyState from './AnalysisEmptyState';
+import { checkMissingQuestionsAndRedirect, ANALYSIS_TYPES } from '../services/missingQuestionsService';
 
 const StrategicAnalysis = ({
   questions = [],
@@ -38,16 +39,51 @@ const StrategicAnalysis = ({
   phaseManager,
   saveAnalysisToBackend,
   selectedBusinessId,
-  hideDownload = false
+  hideDownload = false,
+  onRedirectToBrief
 }) => {
-  const [localStrategicData, setLocalStrategicData] = useState(strategicData);
+  const [localStrategicData, setLocalStrategicData] = useState(null);
+  const [hasGenerated, setHasGenerated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  
+  // Prevent multiple initializations and API calls
+  const hasInitialized = useRef(false);
+  const isGenerating = useRef(false);
 
   const ML_API_BASE_URL = process.env.REACT_APP_ML_BACKEND_URL || 'https://traxxia-backend-ml.onrender.com';
 
+  const handleRedirectToBrief = (missingQuestionsData = null) => {
+    if (onRedirectToBrief) {
+      onRedirectToBrief(missingQuestionsData);
+    }
+  };
+
+  const handleMissingQuestionsCheck = async () => {
+    const analysisConfig = ANALYSIS_TYPES.strategic;
+    
+    await checkMissingQuestionsAndRedirect(
+      'strategic',
+      selectedBusinessId,
+      handleRedirectToBrief,
+      {
+        displayName: analysisConfig?.displayName || 'Strategic Analysis',
+        customMessage: analysisConfig?.customMessage || 'Complete essential phase questions to unlock strategic analysis.'
+      }
+    );
+  };
+
   const generateStrategicAnalysis = async () => {
+    // Prevent multiple simultaneous calls
+    if (isGenerating.current || isLoading) {
+      console.log('Strategic analysis already generating, skipping...');
+      return;
+    }
+
     try {
+      isGenerating.current = true;
       setIsLoading(true);
+      setErrorMessage('');
 
       const questionsArray = [];
       const answersArray = [];
@@ -64,6 +100,8 @@ const StrategicAnalysis = ({
         throw new Error('No questions available for strategic analysis');
       }
 
+      console.log('Generating strategic analysis with', questionsArray.length, 'questions');
+
       const requestPayload = {
         questions: questionsArray,
         answers: answersArray
@@ -79,11 +117,23 @@ const StrategicAnalysis = ({
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
+        let errorText;
+        try {
+          const errorData = await response.json();
+          errorText = errorData.detail || errorData.message || `HTTP ${response.status}`;
+        } catch {
+          errorText = await response.text();
+        }
         throw new Error(`Strategic Analysis API returned ${response.status}: ${errorText}`);
       }
 
       const result = await response.json();
+      console.log('Strategic analysis result received:', !!result);
+
+      // Validate the result structure
+      if (!result || typeof result !== 'object') {
+        throw new Error('Invalid response format received from strategic analysis API');
+      }
 
       // Save to backend (overwrite existing result)
       if (saveAnalysisToBackend && typeof saveAnalysisToBackend === 'function') {
@@ -96,38 +146,84 @@ const StrategicAnalysis = ({
       }
 
       setLocalStrategicData(result);
+      setHasGenerated(true);
       return result;
 
     } catch (error) {
       console.error('Error generating strategic analysis:', error);
+      setErrorMessage(error.message || 'Failed to generate strategic analysis');
       throw error;
     } finally {
       setIsLoading(false);
+      isGenerating.current = false;
     }
   };
 
   const handleRegenerate = async () => {
-    try {
-      if (onRegenerate) {
-        // Call the parent's regenerate function
+    console.log('Strategic handleRegenerate called', { onRegenerate: !!onRegenerate });
+    
+    if (onRegenerate) {
+      try {
         await onRegenerate();
-      } else {
-        // Fallback: generate locally
-        setLocalStrategicData(null);
-        await generateStrategicAnalysis();
+      } catch (error) {
+        console.error('Error in Strategic regeneration:', error);
+        setErrorMessage(error.message || 'Failed to regenerate strategic analysis');
       }
-    } catch (error) {
-      console.error('Error regenerating strategic analysis:', error);
+    } else {
+      console.warn('No onRegenerate prop provided to StrategicAnalysis');
+      setErrorMessage('Regeneration not available');
     }
   };
 
+  // Check if the strategic data is empty/incomplete
+  const isStrategicDataIncomplete = (data) => {
+    if (!data) return true;
+
+    // Check if strategic_analysis exists
+    const analysisData = data.strategic_analysis || data;
+    if (!analysisData) return true;
+
+    // Check for key sections
+    const hasStrategicPillars = analysisData.strategic_pillars_analysis && 
+      Object.keys(analysisData.strategic_pillars_analysis).length > 0;
+    
+    const hasRoadmap = analysisData.implementation_roadmap && 
+      Object.keys(analysisData.implementation_roadmap).length > 0;
+    
+    const hasRiskAssessment = analysisData.risk_assessment && 
+      (analysisData.risk_assessment.strategic_risks?.length > 0 || 
+       analysisData.risk_assessment.contingency_plans?.length > 0);
+
+    // At least 2 main sections should have data for meaningful analysis
+    const sectionsWithData = [hasStrategicPillars, hasRoadmap, hasRiskAssessment].filter(Boolean).length;
+
+    return sectionsWithData < 2;
+  };
+
+  // Initialize component
+  useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
+    if (strategicData) {
+      setLocalStrategicData(strategicData);
+      setHasGenerated(true);
+      setErrorMessage('');
+    }
+  }, [strategicData]);
+
+  // Update data when prop changes
   useEffect(() => {
     if (strategicData) {
       setLocalStrategicData(strategicData);
-    } else if (!localStrategicData && !isLoading && Object.keys(userAnswers).length >= 3) {
-      generateStrategicAnalysis();
+      setHasGenerated(true);
+      setErrorMessage('');
+    } else if (strategicData === null) {
+      // Only reset if explicitly set to null (during regeneration)
+      setLocalStrategicData(null);
+      setHasGenerated(false);
     }
-  }, [strategicData, userAnswers, localStrategicData, isLoading]);
+  }, [strategicData]);
 
   const getPillarIcon = (pillarKey) => {
     const icons = {
@@ -166,74 +262,7 @@ const StrategicAnalysis = ({
   const formatPhaseName = (phaseKey) => {
     return phaseKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
-
-  const renderExecutiveSummaryTable = (data) => {
-    const summary = data?.executive_summary;
-    if (!summary) return null;
-
-    return (
-      <section className="strategic-page-section">
-        <div className="section-header" style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          borderBottom: 'none', marginBottom: '0px',
-          gap: '8px',
-          background: '#fff'
-        }}>
-          <Target size={24} style={{ color: 'blue' }} />
-          <h2>Executive Summary</h2>
-        </div>
-
-        <div className="table-container">
-          <table className="data-table">
-            <tbody>
-              <tr>
-                <td className="table-label">Situation Overview</td>
-                <td className="table-value">{summary.situation_overview}</td>
-              </tr>
-              <tr>
-                <td className="table-label">Urgency Level</td>
-                <td className="table-value">
-                  <span className="badge" style={{ backgroundColor: getPriorityColor(summary.urgency_level) }}>
-                    {summary.urgency_level}
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td className="table-label">Strategic Maturity Assessment</td>
-                <td className="table-value">{summary.strategic_maturity_assessment}</td>
-              </tr>
-              {summary.key_strategic_themes && summary.key_strategic_themes.length > 0 && (
-                <tr>
-                  <td className="table-label">Key Strategic Themes</td>
-                  <td className="table-value">
-                    <div className="tags-container">
-                      {summary.key_strategic_themes.map((theme, index) => (
-                        <span key={index} className="tag">{theme}</span>
-                      ))}
-                    </div>
-                  </td>
-                </tr>
-              )}
-              {summary.primary_vuca_factors && summary.primary_vuca_factors.length > 0 && (
-                <tr>
-                  <td className="table-label">Primary VUCA Factors</td>
-                  <td className="table-value">
-                    <div className="tags-container">
-                      {summary.primary_vuca_factors.map((factor, index) => (
-                        <span key={index} className="tag warning">{factor}</span>
-                      ))}
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    );
-  };
-
+ 
   const renderStrategicPillarsTable = (data) => {
     const pillars = data?.strategic_pillars_analysis;
     if (!pillars) return null;
@@ -881,32 +910,11 @@ const StrategicAnalysis = ({
   };
 
   const renderStrategicContent = () => {
-    if (isRegenerating || isLoading) {
-      return (
-        <div className="loading-state">
-          <Loader className="loading-spinner spin-animation" size={40} />
-          <h3 className="loading-title">Generating Strategic Analysis</h3>
-          <p className="loading-text">Building comprehensive strategic insights...</p>
-        </div>
-      );
-    }
-
-    if (!localStrategicData) {
-      return (
-        <div className="empty-state">
-          <Target className="empty-icon" size={48} />
-          <h3 className="empty-title">Strategic Analysis Pending</h3>
-          <p className="empty-text">Complete the questions to unlock your comprehensive strategic analysis.</p>
-        </div>
-      );
-    }
-
     // Extract strategic_analysis from the response
-    const analysisData = localStrategicData.strategic_analysis || localStrategicData;
+    const analysisData = localStrategicData?.strategic_analysis || localStrategicData;
 
     return (
-      <div className="strategic-content">
-        {renderExecutiveSummaryTable(analysisData)}
+      <div className="strategic-content"> 
         {renderStrategicPillarsTable(analysisData)}
         {renderCrossPillarSynthesisTable(analysisData)}
         {renderAgileFrameworksTable(analysisData)}
@@ -918,53 +926,66 @@ const StrategicAnalysis = ({
     );
   };
 
-  return (
-    <div className="strategic-analysis-container">
-      <div className="strategic-header" style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px',
-        borderBottom: '1px solid #e0e0e0',
-        padding: '0 20px'
-      }}>
-        <div className="section-header" style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          borderBottom: 'none',
-          marginBottom: '0px',
-          gap: '8px',
-          background: '#fff'
-        }}>
-          <Target size={24} style={{ color: 'blue' }} />
-          <h2>Strategic Analysis</h2>
+  // Loading state
+  if (isRegenerating || isLoading) {
+    return (
+      <div className="strategic-analysis-container">
+        <div className="loading-state">
+          <Loader className="loading-spinner spin-animation" size={40} />
+          <h3 className="loading-title">Generating Strategic Analysis</h3>
+          <p className="loading-text">Building comprehensive strategic insights...</p>
         </div>
-
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-           {!hideDownload && (
-            <DownloadStrategicAnalysis
-              strategicData={localStrategicData}
-              businessName={businessName}
-              isDisabled={!localStrategicData || isLoading || isRegenerating}
-              size="medium"
-            />
-          )}
-
-          <RegenerateButton
-            onRegenerate={handleRegenerate}
-            isRegenerating={isRegenerating}
-            canRegenerate={canRegenerate}
-            sectionName="Strategic Analysis"
-            size="medium"
-            buttonText="Generate"
-          />
-        </div>
-
       </div>
+    );
+  }
 
+  // Error state
+  if (errorMessage) {
+    return (
+      <div className="strategic-analysis-container">
+        <div className="error-state">
+          <div className="error-icon">⚠️</div>
+          <h3>Analysis Error</h3>
+          <p>{errorMessage}</p>
+          <button onClick={handleRegenerate} className="retry-button">
+            Retry Analysis
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if data is incomplete and show missing questions checker
+  if (!hasGenerated || !localStrategicData || isStrategicDataIncomplete(localStrategicData)) {
+    return (
+      <div className="strategic-analysis-container"
+           data-analysis-type="strategic"
+           data-analysis-name="Strategic Analysis"
+           data-analysis-order="10"> 
+        <AnalysisEmptyState
+          analysisType="strategic"
+          analysisDisplayName="Strategic Analysis"
+          icon={Target}
+          onImproveAnswers={handleMissingQuestionsCheck}
+          onRegenerate={canRegenerate && onRegenerate ? handleRegenerate : null}
+          isRegenerating={isRegenerating}
+          canRegenerate={canRegenerate && !!onRegenerate}
+          userAnswers={userAnswers}
+          minimumAnswersRequired={5}
+          customMessage="Complete essential phase questions to unlock comprehensive strategic analysis with implementation roadmaps and risk assessments."
+        /> 
+      </div>
+    );
+  }
+
+  return (
+    <div className="strategic-analysis-container"
+         data-analysis-type="strategic"
+         data-analysis-name="Strategic Analysis"
+         data-analysis-order="10">
       <div className="dashboard-container">
         {renderStrategicContent()}
-      </div>
+      </div> 
     </div>
   );
 };
