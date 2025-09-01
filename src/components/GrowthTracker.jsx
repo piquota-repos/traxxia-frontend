@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Loader } from 'lucide-react';
-import '../styles/goodPhase.css';
+import '../styles/goodPhase.css'; 
 import { useTranslation } from "../hooks/useTranslation";
 import AnalysisEmptyState from './AnalysisEmptyState';
 import { checkMissingQuestionsAndRedirect, ANALYSIS_TYPES } from '../services/missingQuestionsService';
@@ -51,10 +51,11 @@ const GrowthTracker = ({
   };
 
   const isGrowthDataIncomplete = (data) => {
-    if (!data || !data.growthTracker) return true;
-    
-    const { growthTracker } = data;
-    return !growthTracker['Revenue Trend'] && !growthTracker['Net Income Trend'];
+    if (!data) return true;
+    // Check if revenue data exists - actual API structure: growth_trends.revenue.values
+    const hasRevenueData = data.growth_trends?.revenue?.values && Object.keys(data.growth_trends.revenue.values).length > 0;
+     
+    return !hasRevenueData;
   };
 
   const handleRegenerate = async () => {
@@ -67,7 +68,8 @@ const GrowthTracker = ({
   };
 
   useEffect(() => {
-    if (growthData && growthData !== analysisData) {
+    if (growthData && growthData !== analysisData) { 
+      
       setAnalysisData(growthData);
       if (onDataGenerated) {
         onDataGenerated(growthData);
@@ -120,18 +122,22 @@ const GrowthTracker = ({
     }
   };
 
-  const prepareChartData = (revenueTrend, netIncomeTrend) => {
-    if (!revenueTrend || !netIncomeTrend) return [];
+  const prepareChartData = (revenueData) => { 
     
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (!revenueData || !revenueData.values) return [];
     
-    return revenueTrend.map((revenue, index) => ({
-      month: months[index] || `M${index + 1}`,
-      revenue: revenue,
-      netIncome: netIncomeTrend[index] || 0,
-      period: index + 1
-    }));
+    const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    const chartData = monthOrder.map(month => {
+      const revenue = revenueData.values[month] || 0;
+      return {
+        month: month.substr(0, 3),
+        revenue: revenue,
+        period: monthOrder.indexOf(month) + 1
+      };
+    }).filter(item => item.revenue > 0);    
+    return chartData;
   };
 
   const formatCurrency = (value) => {
@@ -144,18 +150,27 @@ const GrowthTracker = ({
     return `$${value.toFixed(0)}`;
   };
 
+  const formatPercentage = (value) => {
+    if (value === null || value === undefined) return 'N/A';
+    return `${(value * 100).toFixed(1)}%`;
+  };
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="ch-tooltip">
-          <div className="ch-tooltip-header">{label}</div>
-          <div className="ch-tooltip-content">
-            <div style={{ color: '#8884d8' }}>
-              Revenue: {formatCurrency(payload[0]?.value || 0)}
-            </div>
-            <div style={{ color: '#82ca9d' }}>
-              Net Income: {formatCurrency(payload[1]?.value || 0)}
-            </div>
+        <div style={{
+          backgroundColor: '#fff',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          padding: '8px 12px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          fontSize: '14px',
+          zIndex: 1000,
+          position: 'relative'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{label}</div>
+          <div style={{ color: '#8884d8' }}>
+            Revenue: {formatCurrency(payload[0]?.value || 0)}
           </div>
         </div>
       );
@@ -210,8 +225,8 @@ const GrowthTracker = ({
           
           showFileUpload={true}
           onFileUpload={handleFileUpload}
-          onGenerateWithFile={() => {}} // Will be handled by parent
-          onGenerateWithoutFile={() => {}} // Will be handled by parent
+          onGenerateWithFile={() => {}}
+          onGenerateWithoutFile={() => {}}
           uploadedFile={uploadedFile}
           onRemoveFile={removeFile}
           isUploading={false}
@@ -222,12 +237,12 @@ const GrowthTracker = ({
     );
   }
 
-  const { growthTracker } = analysisData;
-  const chartData = prepareChartData(growthTracker['Revenue Trend'], growthTracker['Net Income Trend']);
-
-  // Calculate totals
-  const totalRevenue = growthTracker['Revenue Trend']?.reduce((sum, val) => sum + val, 0) || 0;
-  const totalNetIncome = growthTracker['Net Income Trend']?.reduce((sum, val) => sum + val, 0) || 0;
+  const chartData = prepareChartData(analysisData?.growth_trends?.revenue);
+  
+  // Calculate metrics from actual API data
+  const revenueValues = Object.values(analysisData?.growth_trends?.revenue?.values || {});
+  const totalRevenue = revenueValues.reduce((sum, val) => sum + val, 0);
+  const avgMonthlyRevenue = totalRevenue / revenueValues.length; 
 
   return (
     <div className="channel-heatmap channel-heatmap-container" 
@@ -235,54 +250,15 @@ const GrowthTracker = ({
          data-analysis-name="Growth Tracker"
          data-analysis-order="2">
 
-      {/* Key Metrics */}
-      <div className="ch-metrics">
-        <div className="ch-metric-card ch-metric-blue">
-          <div className="ch-metric-header">
-            <TrendingUp size={20} />
-            <span>Total Revenue</span>
-          </div>
-          <p className="ch-metric-value">{formatCurrency(totalRevenue)}</p>
-        </div>
-
-        <div className="ch-metric-card ch-metric-green">
-          <div className="ch-metric-header">
-            <TrendingUp size={20} />
-            <span>Total Net Income</span>
-          </div>
-          <p className="ch-metric-value" style={{
-            color: totalNetIncome >= 0 ? '#10b981' : '#ef4444'
-          }}>
-            {formatCurrency(totalNetIncome)}
-          </p>
-        </div>
-
-        <div className="ch-metric-card ch-metric-purple">
-          <div className="ch-metric-header">
-            <TrendingUp size={20} />
-            <span>Avg Monthly Revenue</span>
-          </div>
-          <p className="ch-metric-value">
-            {formatCurrency(totalRevenue / (growthTracker['Revenue Trend']?.length || 1))}
-          </p>
-        </div>
-      </div>
-
       {/* Charts Section */}
       <div className="ch-heatmap-container">
-        <div className="ch-heatmap-scroll">
-          <div className="ch-heatmap-header-section">
-            <h3 className="ch-section-title">Revenue & Net Income Trends</h3>
-            <p className="ch-section-subtitle">
-              Monthly performance tracking with growth patterns
-            </p>
-          </div>
+        <div className="ch-heatmap-scroll"> 
 
           <div className="ch-charts-grid">
-            {/* Combined Growth Chart */}
-            <div className="ch-chart-section" style={{ gridColumn: '1 / -1' }}>
-              <h4>Revenue vs Net Income Trend</h4>
-              <div className="ch-chart-wrapper" style={{ height: '400px' }}>
+            {/* Revenue Chart */}
+            <div className="ch-chart-section ch-chart-section-full">
+              <h4>Monthly Revenue Trend</h4>
+              <div className="ch-chart-wrapper ch-chart-wrapper-large">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -290,58 +266,51 @@ const GrowthTracker = ({
                     <YAxis tickFormatter={formatCurrency} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="revenue" fill="#8884d8" name="Revenue" />
-                    <Bar dataKey="netIncome" name="Net Income">
-                      {chartData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.netIncome >= 0 ? '#82ca9d' : '#ff7c7c'}
-                        />
-                      ))}
-                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+              
+              {/* QoQ Growth Indicators */}
+              {analysisData?.growth_trends?.revenue?.qoq_growth && (
+                <div className="qoq-indicators">
+                  {Object.entries(analysisData.growth_trends.revenue.qoq_growth).map(([quarter, growth]) => (
+                    <div 
+                      key={quarter} 
+                      className={`qoq-badge ${growth === null ? 'neutral' : growth >= 0 ? 'positive' : 'negative'}`}
+                    >
+                      {quarter}: {growth === null ? 'N/A' : formatPercentage(growth)}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Growth Insights */}
-          <div className="growth-insights" style={{
-            backgroundColor: '#f8fafc',
-            borderRadius: '12px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            marginTop: '20px'
-          }}>
-            <h4 style={{
-              fontSize: '16px',
-              fontWeight: 600,
-              color: '#374151',
-              marginBottom: '16px'
-            }}>
-              Growth Insights
-            </h4>
+          {/* Simple Revenue Insights */}
+          <div className="growth-insights">
+            <h4>Revenue Insights</h4>
             
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '16px'
-            }}>
-              <div>
-                <strong style={{ color: '#1f2937' }}>Revenue Performance:</strong>
-                <span style={{ color: '#6b7280', marginLeft: '8px' }}>
-                  {totalRevenue > 0 ? 'Positive revenue generation' : 'Revenue challenges'}
+            <div className="growth-insights-grid">
+              <div className="growth-insight-item">
+                <strong>Total Revenue:</strong>
+                <span className="growth-insight-value positive">
+                  {formatCurrency(totalRevenue)}
                 </span>
               </div>
-              <div>
-                <strong style={{ color: '#1f2937' }}>Profitability:</strong>
-                <span style={{ color: totalNetIncome >= 0 ? '#10b981' : '#ef4444', marginLeft: '8px' }}>
-                  {totalNetIncome >= 0 ? 'Profitable operations' : 'Loss-making periods'}
+              <div className="growth-insight-item">
+                <strong>Best Month:</strong>
+                <span className="growth-insight-value positive">
+                  {Object.entries(analysisData?.growth_trends?.revenue?.values || {})
+                    .reduce((max, [month, revenue]) => revenue > max.revenue ? {month, revenue} : max, {month: 'N/A', revenue: 0})
+                    .month} ({formatCurrency(Object.entries(analysisData?.growth_trends?.revenue?.values || {})
+                    .reduce((max, [month, revenue]) => revenue > max.revenue ? {month, revenue} : max, {month: 'N/A', revenue: 0})
+                    .revenue)})
                 </span>
               </div>
-              <div>
-                <strong style={{ color: '#1f2937' }}>Data Points:</strong>
-                <span style={{ color: '#6b7280', marginLeft: '8px' }}>
-                  {growthTracker['Revenue Trend']?.length || 0} months of data
+              <div className="growth-insight-item">
+                <strong>Data Coverage:</strong>
+                <span className="growth-insight-value neutral">
+                  {revenueValues.length} months tracked
                 </span>
               </div>
             </div>
