@@ -127,8 +127,8 @@ const createAnalysisContentManagerProps = (state, props) => {
     highlightedCard,
     expandedCards,
     setExpandedCards,
-    onRedirectToChat: handleRedirectToChat,   
-    isMobile, 
+    onRedirectToChat: handleRedirectToChat,
+    isMobile,
     setActiveTab,
     hasUploadedDocument
   };
@@ -210,38 +210,39 @@ const BusinessSetupPage = () => {
   const [hasUploadedDocument, setHasUploadedDocument] = useState(false);
   const [highlightedCard, setHighlightedCard] = useState(null);
   const [expandedCards, setExpandedCards] = useState(new Set());
+  const [shouldScrollToUpload, setShouldScrollToUpload] = useState(false);
 
   const [selectedDropdownValue, setSelectedDropdownValue] = useState("Go to Section");
   const hasLoadedAnalysis = useRef(false);
   useEffect(() => {
     setHasUploadedDocument(!!uploadedFileForAnalysis);
-  }, [uploadedFileForAnalysis]); 
+  }, [uploadedFileForAnalysis]);
   const showToastMessage = createToastMessage(setShowToast);
 
-  const stateSetters = { 
+  const stateSetters = {
     setSwotAnalysisResult,
     setPurchaseCriteriaData,
     setLoyaltyNPSData,
     setPortersData,
-    setPestelData, 
+    setPestelData,
     setFullSwotData,
     setCompetitiveAdvantageData,
     setExpandedCapabilityData,
     setStrategicRadarData,
     setProductivityData,
-    setMaturityData, 
+    setMaturityData,
     setProfitabilityData,
     setGrowthTrackerData,
     setLiquidityEfficiencyData,
     setInvestmentPerformanceData,
-    setLeverageRiskData, 
+    setLeverageRiskData,
     uploadedFile: uploadedFileForAnalysis,
   };
 
   const handleFileUploaded = (file, validationResult) => {
     setUploadedFileForAnalysis(file);
     setHasUploadedDocument(true);
-  }; 
+  };
 
   const handleRedirectToBrief = (missingQuestionsData) => {
     setHighlightedMissingQuestions(missingQuestionsData);
@@ -271,7 +272,7 @@ const BusinessSetupPage = () => {
 
     try {
       isRegeneratingRef.current = true;
-      setIsAnalysisRegenerating(true); 
+      setIsAnalysisRegenerating(true);
       const targetPhase = phaseOverride || getCurrentPhase();
 
       await apiService.handlePhaseCompletion(
@@ -289,7 +290,7 @@ const BusinessSetupPage = () => {
       isRegeneratingRef.current = false;
       setIsAnalysisRegenerating(false);
     }
-  }; 
+  };
 
   const loadExistingAnalysisData = (phaseAnalysisArray) => {
     try {
@@ -385,7 +386,7 @@ const BusinessSetupPage = () => {
     } finally {
       setIsStrategicRegenerating(false);
     }
-  }; 
+  };
 
   const handleQuestionsLoaded = (loadedQuestions) => {
     setQuestions(loadedQuestions);
@@ -393,7 +394,7 @@ const BusinessSetupPage = () => {
   };
 
   const handleNewAnswer = async (questionId, answer) => {
-    setUserAnswers(prev => ({ ...prev, [questionId]: answer })); 
+    setUserAnswers(prev => ({ ...prev, [questionId]: answer }));
     const updates = {};
     if (questionId === 1) {
       const businessName = extractBusinessName(answer);
@@ -409,7 +410,7 @@ const BusinessSetupPage = () => {
       setBusinessData(prev => ({ ...prev, ...updates }));
     }
   };
- 
+
   const handleQuestionCompleted = async (questionId) => {
     const newCompletedSet = new Set([...completedQuestions, questionId]);
     setCompletedQuestions(newCompletedSet);
@@ -421,7 +422,7 @@ const BusinessSetupPage = () => {
   };
 
   const handleAnswerUpdate = (questionId, newAnswer) => {
-    setUserAnswers(prev => ({ ...prev, [questionId]: newAnswer })); 
+    setUserAnswers(prev => ({ ...prev, [questionId]: newAnswer }));
     const updates = {};
     if (questionId === 1) {
       const businessName = extractBusinessName(newAnswer);
@@ -436,7 +437,7 @@ const BusinessSetupPage = () => {
       setBusinessData(prev => ({ ...prev, ...updates }));
     }
   };
- 
+
   const handleAnalysisTabClick = () => {
     const unlockedFeatures = phaseManager.getUnlockedFeatures();
     if (!unlockedFeatures.analysis) return;
@@ -478,10 +479,10 @@ const BusinessSetupPage = () => {
     }
   };
 
-  const handleBack = () => window.history.back(); 
+  const handleBack = () => window.history.back();
 
   const handleOptionClick = (option) => {
-    setShowDropdown(false); 
+    setShowDropdown(false);
     const cardIdMap = {
       "SWOT": "swot",
       "Purchase Criteria": "purchase-criteria",
@@ -502,9 +503,9 @@ const BusinessSetupPage = () => {
     };
 
     const cardId = cardIdMap[option];
-    if (cardId) { 
-      setHighlightedCard(cardId); 
-      setExpandedCards(prev => new Set([...prev, cardId])); 
+    if (cardId) {
+      setHighlightedCard(cardId);
+      setExpandedCards(prev => new Set([...prev, cardId]));
       setTimeout(() => {
         setHighlightedCard(null);
       }, 3000);
@@ -628,7 +629,7 @@ const BusinessSetupPage = () => {
 
         let result;
 
-        try { 
+        try {
           switch (analysisType) {
             case 'swot':
               result = await apiService.generateSWOTAnalysis(questions, userAnswers, selectedBusinessId);
@@ -722,10 +723,10 @@ const BusinessSetupPage = () => {
       }
     };
   };
-  const handleRedirectToChat = () => {
+  const handleRedirectToChat = (params = {}) => {
     if (isMobile) {
       setActiveTab("chat");
-    } else { 
+    } else {
       if (isAnalysisExpanded) {
         setIsSliding(true);
         setIsAnalysisExpanded(false);
@@ -734,6 +735,11 @@ const BusinessSetupPage = () => {
       } else {
         setActiveTab("brief");
       }
+    }
+
+    // Handle scroll request
+    if (params.scrollToUploadCard) {
+      setShouldScrollToUpload(true);
     }
   };
 
@@ -749,11 +755,11 @@ const BusinessSetupPage = () => {
     createSimpleRegenerationHandler,
     apiLoadingStates,
     uploadedFileForAnalysis,
-    highlightedCard, 
-    expandedCards,     
+    highlightedCard,
+    expandedCards,
     setExpandedCards,
-    handleRedirectToChat,  
-    isMobile,  
+    handleRedirectToChat,
+    isMobile,
     setActiveTab
   });
 
@@ -764,74 +770,98 @@ const BusinessSetupPage = () => {
   const getPhaseSpecificOptions = (phase) => {
     const unlockedFeatures = phaseManager.getUnlockedFeatures();
 
-    const baseOptions = {
-      initial: [
-        "Purchase Criteria",
-        "Loyalty/NPS",
-        "Porter's Five Forces",
-        "PESTEL Analysis"
-      ],
-      essential: [
-        "Full SWOT Portfolio",
-        "Competitive Advantage",
-        "Capability Heatmap",
-        "Strategic Positioning Radar",
-        "Productivity Metrics",
-        "Maturity Score",
-        "Purchase Criteria",
-        "Loyalty/NPS",
-        "Porter's Five Forces",
-        "PESTEL Analysis"
-      ],
-      good: [
-        ...(hasUploadedDocument ? [
-          "Profitability Analysis",
-          "Growth Tracker",
-          "Liquidity & Efficiency",
-          "Investment Performance",
-          "Leverage & Risk"
-        ] : []),
-        "Full SWOT Portfolio",
-        "Competitive Advantage",
-        "Capability Heatmap",
-        "Strategic Positioning Radar",
-        "Productivity Metrics",
-        "Maturity Score",
-        "Purchase Criteria",
-        "Loyalty/NPS",
-        "Porter's Five Forces",
-        "PESTEL Analysis"
-      ],
-      advanced: [
-        ...(hasUploadedDocument ? [
-          "Profitability Analysis",
-          "Growth Tracker",
-          "Liquidity & Efficiency",
-          "Investment Performance",
-          "Leverage & Risk"
-        ] : []),
-        "Full SWOT Portfolio",
-        "Competitive Advantage",
-        "Capability Heatmap",
-        "Strategic Positioning Radar",
-        "Productivity Metrics",
-        "Maturity Score",
-        "Purchase Criteria",
-        "Loyalty/NPS",
-        "Porter's Five Forces",
-        "PESTEL Analysis"
-      ]
+    // Return categorized options instead of flattened array
+    const categoryOptions = {
+      initial: {
+        "Context/Industry": [
+          ...(unlockedFeatures.fullSwot ? [] : ["SWOT"]),
+          "Porter's Five Forces",
+          "PESTEL Analysis"
+        ],
+        "Customer": [
+          "Purchase Criteria",
+          "Loyalty/NPS"
+        ]
+      },
+      essential: {
+        "Costs/Financial": [
+          "Productivity Metrics"
+        ],
+        "Context/Industry": [
+          "Full SWOT Portfolio",
+          "Strategic Positioning Radar",
+          "Porter's Five Forces",
+          "PESTEL Analysis"
+        ],
+        "Customer": [
+          "Competitive Advantage",
+          "Purchase Criteria",
+          "Loyalty/NPS"
+        ],
+        "Capabilities": [
+          "Capability Heatmap",
+          "Maturity Score"
+        ]
+      },
+      good: {
+        "Costs/Financial": [
+          ...(hasUploadedDocument ? [
+            "Profitability Analysis",
+            "Growth Tracker",
+            "Liquidity & Efficiency",
+            "Investment Performance",
+            "Leverage & Risk"
+          ] : []),
+          "Productivity Metrics"
+        ],
+        "Context/Industry": [
+          "Full SWOT Portfolio",
+          "Strategic Positioning Radar",
+          "Porter's Five Forces",
+          "PESTEL Analysis"
+        ],
+        "Customer": [
+          "Competitive Advantage",
+          "Purchase Criteria",
+          "Loyalty/NPS"
+        ],
+        "Capabilities": [
+          "Capability Heatmap",
+          "Maturity Score"
+        ]
+      },
+      advanced: {
+        "Costs/Financial": [
+          ...(hasUploadedDocument ? [
+            "Profitability Analysis",
+            "Growth Tracker",
+            "Liquidity & Efficiency",
+            "Investment Performance",
+            "Leverage & Risk"
+          ] : []),
+          "Productivity Metrics"
+        ],
+        "Context/Industry": [
+          "Full SWOT Portfolio",
+          "Strategic Positioning Radar",
+          "Porter's Five Forces",
+          "PESTEL Analysis"
+        ],
+        "Customer": [
+          "Competitive Advantage",
+          "Purchase Criteria",
+          "Loyalty/NPS"
+        ],
+        "Capabilities": [
+          "Capability Heatmap",
+          "Maturity Score"
+        ]
+      }
     };
 
-    if (phase === 'initial' && !unlockedFeatures.fullSwot) {
-      return [
-        "SWOT",
-        ...baseOptions.initial
-      ];
-    }
-    return baseOptions[phase] || [];
+    return categoryOptions[phase] || {};
   };
- 
+
   const getCurrentPhase = () => {
     const unlockedFeatures = phaseManager.getUnlockedFeatures();
 
@@ -857,7 +887,7 @@ const BusinessSetupPage = () => {
     } else {
       setCurrentPhase('initial');
     }
-  }, [phaseManager, hasAnalysisData, fullSwotData, profitabilityData]); 
+  }, [phaseManager, hasAnalysisData, fullSwotData, profitabilityData]);
 
   const AnalysisControls = () => {
     const unlockedFeatures = phaseManager.getUnlockedFeatures();
@@ -885,7 +915,7 @@ const BusinessSetupPage = () => {
       </div>
     );
   };
- 
+
   useEffect(() => {
     if (selectedBusinessId && questionsLoaded && questions.length > 0 && !hasLoadedAnalysis.current) {
       hasLoadedAnalysis.current = true;
@@ -1014,7 +1044,7 @@ const BusinessSetupPage = () => {
             onBusinessDataUpdate={handleBusinessDataUpdate}
             onNewAnswer={handleNewAnswer}
             onQuestionsLoaded={handleQuestionsLoaded}
-            onQuestionCompleted={handleQuestionCompleted} 
+            onQuestionCompleted={handleQuestionCompleted}
             onPhaseCompleted={async (phase, completedSet) => {
               if (phase === 'good') {
                 try {
@@ -1034,6 +1064,8 @@ const BusinessSetupPage = () => {
               }
             }}
             onFileUploaded={handleFileUploaded}
+            scrollToUploadCard={shouldScrollToUpload}   
+            onScrollCompleted={() => setShouldScrollToUpload(false)} 
           />
         </div>
         {questionsLoaded && (
@@ -1094,35 +1126,36 @@ const BusinessSetupPage = () => {
                             </button>
 
                             {showDropdown && (() => {
-                              const options = getPhaseSpecificOptions(currentPhase);
-                              const phaseLabels = {
-                                initial: 'Initial Phase',
-                                essential: 'Essential Phase',
-                                good: 'Good Phase'
-                              };
+                              const categoryOptions = getPhaseSpecificOptions(currentPhase);
 
-                              return options.length > 0 && (
+
+                              return Object.keys(categoryOptions).length > 0 && (
                                 <div className="dropdown-menu-options">
-                                  <div className="dropdown-phase-header">
-                                    {phaseLabels[currentPhase]} Sections
-                                  </div>
 
-                                  {options.map((item, index) => (
-                                    <div
-                                      key={item}
-                                      onClick={() => {
-                                        handleOptionClick(item);
-                                        setSelectedDropdownValue(item);
-                                      }}
-                                      className={`dropdown-option ${index < options.length - 1 ? 'has-border' : ''}`}
-                                    >
-                                      <span className="bullet"></span>
-                                      {item}
-                                    </div>
-                                  ))}
+                                  {Object.entries(categoryOptions).map(([category, items]) =>
+                                    items.length > 0 && (
+                                      <div key={category}>
+                                        <div className="dropdown-category-header">{category}</div>
+                                        {items.map((item, index) => (
+                                          <div
+                                            key={item}
+                                            onClick={() => {
+                                              handleOptionClick(item);
+                                              setSelectedDropdownValue(item);
+                                            }}
+                                            className="dropdown-option dropdown-sub-option"
+                                          >
+                                            <span className="bullet"></span>
+                                            {item}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )
+                                  )}
                                 </div>
                               );
                             })()}
+
                           </div>
 
                           <PDFExportButton
