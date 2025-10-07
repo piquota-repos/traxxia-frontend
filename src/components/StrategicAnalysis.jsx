@@ -626,7 +626,6 @@ const StrategicAnalysis = ({
                       alignItems: 'center'
                     }}>
                       <div style={{
-                        width: 'auto',
                         fontSize: '12px',
                         fontWeight: '600',
                         marginRight: '12px',
@@ -789,6 +788,176 @@ const StrategicAnalysis = ({
                 </div>
               </div>
             </>
+          )}
+
+          {execution.kpi_dashboard && (
+            <div className="subsection">
+              <h4 className="subsection-title">
+                <BarChart3 size={18} className="execution-icon" />
+                KPI Dashboard
+              </h4>
+
+              {execution.kpi_dashboard.review_cadence && (
+                <div className="info-box execution">
+                  <Clock size={16} className="execution-icon" />
+                  <span className="info-box-text execution">
+                    Review Cadence: {execution.kpi_dashboard.review_cadence}
+                  </span>
+                </div>
+              )}
+
+              {execution.kpi_dashboard.adoption_metrics && execution.kpi_dashboard.adoption_metrics.length > 0 && (
+                <div className="subsection">
+                  <h5 className="subsection-title">
+                    <TrendingUp size={14} style={{ color: '#3b82f6' }} />
+                    Adoption Metrics
+                  </h5>
+                  <div className="table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Metric</th>
+                          <th>Target</th>
+                          <th>Owner</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {execution.kpi_dashboard.adoption_metrics.map((metric, idx) => (
+                          <tr key={idx}>
+                            <td className="table-value">{metric.metric}</td>
+                            <td className="table-value">
+                              <span className="badge adoption">
+                                {metric.target}
+                              </span>
+                            </td>
+                            <td className="table-value">
+                              <div className="flex-center">
+                                <Users size={12} />
+                                {metric.owner}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {execution.kpi_dashboard.network_metrics && execution.kpi_dashboard.network_metrics.length > 0 && (
+                <div className="subsection">
+                  <h5 className="subsection-title">
+                    <Link2 size={14} style={{ color: '#8b5cf6' }} />
+                    Network Metrics
+                  </h5>
+                  <div className="table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Metric</th>
+                          <th>Target</th>
+                          <th>Owner</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {execution.kpi_dashboard.network_metrics.map((metric, idx) => (
+                          <tr key={idx}>
+                            <td className="table-value">{metric.metric}</td>
+                            <td className="table-value">
+                              <span className="badge network">
+                                {metric.target}
+                              </span>
+                            </td>
+                            <td className="table-value">
+                              <div className="flex-center">
+                                <Users size={12} />
+                                {metric.owner}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {execution.kpi_dashboard.operational_metrics && execution.kpi_dashboard.operational_metrics.length > 0 && (
+                <div className="subsection">
+                  <h5 className="subsection-title">
+                    <Activity size={14} style={{ color: '#f59e0b' }} />
+                    Operational Metrics
+                  </h5>
+                  <div className="table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Metric</th>
+                          <th>Target</th>
+                          <th>Owner</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {execution.kpi_dashboard.operational_metrics.map((metric, idx) => (
+                          <tr key={idx}>
+                            <td className="table-value">{metric.metric}</td>
+                            <td className="table-value">
+                              <span className="badge operational">
+                                {metric.target}
+                              </span>
+                            </td>
+                            <td className="table-value">
+                              <div className="flex-center">
+                                <Users size={12} />
+                                {metric.owner}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {execution.kpi_dashboard.financial_metrics && execution.kpi_dashboard.financial_metrics.length > 0 && (
+                <div className="subsection">
+                  <h5 className="subsection-title">
+                    <DollarSign size={14} style={{ color: '#10b981' }} />
+                    Financial Metrics
+                  </h5>
+                  <div className="table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Metric</th>
+                          <th>Target</th>
+                          <th>Owner</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {execution.kpi_dashboard.financial_metrics.map((metric, idx) => (
+                          <tr key={idx}>
+                            <td className="table-value">{metric.metric}</td>
+                            <td className="table-value">
+                              <span className="badge financial">
+                                {metric.target}
+                              </span>
+                            </td>
+                            <td className="table-value">
+                              <div className="flex-center">
+                                <Users size={12} />
+                                {metric.owner}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
